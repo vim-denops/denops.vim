@@ -11,7 +11,6 @@ function! denops#server#vim#start(exec, args) abort
   let args = [a:exec, 'run'] + a:args + [s:script]
   let job = job_start(args, {
         \ 'noblock': 1,
-        \ 'timeout': 1000000,
         \ 'mode': 'json',
         \ 'err_mode': 'nl',
         \ 'err_cb': funcref('s:err_cb'),
