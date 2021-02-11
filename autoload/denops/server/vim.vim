@@ -10,6 +10,7 @@ function! denops#server#vim#start(exec, args) abort
   endif
   let args = [a:exec, 'run'] + a:args + [s:script]
   let job = job_start(args, {
+        \ 'noblock': 1,
         \ 'mode': 'json',
         \ 'err_mode': 'nl',
         \ 'err_cb': funcref('s:err_cb'),
@@ -22,13 +23,11 @@ function! denops#server#vim#start(exec, args) abort
 endfunction
 
 function! denops#server#vim#notify(server, method, params) abort
-  let chan = job_getchannel(a:server)
-  call ch_sendraw(chan, json_encode([0, [a:method, a:params]]))
+  call ch_sendraw(a:server, json_encode([0, [a:method] + a:params]) . "\n")
 endfunction
 
 function! denops#server#vim#request(server, method, params) abort
-  let chan = job_getchannel(a:server)
-  return ch_evalexpr(chan, [a:method, a:params])
+  return ch_evalexpr(a:server, [a:method] + a:params)
 endfunction
 
 function! s:err_cb(ch, msg) abort
