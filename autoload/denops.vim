@@ -23,6 +23,6 @@ function! denops#error(...) abort
   echohl None
 endfunction
 
-function! denops#call(plugin, method, ...) abort
-  return denops#server#request('dispatch', a:plugin, a:method, a:000)
+function! denops#call(plugin, method, params) abort
+  return denops#server#request('dispatch', [a:plugin, a:method, a:params])
 endfunction

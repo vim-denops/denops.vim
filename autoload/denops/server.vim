@@ -8,18 +8,18 @@ function! denops#server#start() abort
   doautocmd User DenopsReady
 endfunction
 
-function! denops#server#notify(method, ...) abort
+function! denops#server#notify(method, params) abort
   if s:server is# v:null
     throw printf('[denops] The server is not started yet')
   endif
-  return s:notify(s:server, a:method, a:000)
+  return s:notify(s:server, a:method, a:params)
 endfunction
 
-function! denops#server#request(method, ...) abort
+function! denops#server#request(method, params) abort
   if s:server is# v:null
     throw printf('[denops] The server is not started yet')
   endif
-  return s:request(s:server, a:method, a:000)
+  return s:request(s:server, a:method, a:params)
 endfunction
 
 if has('nvim')
