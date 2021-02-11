@@ -5,5 +5,5 @@ function! denops#plugin#register(name, script) abort
 endfunction
 
 let g:denops#plugin#deno_exec = get(g:, 'denops#plugin#deno_exec', g:denops#server#deno_exec)
-let g:denops#plugin#deno_args = get(g:, 'denops#plugin#deno_args', ['-q', '-r'])
+let g:denops#plugin#deno_args = get(g:, 'denops#plugin#deno_args', ['-q'])
 let g:denops#plugin#deno_args_map = get(g:, 'denops#plugin#deno_args_map', {})
