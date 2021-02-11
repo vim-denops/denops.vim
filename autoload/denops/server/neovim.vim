@@ -1,14 +1,14 @@
 let s:sep = has('win32') ? '\' : '/'
 let s:root = expand('<sfile>:h:h:h:h')
-let s:script = join([s:root, 'denops', 'nvim.ts'], s:sep)
+let s:script = join([s:root, 'denops', 'denops', 'neovim.ts'], s:sep)
 
-function! denops#server#nvim#start(exec, args) abort
+function! denops#server#neovim#start(exec, args) abort
   if !executable(a:exec)
     throw printf('[denops] deno is not executable: %s', s:deno)
   elseif !filereadable(s:script)
     throw printf('[denops] No denops server script file exists: %s', s:script)
   endif
-  let args = [a:exec, 'run'] + a:args + [s:script]
+  let args = [a:exec, 'run'] + a:args + [s:script, 'neovim']
   let job = jobstart(args, {
         \ 'rpc': v:true,
         \ 'on_stderr': funcref('s:on_stderr'),
@@ -20,11 +20,11 @@ function! denops#server#nvim#start(exec, args) abort
   return job
 endfunction
 
-function! denops#server#nvim#notify(server, method, params) abort
+function! denops#server#neovim#notify(server, method, params) abort
   call call('rpcnotify', [a:server, a:method] + a:params)
 endfunction
 
-function! denops#server#nvim#request(server, method, params) abort
+function! denops#server#neovim#request(server, method, params) abort
   return call('rpcrequest', [a:server, a:method] + a:params)
 endfunction
 

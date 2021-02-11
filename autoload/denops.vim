@@ -1,28 +1,28 @@
-let s:server = v:null
-
-function! denops#start() abort
-  if s:server isnot# v:null
-    throw printf('[denops] The server is already running')
-  endif
-  let s:server = denops#server#nvim#start(
-        \ g:denops#deno_exec,
-        \ g:denops#deno_args,
-        \)
+function! denops#debug(...) abort
+  let msg = join(a:000)
+  echohl Comment
+  for line in split(msg, '\n')
+    echomsg printf('[denops] %s', line)
+  endfor
+  echohl None
 endfunction
 
-function! denops#notify(method, ...) abort
-  if s:server is# v:null
-    throw printf('[denops] The server is not started yet')
-  endif
-  return denops#server#nvim#notify(s:server, a:method, a:000)
+function! denops#info(...) abort
+  let msg = join(a:000)
+  for line in split(msg, '\n')
+    echomsg printf('[denops] %s', line)
+  endfor
 endfunction
 
-function! denops#request(method, ...) abort
-  if s:server is# v:null
-    throw printf('[denops] The server is not started yet')
-  endif
-  return denops#server#nvim#request(s:server, a:method, a:000)
+function! denops#error(...) abort
+  let msg = join(a:000)
+  echohl ErrorMsg
+  for line in split(msg, '\n')
+    echomsg printf('[denops] %s', line)
+  endfor
+  echohl None
 endfunction
 
-let g:denops#deno_exec = get(g:, 'denops#deno_exec', exepath('deno'))
-let g:denops#deno_args = get(g:, 'denops#deno_args', ['-A', '--unstable'])
+function! denops#call(plugin, method, ...) abort
+  return denops#server#request('dispatch', a:plugin, a:method, a:000)
+endfunction
