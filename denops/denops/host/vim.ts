@@ -34,8 +34,8 @@ class Vim extends AbstractHost {
         const result = await service.echo(text);
         await this.reply(msgid, result);
       } else if (isRegisterMessage(expr)) {
-        const [_, name, cmd] = expr;
-        const result = await service.register(name, cmd);
+        const [_, name, script] = expr;
+        const result = await service.register(name, script);
         await this.reply(msgid, result);
       } else if (isDispatchMessage(expr)) {
         const [_, name, fn, args] = expr;
@@ -66,7 +66,7 @@ export function createVim(
 
 type EchoMessage = ["echo", string];
 
-type RegisterMessage = ["register", string, string[]];
+type RegisterMessage = ["register", string, string];
 
 type DispatchMessage = ["dispatch", string, string, unknown[]];
 
@@ -79,6 +79,16 @@ function isEchoMessage(data: unknown): data is EchoMessage {
   );
 }
 
+function isRegisterMessage(data: unknown): data is RegisterMessage {
+  return (
+    Array.isArray(data) &&
+    data.length === 3 &&
+    data[0] === "register" &&
+    typeof data[1] === "string" &&
+    typeof data[2] === "string"
+  );
+}
+
 function isDispatchMessage(data: unknown): data is DispatchMessage {
   return (
     Array.isArray(data) &&
@@ -87,15 +97,5 @@ function isDispatchMessage(data: unknown): data is DispatchMessage {
     typeof data[1] === "string" &&
     typeof data[2] === "string" &&
     Array.isArray(data[3])
-  );
-}
-
-function isRegisterMessage(data: unknown): data is RegisterMessage {
-  return (
-    Array.isArray(data) &&
-    data.length === 3 &&
-    data[0] === "register" &&
-    typeof data[1] === "string" &&
-    Array.isArray(data[2])
   );
 }

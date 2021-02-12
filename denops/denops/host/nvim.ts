@@ -38,14 +38,14 @@ class Neovim extends AbstractHost {
         return await service.echo(text);
       },
 
-      async register(name: unknown, cmd: unknown): Promise<unknown> {
+      async register(name: unknown, script: unknown): Promise<unknown> {
         if (typeof name !== "string") {
           throw new Error(`'name' must be a string`);
         }
-        if (!Array.isArray(cmd)) {
-          throw new Error(`'cmd' must be a string array`);
+        if (typeof script !== "string") {
+          throw new Error(`'script' must be a string`);
         }
-        return await service.register(name, cmd);
+        return await service.register(name, script);
       },
 
       async dispatch(

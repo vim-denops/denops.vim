@@ -1,5 +1,5 @@
 import { Host } from "./host/base.ts";
-import { msgpackRpc } from "./deps.ts";
+import { denops, msgpackRpc } from "./deps.ts";
 
 export class Service {
   #plugins: { [key: string]: msgpackRpc.Session };
@@ -14,9 +14,9 @@ export class Service {
     return await Promise.resolve(`${text}`);
   }
 
-  async register(name: string, cmd: string[]): Promise<void> {
-    await this.#host.debug(`Register '${name}' (${cmd.join(" ")})`);
-    this.#plugins[name] = runPlugin(cmd, this.#host);
+  async register(name: string, script: string): Promise<void> {
+    await this.#host.debug(`Register '${name}' (${script})`);
+    this.#plugins[name] = runPlugin(name, script, this.#host);
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -29,13 +29,11 @@ export class Service {
   }
 }
 
-function runPlugin(cmd: string[], host: Host): msgpackRpc.Session {
-  const proc = Deno.run({
-    cmd,
-    stdin: "piped",
-    stdout: "piped",
-  });
-
+function runPlugin(
+  name: string,
+  script: string,
+  host: Host,
+): msgpackRpc.Session {
   const dispatcher: msgpackRpc.Dispatcher = {
     async command(expr: unknown): Promise<void> {
       if (typeof expr !== "string") {
@@ -74,11 +72,23 @@ function runPlugin(cmd: string[], host: Host): msgpackRpc.Session {
     },
   };
 
-  const session = new msgpackRpc.Session(proc.stdout, proc.stdin, dispatcher);
-
-  session.listen().catch(async (e: Error) => {
-    await host.error("[denops] Plugin server is closed with error:", e);
+  const worker = new Worker(new URL(script, import.meta.url).href, {
+    name,
+    type: "module",
+    deno: {
+      namespace: true,
+    },
   });
+  const reader = new denops.WorkerReader(worker);
+  const writer = new denops.WorkerWriter(worker);
+  const session = new msgpackRpc.Session(reader, writer, dispatcher);
+
+  session
+    .listen()
+    .then()
+    .catch(async (e: Error) => {
+      await host.error("[denops] Plugin server is closed with error:", e);
+    });
 
   return session;
 }
