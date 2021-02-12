@@ -4,7 +4,12 @@ function! denops#server#start() abort
   if s:server isnot# v:null
     throw printf('[denops] The server is already running')
   endif
-  let s:server = s:start(g:denops#server#deno_exec, g:denops#server#deno_args)
+  let s:server = s:start(
+        \ g:denops#server#deno_exec,
+        \ g:denops#server#deno_args,
+        \ funcref('s:on_err'),
+        \ funcref('s:on_exit'),
+        \)
   doautocmd User DenopsReady
 endfunction
 
@@ -20,6 +25,20 @@ function! denops#server#request(method, params) abort
     throw printf('[denops] The server is not started yet')
   endif
   return s:request(s:server, a:method, a:params)
+endfunction
+
+function! s:on_err(data) abort
+  echohl ErrorMsg
+  for line in a:data
+    echomsg printf('[denops] %s', line)
+  endfor
+  echohl None
+endfunction
+
+function! s:on_exit(data) abort
+  echohl Comment
+  echomsg printf('[denops] Denops server is closed: %d', a:data)
+  echohl None
 endfunction
 
 if has('nvim')
