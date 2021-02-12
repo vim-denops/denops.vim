@@ -16,7 +16,13 @@ export class Service {
 
   async register(name: string, script: string): Promise<void> {
     await this.#host.debug(`Register '${name}' (${script})`);
-    this.#plugins[name] = runPlugin(name, script, this.#host);
+    try {
+      this.#plugins[name] = runPlugin(name, script, this.#host);
+    } catch (e) {
+      // NOTE:
+      // Vim/Neovim does not handle JavaScript Error instance thus use string instead
+      throw `${e.stack ?? e}`;
+    }
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -25,7 +31,13 @@ export class Service {
     if (!session) {
       throw new Error(`No plugin '${name}' is registered`);
     }
-    return await session.call(fn, ...args);
+    try {
+      return await session.call(fn, ...args);
+    } catch (e) {
+      // NOTE:
+      // Vim/Neovim does not handle JavaScript Error instance thus use string instead
+      throw `${e.stack ?? e}`;
+    }
   }
 }
 

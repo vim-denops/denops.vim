@@ -27,7 +27,11 @@ function! denops#server#vim#notify(server, method, params) abort
 endfunction
 
 function! denops#server#vim#request(server, method, params) abort
-  return ch_evalexpr(a:server, [a:method] + a:params)
+  let [ok, err] = ch_evalexpr(a:server, [a:method] + a:params)
+  if err isnot# v:null
+    throw err
+  endif
+  return ok
 endfunction
 
 function! s:err_cb(callback, ch, msg) abort

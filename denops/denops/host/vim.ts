@@ -29,25 +29,14 @@ class Vim extends AbstractHost {
       message: vimChannelCommand.Message,
     ) {
       const [msgid, expr] = message;
-      if (isEchoMessage(expr)) {
-        const [_, text] = expr;
-        const result = await service.echo(text);
-        await this.reply(msgid, result);
-      } else if (isRegisterMessage(expr)) {
-        const [_, name, script] = expr;
-        const result = await service.register(name, script);
-        await this.reply(msgid, result);
-      } else if (isDispatchMessage(expr)) {
-        const [_, name, fn, args] = expr;
-        const result = await service.dispatch(name, fn, args);
-        await this.reply(msgid, result);
-      } else {
-        throw new Error(
-          `Unexpected JSON channel message is received: ${
-            JSON.stringify(expr)
-          }`,
-        );
+      let ok = null;
+      let err = null;
+      try {
+        ok = await dispatch(service, expr);
+      } catch (e) {
+        err = e;
       }
+      await this.reply(msgid, [ok, err]);
     });
   }
 
@@ -62,6 +51,23 @@ export function createVim(
 ): Vim {
   const session = new vimChannelCommand.Session(reader, writer);
   return new Vim(session);
+}
+
+async function dispatch(service: Service, expr: unknown): Promise<unknown> {
+  if (isEchoMessage(expr)) {
+    const [_, text] = expr;
+    return await service.echo(text);
+  } else if (isRegisterMessage(expr)) {
+    const [_, name, script] = expr;
+    return await service.register(name, script);
+  } else if (isDispatchMessage(expr)) {
+    const [_, name, fn, args] = expr;
+    return await service.dispatch(name, fn, args);
+  } else {
+    throw new Error(
+      `Unexpected JSON channel message is received: ${JSON.stringify(expr)}`,
+    );
+  }
 }
 
 type EchoMessage = ["echo", string];
