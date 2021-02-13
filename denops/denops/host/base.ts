@@ -1,4 +1,3 @@
-import { context } from "../context.ts";
 import { Service } from "../service.ts";
 
 /**
@@ -21,21 +20,14 @@ export interface Host {
   call(fn: string, args: unknown[]): Promise<unknown>;
 
   /**
-   * Output string representation of params on the host.
-   *
-   * This does nothing if debug mode of the denops is not enabled by users.
+   * Echo text on the host.
    */
-  debug(...params: unknown[]): Promise<void>;
+  echo(text: string): Promise<void>;
 
   /**
-   * Output string representation of params on the host as an info.
+   * Echo text on the host.
    */
-  info(...params: unknown[]): Promise<void>;
-
-  /**
-   * Output string representation of params on the host as an error.
-   */
-  error(...params: unknown[]): Promise<void>;
+  echomsg(text: string): Promise<void>;
 
   /**
    * Register service which is visible from the host through RPC.
@@ -55,22 +47,11 @@ export abstract class AbstractHost implements Host {
   abstract registerService(sservice: Service): void;
   abstract waitClosed(): Promise<void>;
 
-  async debug(...params: unknown[]): Promise<void> {
-    if (!context.debug) {
-      return;
-    }
-    await this.call("denops#debug", params.map(ensureReadable));
+  async echo(text: string): Promise<void> {
+    await this.call("denops#api#echo", [text]);
   }
 
-  async info(...params: unknown[]): Promise<void> {
-    await this.call("denops#info", params.map(ensureReadable));
+  async echomsg(text: string): Promise<void> {
+    await this.call("denops#api#echomsg", [text]);
   }
-
-  async error(...params: unknown[]): Promise<void> {
-    await this.call("denops#error", params.map(ensureReadable));
-  }
-}
-
-function ensureReadable(v: unknown): string {
-  return typeof v === "string" ? v : JSON.stringify(v);
 }

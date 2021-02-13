@@ -31,19 +31,12 @@ class Neovim extends AbstractHost {
         : never;
     };
     const dispatcher: Dispatcher = {
-      async echo(text: unknown): Promise<unknown> {
-        if (typeof text !== "string") {
-          throw new Error(`'text' must be a string`);
-        }
-        return await service.echo(text);
-      },
-
       async register(name: unknown, script: unknown): Promise<unknown> {
         if (typeof name !== "string") {
-          throw new Error(`'name' must be a string`);
+          throw new Error(`'name' in 'register()' of host must be a string`);
         }
         if (typeof script !== "string") {
-          throw new Error(`'script' must be a string`);
+          throw new Error(`'script' in 'register()' of host must be a string`);
         }
         return await service.register(name, script);
       },
@@ -54,13 +47,13 @@ class Neovim extends AbstractHost {
         args: unknown,
       ): Promise<unknown> {
         if (typeof name !== "string") {
-          throw new Error(`'name' must be a string`);
+          throw new Error(`'name' in 'dispatch()' of host must be a string`);
         }
         if (typeof fn !== "string") {
-          throw new Error(`'fn' must be a string`);
+          throw new Error(`'fn' in 'dispatch()' of host must be a string`);
         }
         if (!Array.isArray(args)) {
-          throw new Error(`'args' must be a string array`);
+          throw new Error(`'args' in 'dispatch()' of host must be an array`);
         }
         return await service.dispatch(name, fn, args);
       },

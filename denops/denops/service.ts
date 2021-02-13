@@ -10,14 +10,10 @@ export class Service {
     this.#host = host;
   }
 
-  async echo(text: string): Promise<string> {
-    return await Promise.resolve(`${text}`);
-  }
-
-  async register(name: string, script: string): Promise<void> {
-    await this.#host.debug(`Register '${name}' (${script})`);
+  register(name: string, script: string): Promise<void> {
     try {
       this.#plugins[name] = runPlugin(name, script, this.#host);
+      return Promise.resolve();
     } catch (e) {
       // NOTE:
       // Vim/Neovim does not handle JavaScript Error instance thus use string instead
@@ -26,12 +22,11 @@ export class Service {
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
-    await this.#host.debug(`Dispatch '${fn}' in '${name}'`);
-    const session = this.#plugins[name];
-    if (!session) {
-      throw new Error(`No plugin '${name}' is registered`);
-    }
     try {
+      const session = this.#plugins[name];
+      if (!session) {
+        throw new Error(`No plugin '${name}' is registered`);
+      }
       return await session.call(fn, ...args);
     } catch (e) {
       // NOTE:
@@ -49,38 +44,52 @@ function runPlugin(
   const dispatcher: msgpackRpc.Dispatcher = {
     async command(expr: unknown): Promise<void> {
       if (typeof expr !== "string") {
-        throw new Error(`'expr' must be a string`);
+        throw new Error(
+          `'expr' in 'command()' of '${name}' plugin must be a string`,
+        );
       }
       await host.command(expr);
     },
 
     async eval(expr: unknown): Promise<unknown> {
       if (typeof expr !== "string") {
-        throw new Error(`'expr' must be a string`);
+        throw new Error(
+          `'expr' in 'eval()' of '${name}' plugin must be a string`,
+        );
       }
       return await host.eval(expr);
     },
 
     async call(fn: unknown, args: unknown): Promise<unknown> {
       if (typeof fn !== "string") {
-        throw new Error(`'fn' must be a string`);
+        throw new Error(
+          `'fn' in 'call()' of '${name}' plugin must be a string`,
+        );
       }
       if (!Array.isArray(args)) {
-        throw new Error(`'args' must be a string`);
+        throw new Error(
+          `'args' in 'call()' of '${name}' plugin must be an array`,
+        );
       }
       return await host.call(fn, args);
     },
 
-    async debug(...params: unknown[]): Promise<void> {
-      await host.debug(...params);
+    async echo(text: unknown): Promise<void> {
+      if (typeof text !== "string") {
+        throw new Error(
+          `'text' in 'echo()' of '${name}' plugin must be a string`,
+        );
+      }
+      await host.echo(text);
     },
 
-    async info(...params: unknown[]): Promise<void> {
-      await host.info(...params);
-    },
-
-    async error(...params: unknown[]): Promise<void> {
-      await host.error(...params);
+    async echomsg(text: unknown): Promise<void> {
+      if (typeof text !== "string") {
+        throw new Error(
+          `'text' in 'echomsg()' of '${name}' plugin must be a string`,
+        );
+      }
+      await host.echomsg(text);
     },
   };
 
@@ -98,8 +107,8 @@ function runPlugin(
   session
     .listen()
     .then()
-    .catch(async (e: Error) => {
-      await host.error("[denops] Plugin server is closed with error:", e);
+    .catch((e: Error) => {
+      console.error("Plugin server is closed with error:", e);
     });
 
   return session;

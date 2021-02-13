@@ -58,10 +58,7 @@ export function createVim(
 }
 
 async function dispatch(service: Service, expr: unknown): Promise<unknown> {
-  if (isEchoMessage(expr)) {
-    const [_, text] = expr;
-    return await service.echo(text);
-  } else if (isRegisterMessage(expr)) {
+  if (isRegisterMessage(expr)) {
     const [_, name, script] = expr;
     return await service.register(name, script);
   } else if (isDispatchMessage(expr)) {
@@ -74,20 +71,9 @@ async function dispatch(service: Service, expr: unknown): Promise<unknown> {
   }
 }
 
-type EchoMessage = ["echo", string];
-
 type RegisterMessage = ["register", string, string];
 
 type DispatchMessage = ["dispatch", string, string, unknown[]];
-
-function isEchoMessage(data: unknown): data is EchoMessage {
-  return (
-    Array.isArray(data) &&
-    data.length === 2 &&
-    data[0] === "echo" &&
-    typeof data[1] === "string"
-  );
-}
 
 function isRegisterMessage(data: unknown): data is RegisterMessage {
   return (
