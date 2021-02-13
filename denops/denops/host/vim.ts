@@ -36,7 +36,11 @@ class Vim extends AbstractHost {
       } catch (e) {
         err = e;
       }
-      await this.reply(msgid, [ok, err]);
+      if (msgid !== 0) {
+        await this.reply(msgid, [ok, err]);
+      } else if (err !== null) {
+        console.error(err);
+      }
     });
   }
 
