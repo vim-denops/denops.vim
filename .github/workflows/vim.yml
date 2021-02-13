@@ -1,0 +1,39 @@
+name: vim
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - windows-latest
+          - ubuntu-latest
+        version:
+          - nightly
+          - v8.2.0235
+          - v8.1.2424
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          repository: thinca/vim-themis
+          path: vim-themis
+      - uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          neovim: false
+          version: ${{ matrix.version }}
+      - name: Run tests
+        env:
+          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
+          # XXX:
+          # Overwrite %TMP% to point a correct temp directory.
+          # Note that %TMP% only affects value of 'tempname()' in Windows.
+          # https://github.community/t5/GitHub-Actions/TEMP-is-broken-on-Windows/m-p/30432#M427
+          TMP: 'C:\Users\runneradmin\AppData\Local\Temp'
+        run: |
+          ./vim-themis/bin/themis
