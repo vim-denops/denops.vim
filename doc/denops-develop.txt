@@ -1,0 +1,45 @@
+*denops-develop.txt*		Developer documentations for denops.vim
+
+
+=============================================================================
+CONTENTS					*denops-develop-contents*
+
+INTRODUCTION				|denops-develop-introduction|
+PROMISE					|denops-develop-promise|
+
+
+=============================================================================
+INTRODUCTION					*denops-develop-introduction*
+
+This is documentation for |denops| plugin developers.
+
+
+=============================================================================
+PROMISE						*denops-develop-promise*
+
+Denops include a modified version of Async.Promise module in vital.vim and
+expose some (not all) methods as "denops#promise#{method}"
+
+*denops#promise#new()*
+*denops#promise#all()*
+*denops#promise#race()*
+*denops#promise#resolve()*
+*denops#promise#reject()*
+*denops#promise#is_promise()*
+*denops#promise#wait()*
+*denops#promise#on_unhandled_rejection()*
+
+Note that the version use |timer_start()| instead of Async.Later to reduce
+external dependencies, mean that the performance is not be good enough as the
+original version.
+
+Vital.vim:
+https://github.com/vim-jp/vital.vim
+
+See original documentation for more detail.
+https://github.com/vim-jp/vital.vim/blob/master/doc/vital/Async/Promise.txt
+
+
+=============================================================================
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
+
