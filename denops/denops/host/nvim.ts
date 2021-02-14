@@ -13,7 +13,7 @@ class Neovim extends AbstractHost {
   }
 
   async command(expr: string): Promise<void> {
-    await this.#session.notify("nvim_command", expr);
+    await this.#session.call("nvim_command", expr);
   }
 
   async eval(expr: string): Promise<unknown> {
