@@ -1,34 +1,10 @@
 import { Service } from "../service.ts";
+import { Api, Context } from "../deps.ts";
 
 /**
- * A Host (Vim/Neovim) interface.
+ * Host (Vim/Neovim) interface.
  */
-export interface Host {
-  /**
-   * Execute a command (expr) on the host.
-   */
-  command(expr: string): Promise<void>;
-
-  /**
-   * Evaluate an expression (expr) on the host and return the result.
-   */
-  eval(expr: string): Promise<unknown>;
-
-  /**
-   * Call a function on the host and return the result.
-   */
-  call(fn: string, args: unknown[]): Promise<unknown>;
-
-  /**
-   * Echo text on the host.
-   */
-  echo(text: string): Promise<void>;
-
-  /**
-   * Echo text on the host.
-   */
-  echomsg(text: string): Promise<void>;
-
+export interface Host extends Api {
   /**
    * Register service which is visible from the host through RPC.
    */
@@ -41,17 +17,15 @@ export interface Host {
 }
 
 export abstract class AbstractHost implements Host {
-  abstract command(expr: string): Promise<void>;
-  abstract eval(expr: string): Promise<unknown>;
-  abstract call(fn: string, args: unknown[]): Promise<unknown>;
+  abstract call(func: string, ...args: unknown[]): Promise<unknown>;
   abstract registerService(sservice: Service): void;
   abstract waitClosed(): Promise<void>;
 
-  async echo(text: string): Promise<void> {
-    await this.call("denops#api#echo", [text]);
+  async cmd(cmd: string, context: Context): Promise<void> {
+    await this.call("denops#api#cmd", cmd, context);
   }
 
-  async echomsg(text: string): Promise<void> {
-    await this.call("denops#api#echomsg", [text]);
+  async eval(expr: string, context: Context): Promise<unknown> {
+    return await this.call("denops#api#eval", expr, context);
   }
 }

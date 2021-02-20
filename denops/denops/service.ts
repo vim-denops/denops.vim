@@ -1,8 +1,15 @@
 import { Host } from "./host/base.ts";
-import { denops, msgpackRpc } from "./deps.ts";
+import {
+  Api,
+  DispatcherFrom,
+  isContext,
+  Session,
+  WorkerReader,
+  WorkerWriter,
+} from "./deps.ts";
 
 export class Service {
-  #plugins: { [key: string]: msgpackRpc.Session };
+  #plugins: { [key: string]: Session };
   #host: Host;
 
   constructor(host: Host) {
@@ -31,65 +38,48 @@ export class Service {
     } catch (e) {
       // NOTE:
       // Vim/Neovim does not handle JavaScript Error instance thus use string instead
-      throw `${e.stack ?? e}`;
+      throw `${e.stack ?? e.toString()}`;
     }
   }
 }
 
-function runPlugin(
-  name: string,
-  script: string,
-  host: Host,
-): msgpackRpc.Session {
-  const dispatcher: msgpackRpc.Dispatcher = {
-    async command(expr: unknown): Promise<void> {
-      if (typeof expr !== "string") {
+function runPlugin(name: string, script: string, host: Host): Session {
+  const dispatcher: DispatcherFrom<Api> = {
+    async cmd(cmd: unknown, context: unknown): Promise<void> {
+      if (typeof cmd !== "string") {
         throw new Error(
-          `'expr' in 'command()' of '${name}' plugin must be a string`,
+          `'cmd' in 'cmd()' of '${name}' plugin must be a string`,
         );
       }
-      await host.command(expr);
+      if (!isContext(context)) {
+        throw new Error(
+          `'context' in 'cmd()' of '${name}' plugin must be a context object`,
+        );
+      }
+      await host.cmd(cmd, context);
     },
 
-    async eval(expr: unknown): Promise<unknown> {
+    async eval(expr: unknown, context: unknown): Promise<void> {
       if (typeof expr !== "string") {
         throw new Error(
           `'expr' in 'eval()' of '${name}' plugin must be a string`,
         );
       }
-      return await host.eval(expr);
+      if (!isContext(context)) {
+        throw new Error(
+          `'context' in 'eval()' of '${name}' plugin must be a context object`,
+        );
+      }
+      await host.eval(expr, context);
     },
 
-    async call(fn: unknown, args: unknown): Promise<unknown> {
-      if (typeof fn !== "string") {
+    async call(func: unknown, ...args: unknown[]): Promise<unknown> {
+      if (typeof func !== "string") {
         throw new Error(
-          `'fn' in 'call()' of '${name}' plugin must be a string`,
+          `'func' in 'call()' of '${name}' plugin must be a string`,
         );
       }
-      if (!Array.isArray(args)) {
-        throw new Error(
-          `'args' in 'call()' of '${name}' plugin must be an array`,
-        );
-      }
-      return await host.call(fn, args);
-    },
-
-    async echo(text: unknown): Promise<void> {
-      if (typeof text !== "string") {
-        throw new Error(
-          `'text' in 'echo()' of '${name}' plugin must be a string`,
-        );
-      }
-      await host.echo(text);
-    },
-
-    async echomsg(text: unknown): Promise<void> {
-      if (typeof text !== "string") {
-        throw new Error(
-          `'text' in 'echomsg()' of '${name}' plugin must be a string`,
-        );
-      }
-      await host.echomsg(text);
+      return await host.call(func, ...args);
     },
   };
 
@@ -100,9 +90,9 @@ function runPlugin(
       namespace: true,
     },
   });
-  const reader = new denops.WorkerReader(worker);
-  const writer = new denops.WorkerWriter(worker);
-  const session = new msgpackRpc.Session(reader, writer, dispatcher);
+  const reader = new WorkerReader(worker);
+  const writer = new WorkerWriter(worker);
+  const session = new Session(reader, writer, dispatcher);
 
   session
     .listen()

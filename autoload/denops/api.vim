@@ -1,11 +1,9 @@
-function! denops#api#echo(text) abort
-  for line in split(a:msg, '\n')
-    echo line
-  endfor
+function! denops#api#cmd(cmd, context) abort
+  call extend(l:, a:context)
+  call execute(a:cmd, '')
 endfunction
 
-function! denops#api#echomsg(text) abort
-  for line in split(a:msg, '\n')
-    echomsg line
-  endfor
+function! denops#api#eval(expr, context) abort
+  call extend(l:, a:context)
+  return eval(a:expr)
 endfunction

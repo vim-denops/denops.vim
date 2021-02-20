@@ -1,36 +1,23 @@
-import { msgpackRpc } from "../deps.ts";
+import { DispatcherFrom, Session } from "../deps.ts";
 import { AbstractHost } from "./base.ts";
 import { Service } from "../service.ts";
 
 class Neovim extends AbstractHost {
-  #session: msgpackRpc.Session;
+  #session: Session;
   #listener: Promise<void>;
 
-  constructor(session: msgpackRpc.Session) {
+  constructor(session: Session) {
     super();
     this.#session = session;
     this.#listener = this.#session.listen();
   }
 
-  async command(expr: string): Promise<void> {
-    await this.#session.call("nvim_command", expr);
-  }
-
-  async eval(expr: string): Promise<unknown> {
-    return await this.#session.call("nvim_eval", expr);
-  }
-
-  async call(fn: string, args: unknown[]): Promise<unknown> {
+  async call(fn: string, ...args: unknown[]): Promise<unknown> {
     return await this.#session.call("nvim_call_function", fn, args);
   }
 
   registerService(service: Service): void {
-    type Dispatcher = {
-      [K in keyof Service]: Service[K] extends (...args: infer Args) => unknown
-        ? (...args: { [K in keyof Args]: unknown }) => Promise<unknown>
-        : never;
-    };
-    const dispatcher: Dispatcher = {
+    const dispatcher: DispatcherFrom<Service> = {
       async register(name: unknown, script: unknown): Promise<unknown> {
         if (typeof name !== "string") {
           throw new Error(`'name' in 'register()' of host must be a string`);
@@ -70,6 +57,6 @@ export function createNeovim(
   reader: Deno.Reader & Deno.Closer,
   writer: Deno.Writer,
 ): Neovim {
-  const session = new msgpackRpc.Session(reader, writer);
+  const session = new Session(reader, writer);
   return new Neovim(session);
 }
