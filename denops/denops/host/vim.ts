@@ -1,33 +1,23 @@
-import { vimChannelCommand } from "../deps.ts";
+import { VimMessage, VimSession } from "../deps.ts";
 import { AbstractHost } from "./base.ts";
 import { Service } from "../service.ts";
 
 class Vim extends AbstractHost {
-  #session: vimChannelCommand.Session;
+  #session: VimSession;
   #listener: Promise<void>;
 
-  constructor(session: vimChannelCommand.Session) {
+  constructor(session: VimSession) {
     super();
     this.#session = session;
     this.#listener = this.#session.listen();
   }
 
-  async command(expr: string): Promise<void> {
-    await this.#session.ex(expr);
-  }
-
-  async eval(expr: string): Promise<unknown> {
-    return await this.#session.expr(expr);
-  }
-
-  async call(fn: string, args: unknown[]): Promise<unknown> {
-    return await this.#session.call(fn, ...args);
+  async call(func: string, ...args: unknown[]): Promise<unknown> {
+    return await this.#session.call(func, ...args);
   }
 
   registerService(service: Service): void {
-    this.#session.replaceCallback(async function (
-      message: vimChannelCommand.Message,
-    ) {
+    this.#session.replaceCallback(async function (message: VimMessage) {
       const [msgid, expr] = message;
       let ok = null;
       let err = null;
@@ -53,7 +43,7 @@ export function createVim(
   reader: Deno.Reader & Deno.Closer,
   writer: Deno.Writer,
 ): Vim {
-  const session = new vimChannelCommand.Session(reader, writer);
+  const session = new VimSession(reader, writer);
   return new Vim(session);
 }
 
