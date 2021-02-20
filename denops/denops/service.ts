@@ -59,7 +59,7 @@ function runPlugin(name: string, script: string, host: Host): Session {
       await host.cmd(cmd, context);
     },
 
-    async eval(expr: unknown, context: unknown): Promise<void> {
+    async eval(expr: unknown, context: unknown): Promise<unknown> {
       if (typeof expr !== "string") {
         throw new Error(
           `'expr' in 'eval()' of '${name}' plugin must be a string`,
@@ -70,7 +70,7 @@ function runPlugin(name: string, script: string, host: Host): Session {
           `'context' in 'eval()' of '${name}' plugin must be a context object`,
         );
       }
-      await host.eval(expr, context);
+      return await host.eval(expr, context);
     },
 
     async call(func: unknown, ...args: unknown[]): Promise<unknown> {
