@@ -9,10 +9,10 @@ export { Session } from "https://deno.land/x/msgpack_rpc@v2.6/mod.ts";
 export type { Message as VimMessage } from "https://deno.land/x/vim_channel_command@v0.1/mod.ts";
 export { Session as VimSession } from "https://deno.land/x/vim_channel_command@v0.1/mod.ts";
 
-export type { Api, Context } from "https://deno.land/x/denops@v0.6/mod.ts";
+export type { Api, Context } from "https://deno.land/x/denops@v0.7/mod.ts";
 export {
   Denops,
   isContext,
   WorkerReader,
   WorkerWriter,
-} from "https://deno.land/x/denops@v0.6/mod.ts";
+} from "https://deno.land/x/denops@v0.7/mod.ts";
