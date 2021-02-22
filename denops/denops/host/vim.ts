@@ -13,7 +13,10 @@ class Vim extends AbstractHost {
   }
 
   async call(func: string, ...args: unknown[]): Promise<unknown> {
-    return await this.#session.call(func, ...args);
+    const result = await this.#session.call(func, ...args);
+    // Make sure that everything is up to date after the command
+    await this.#session.redraw();
+    return result;
   }
 
   registerService(service: Service): void {
