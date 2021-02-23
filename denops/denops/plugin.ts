@@ -82,13 +82,16 @@ export function runPlugin(host: Host, plugin: Plugin): Session {
     },
   };
 
-  const worker = new Worker(new URL(plugin.script, import.meta.url).href, {
-    name: plugin.name,
-    type: "module",
-    deno: {
-      namespace: true,
+  const worker = new Worker(
+    new URL(path.toFileUrl(plugin.script).href, import.meta.url).href,
+    {
+      name: plugin.name,
+      type: "module",
+      deno: {
+        namespace: true,
+      },
     },
-  });
+  );
   const reader = new WorkerReader(worker);
   const writer = new WorkerWriter(worker);
   const session = new Session(reader, writer, dispatcher);
