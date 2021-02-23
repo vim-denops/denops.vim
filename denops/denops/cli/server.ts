@@ -13,8 +13,8 @@ const conn = await Deno.connect(address);
 
 // Create host and start communication
 const createHost = mode === "vim" ? createVim : createNeovim;
-const service = new Service();
 const host = createHost(conn, conn);
+const service = new Service(host);
 host.registerService(service);
 
 // Load plugins

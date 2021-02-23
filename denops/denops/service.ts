@@ -1,10 +1,13 @@
 import { Session } from "./deps.ts";
+import { Host } from "./host/mod.ts";
 
 export class Service {
   #plugins: { [key: string]: Session };
+  #host: Host;
 
-  constructor() {
+  constructor(host: Host) {
     this.#plugins = {};
+    this.#host = host;
   }
 
   static register(service: Service, name: string, session: Session): void {
