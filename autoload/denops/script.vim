@@ -30,6 +30,9 @@ function! denops#script#start(name, script, ...) abort
   " Construct context
   let args = [remove(options, 'deno'), 'run']
   let args += remove(options, 'deno_args')
+  if !g:denops#script#typecheck
+    let args += ['--no-check']
+  endif
   let args += [a:script]
   let args += remove(options, 'script_args')
   let context = {
@@ -112,8 +115,13 @@ augroup denos_script_internal
 augroup END
 
 let g:denops#script#deno = get(g:, 'denops#script#deno', exepath('deno'))
-let g:denops#script#deno_args = get(g:, 'denops#script#deno_args', ['-q', '--unstable', '-A'])
+let g:denops#script#deno_args = get(g:, 'denops#script#deno_args', [
+      \ '-q',
+      \ '--unstable',
+      \ '-A',
+      \])
 let g:denops#script#env = get(g:, 'denops#script#env', {
       \ 'NO_COLOR': 1,
       \})
 let g:denops#script#max_restart = get(g:, 'denops#script#max_restart', 5)
+let g:denops#script#typecheck = get(g:, 'denops#script#typecheck', 0)
