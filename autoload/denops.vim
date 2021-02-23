@@ -31,6 +31,16 @@ function! denops#request(plugin, method, params) abort
   return denops#server#request('dispatch', [a:plugin, a:method, a:params])
 endfunction
 
+function! denops#promise(plugin, method, params) abort
+  return denops#promise#new(funcref('s:promise_start', [a:plugin, a:method, a:params]))
+endfunction
+
+function! s:promise_start(plugin, method, params, resolve, reject) abort
+  let success = denops#callback#add(a:resolve)
+  let failure = denops#callback#add(a:reject)
+  return denops#server#request('dispatchAsync', [a:plugin, a:method, a:params, success, failure])
+endfunction
+
 " DEPRECATED
 function! denops#register(plugin, script) abort
   call denops#error(join([

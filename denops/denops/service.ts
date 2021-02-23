@@ -27,4 +27,20 @@ export class Service {
       throw `${e.stack ?? e.toString()}`;
     }
   }
+
+  dispatchAsync(
+    name: string,
+    fn: string,
+    args: unknown[],
+    success: string, // Callback ID
+    failure: string, // Callback ID
+  ): Promise<void> {
+    this.dispatch(name, fn, args)
+      .then((r) => this.#host.call("denops#callback#call", success, r))
+      .catch((e) => this.#host.call("denops#callback#call", failure, e))
+      .catch((e) => {
+        console.error(`${e.stack ?? e.toString()}`);
+      });
+    return Promise.resolve();
+  }
 }

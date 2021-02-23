@@ -34,6 +34,39 @@ class Neovim extends AbstractHost {
         }
         return await service.dispatch(name, fn, args);
       },
+
+      async dispatchAsync(
+        name: unknown,
+        fn: unknown,
+        args: unknown,
+        success: unknown,
+        failure: unknown,
+      ): Promise<unknown> {
+        if (typeof name !== "string") {
+          throw new Error(
+            `'name' in 'dispatchAsync()' of host must be a string`,
+          );
+        }
+        if (typeof fn !== "string") {
+          throw new Error(`'fn' in 'dispatchAsync()' of host must be a string`);
+        }
+        if (!Array.isArray(args)) {
+          throw new Error(
+            `'args' in 'dispatchAsync()' of host must be an array`,
+          );
+        }
+        if (typeof success !== "string") {
+          throw new Error(
+            `'success' in 'dispatchAsync()' of host must be a string`,
+          );
+        }
+        if (typeof failure !== "string") {
+          throw new Error(
+            `'failure' in 'dispatchAsync()' of host must be a string`,
+          );
+        }
+        return await service.dispatchAsync(name, fn, args, success, failure);
+      },
     };
     this.#session.extendDispatcher(dispatcher);
   }
