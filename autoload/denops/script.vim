@@ -24,7 +24,7 @@ function! denops#script#start(name, script, ...) abort
   elseif !filereadable(a:script)
     throw printf('script file is not found: %s', a:script)
   elseif has_key(s:context_map, a:name)
-    let error = get(s:context_map, 'error', printf('script is already started', a:name))
+    let error = get(s:context_map, 'error', printf('script is already started: %s', a:name))
     throw printf('%s [%s]', error, a:name)
   endif
   " Construct context
