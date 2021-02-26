@@ -16,6 +16,7 @@ function! denops#script#start(name, script, ...) abort
         \ 'on_stderr': { -> 0},
         \ 'on_exit': { status, context -> denops#error(context.error) },
         \ 'env': g:denops#script#env,
+        \ 'inspector': 0,
         \ 'raw_options': {},
         \}, a:0 ? a:1 : {})
   " Validation
@@ -32,6 +33,9 @@ function! denops#script#start(name, script, ...) abort
   let args += remove(options, 'deno_args')
   if !g:denops#script#typecheck
     let args += ['--no-check']
+  endif
+  if options.inspector
+    let args += ['--inspect']
   endif
   let args += [a:script]
   let args += remove(options, 'script_args')

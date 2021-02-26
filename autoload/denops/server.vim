@@ -57,6 +57,7 @@ function! s:on_channel_opened(script, options, channel) abort
         \ 'script_args': ['--mode=' . s:engine, '--address=' . a:channel.address],
         \ 'on_stdout': a:options.on_stdout,
         \ 'on_stderr': a:options.on_stderr,
+        \ 'inspector': g:denops#server#inspecter_enabled,
         \})
   return a:channel
 endfunction
@@ -104,3 +105,5 @@ augroup denops_server_internal
   autocmd!
   autocmd User DenopsReady :
 augroup END
+
+let g:denops#server#inspecter_enabled = get(g:, 'denops#server#inspecter_enabled', 0)
