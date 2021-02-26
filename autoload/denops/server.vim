@@ -54,7 +54,7 @@ endfunction
 
 function! s:on_channel_opened(script, options, channel) abort
   let deno_args = g:denops#script#deno_args
-  if g:denops#server#inspecter_enabled
+  if g:denops#server#enable_inspector
     let deno_args += ['--inspect']
   endif
   call denops#script#start('server', a:script, {
