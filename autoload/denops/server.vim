@@ -110,4 +110,4 @@ augroup denops_server_internal
   autocmd User DenopsReady :
 augroup END
 
-let g:denops#server#inspecter_enabled = get(g:, 'denops#server#inspecter_enabled', 0)
+let g:denops#server#enable_inspector = get(g:, 'denops#server#enable_inspector', 0)
