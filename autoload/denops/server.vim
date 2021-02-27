@@ -53,7 +53,12 @@ function! s:on_server_ready(channel) abort
 endfunction
 
 function! s:on_channel_opened(script, options, channel) abort
+  let deno_args = g:denops#script#deno_args
+  if g:denops#server#enable_inspector
+    let deno_args += ['--inspect']
+  endif
   call denops#script#start('server', a:script, {
+        \ 'deno_args': deno_args,
         \ 'script_args': ['--mode=' . s:engine, '--address=' . a:channel.address],
         \ 'on_stdout': a:options.on_stdout,
         \ 'on_stderr': a:options.on_stderr,
@@ -104,3 +109,5 @@ augroup denops_server_internal
   autocmd!
   autocmd User DenopsReady :
 augroup END
+
+let g:denops#server#enable_inspector = get(g:, 'denops#server#enable_inspector', 0)
