@@ -18,4 +18,5 @@ call denops#lib#promise#on_unhandled_rejection(funcref('s:error_handler'))
 augroup denops_plugin_internal
   autocmd!
   autocmd VimEnter * call denops#server#start()
+  autocmd User DenopsReady call denops#plugin#discover()
 augroup END

@@ -18,6 +18,19 @@ class Neovim extends AbstractHost {
 
   registerService(service: Service): void {
     const dispatcher: DispatcherFrom<Service> = {
+      async register(
+        name: unknown,
+        script: unknown,
+      ): Promise<void> {
+        if (typeof name !== "string") {
+          throw new Error(`'name' in 'register()' of host must be a string`);
+        }
+        if (typeof script !== "string") {
+          throw new Error(`'script' in 'register()' of host must be a string`);
+        }
+        return await service.register(name, script);
+      },
+
       async dispatch(
         name: unknown,
         fn: unknown,

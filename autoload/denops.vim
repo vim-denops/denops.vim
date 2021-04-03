@@ -41,14 +41,5 @@ function! s:promise_start(plugin, method, params, resolve, reject) abort
   return denops#server#channel#request('dispatchAsync', [a:plugin, a:method, a:params, success, failure])
 endfunction
 
-" DEPRECATED
-function! denops#register(plugin, script) abort
-  call denops#error(join([
-        \ "The denops#register() is deprecated.\n",
-        \ "Create 'mod.ts' file on an arbitrary directory under 'denops' in 'runtimepath'.\n",
-        \ printf("In your case, move '%s' to 'denops/%s/mod.ts' under 'runtimepath'.", a:script, a:plugin),
-        \], ''))
-endfunction
-
 " Configuration
 let g:denops#deno = get(g:, 'denops#deno', exepath('deno'))
