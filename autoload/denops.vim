@@ -24,21 +24,21 @@ function! denops#error(...) abort
 endfunction
 
 function! denops#notify(plugin, method, params) abort
-  return denops#server#notify('dispatch', [a:plugin, a:method, a:params])
+  return denops#server#channel#notify('dispatch', [a:plugin, a:method, a:params])
 endfunction
 
 function! denops#request(plugin, method, params) abort
-  return denops#server#request('dispatch', [a:plugin, a:method, a:params])
+  return denops#server#channel#request('dispatch', [a:plugin, a:method, a:params])
 endfunction
 
 function! denops#promise(plugin, method, params) abort
-  return denops#promise#new(funcref('s:promise_start', [a:plugin, a:method, a:params]))
+  return denops#lib#promise#new(funcref('s:promise_start', [a:plugin, a:method, a:params]))
 endfunction
 
 function! s:promise_start(plugin, method, params, resolve, reject) abort
   let success = denops#callback#add(a:resolve)
   let failure = denops#callback#add(a:reject)
-  return denops#server#request('dispatchAsync', [a:plugin, a:method, a:params, success, failure])
+  return denops#server#channel#request('dispatchAsync', [a:plugin, a:method, a:params, success, failure])
 endfunction
 
 " DEPRECATED
@@ -49,3 +49,6 @@ function! denops#register(plugin, script) abort
         \ printf("In your case, move '%s' to 'denops/%s/mod.ts' under 'runtimepath'.", a:script, a:plugin),
         \], ''))
 endfunction
+
+" Configuration
+let g:denops#deno = get(g:, 'denops#deno', exepath('deno'))

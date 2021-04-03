@@ -13,7 +13,7 @@ function! s:error_handler(err) abort
 endfunction
 
 " Register on_unhandled_rejection
-call denops#promise#on_unhandled_rejection(funcref('s:error_handler'))
+call denops#lib#promise#on_unhandled_rejection(funcref('s:error_handler'))
 
 augroup denops_plugin_internal
   autocmd!
