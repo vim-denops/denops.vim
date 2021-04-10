@@ -8,12 +8,12 @@ export type {
 } from "https://deno.land/x/msgpack_rpc@v2.7/mod.ts";
 export { Session } from "https://deno.land/x/msgpack_rpc@v2.7/mod.ts";
 
-export type { Message as VimMessage } from "https://deno.land/x/vim_channel_command@v0.1/mod.ts";
-export { Session as VimSession } from "https://deno.land/x/vim_channel_command@v0.1/mod.ts";
+export type { Message as VimMessage } from "https://deno.land/x/vim_channel_command@v0.3/mod.ts";
+export { Session as VimSession } from "https://deno.land/x/vim_channel_command@v0.3/mod.ts";
 
-export type { Api, Context } from "https://deno.land/x/denops@v0.9/mod.ts";
-export { Denops, isContext } from "https://deno.land/x/denops@v0.9/mod.ts";
+export type { Api, Context } from "https://deno.land/x/denops@v0.10/mod.ts";
+export { Denops, isContext } from "https://deno.land/x/denops@v0.10/mod.ts";
 export {
   WorkerReader,
   WorkerWriter,
-} from "https://deno.land/x/workerio@v1.0/mod.ts";
+} from "https://deno.land/x/workerio@v1.1/mod.ts";
