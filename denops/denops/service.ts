@@ -1,4 +1,5 @@
 import { Session } from "./deps.ts";
+import { runPlugin } from "./plugin.ts";
 import { Host } from "./host/mod.ts";
 
 export class Service {
@@ -10,8 +11,15 @@ export class Service {
     this.#host = host;
   }
 
-  static register(service: Service, name: string, session: Session): void {
-    service.#plugins[name] = session;
+  register(name: string, script: string): void {
+    if (this.#plugins[name]) {
+      return;
+    }
+    const session = runPlugin(this.#host, {
+      name,
+      script,
+    });
+    this.#plugins[name] = session;
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {

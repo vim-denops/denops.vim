@@ -2,7 +2,6 @@ import { Host } from "./host/base.ts";
 import {
   Api,
   DispatcherFrom,
-  fs,
   isContext,
   path,
   Session,
@@ -13,33 +12,6 @@ import {
 export interface Plugin {
   readonly name: string;
   readonly script: string;
-}
-
-async function runtimepath(host: Host): Promise<string[]> {
-  const rtp = await host.eval("&runtimepath", {});
-  if (typeof rtp !== "string") {
-    throw new Error("runtimepath is not a string");
-  }
-  return rtp.split(",");
-}
-
-export async function* iterPlugins(
-  host: Host,
-): AsyncGenerator<Plugin, void, unknown> {
-  const rtp = await runtimepath(host);
-  for (const root of rtp) {
-    for await (
-      const entry of fs.expandGlob(
-        path.join(root, "denops", "*", "mod.ts"),
-      )
-    ) {
-      const name = path.basename(path.dirname(entry.path));
-      yield {
-        name,
-        script: entry.path,
-      };
-    }
-  }
 }
 
 export function runPlugin(host: Host, plugin: Plugin): Session {

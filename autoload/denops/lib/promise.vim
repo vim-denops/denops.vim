@@ -310,38 +310,38 @@ endfunction
 let s:PROMISE.finally = funcref('s:_promise_finally')
 
 " Export
-function! denops#promise#noop(...) abort
+function! denops#lib#promise#noop(...) abort
   return call('s:noop', a:000)
 endfunction
 
-function! denops#promise#new(...) abort
+function! denops#lib#promise#new(...) abort
   return call('s:new', a:000)
 endfunction
 
-function! denops#promise#all(...) abort
+function! denops#lib#promise#all(...) abort
   return call('s:all', a:000)
 endfunction
 
-function! denops#promise#race(...) abort
+function! denops#lib#promise#race(...) abort
   return call('s:race', a:000)
 endfunction
 
-function! denops#promise#resolve(...) abort
+function! denops#lib#promise#resolve(...) abort
   return call('s:resolve', a:000)
 endfunction
 
-function! denops#promise#reject(...) abort
+function! denops#lib#promise#reject(...) abort
   return call('s:reject', a:000)
 endfunction
 
-function! denops#promise#is_promise(...) abort
+function! denops#lib#promise#is_promise(...) abort
   return call('s:is_promise', a:000)
 endfunction
 
-function! denops#promise#wait(...) abort
+function! denops#lib#promise#wait(...) abort
   return call('s:wait', a:000)
 endfunction
 
-function! denops#promise#on_unhandled_rejection(...) abort
+function! denops#lib#promise#on_unhandled_rejection(...) abort
   return call('s:on_unhandled_rejection', a:000)
 endfunction

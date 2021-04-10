@@ -20,19 +20,19 @@ function! s:rejector(resolve, reject) abort
   call a:reject('error')
 endfunction
 
-Describe Async.Promise
+Describe denops#lib#promise
   Before all
     let P = {
-          \ 'noop': function('denops#promise#noop'),
-          \ 'new': function('denops#promise#new'),
-          \ 'all': function('denops#promise#all'),
-          \ 'race': function('denops#promise#race'),
-          \ 'resolve': function('denops#promise#resolve'),
-          \ 'reject': function('denops#promise#reject'),
-          \ 'is_promise': function('denops#promise#is_promise'),
-          \ 'wait': function('denops#promise#wait'),
-          \ 'chain': function('denops#promise#chain'),
-          \ 'on_unhandled_rejection': function('denops#promise#on_unhandled_rejection'),
+          \ 'noop': function('denops#lib#promise#noop'),
+          \ 'new': function('denops#lib#promise#new'),
+          \ 'all': function('denops#lib#promise#all'),
+          \ 'race': function('denops#lib#promise#race'),
+          \ 'resolve': function('denops#lib#promise#resolve'),
+          \ 'reject': function('denops#lib#promise#reject'),
+          \ 'is_promise': function('denops#lib#promise#is_promise'),
+          \ 'wait': function('denops#lib#promise#wait'),
+          \ 'chain': function('denops#lib#promise#chain'),
+          \ 'on_unhandled_rejection': function('denops#lib#promise#on_unhandled_rejection'),
           \ 'TimeoutError': '[denops] Timeout',
           \}
 
