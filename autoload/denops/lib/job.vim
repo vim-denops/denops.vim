@@ -48,7 +48,7 @@ else
   " https://github.com/neovim/neovim/blob/f629f83/src/nvim/event/process.c#L24-L26
   let s:KILL_TIMEOUT_MS = 2000
 
-  function! s:start(context, args, options) abort
+  function! s:start(args, options) abort
     let options = extend({
           \ 'pty': a:options.pty,
           \ 'env': a:options.env,
@@ -65,10 +65,10 @@ else
   endfunction
 
   function! s:out_cb(callback, ch, msg) abort
-    call a:callback(a:msg, a:context)
+    call a:callback(a:msg)
   endfunction
 
   function! s:exit_cb(callback, ch, status) abort
-    call a:callback(a:status, a:context)
+    call a:callback(a:status)
   endfunction
 endif
