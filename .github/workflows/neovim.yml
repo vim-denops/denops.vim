@@ -1,6 +1,11 @@
 name: neovim
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**/*.vim'
+      - '**/*.vimspec'
+      - '.github/workflows/neovim.yml'
 
 jobs:
   build:

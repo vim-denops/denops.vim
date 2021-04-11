@@ -1,6 +1,11 @@
 name: vim
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**/*.vim'
+      - '**/*.vimspec'
+      - '.github/workflows/vim.yml'
 
 jobs:
   build:
