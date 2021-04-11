@@ -1,6 +1,11 @@
 name: vim
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**/*.vim'
+      - '**/*.vimspec'
+      - '.github/workflows/vim.yml'
 
 jobs:
   build:
@@ -12,7 +17,7 @@ jobs:
           - windows-latest
           - ubuntu-latest
         version:
-          - nightly
+          - head
           - v8.2.0235
           - v8.1.2424
     runs-on: ${{ matrix.os }}
@@ -22,11 +27,11 @@ jobs:
         with:
           repository: thinca/vim-themis
           path: vim-themis
-      - uses: rhysd/action-setup-vim@v1
+      - uses: thinca/action-setup-vim@v1
         id: vim
         with:
-          neovim: false
-          version: ${{ matrix.version }}
+          vim_type: Vim
+          vim_version: '${{ matrix.version }}'
       - name: Run tests
         env:
           THEMIS_VIM: ${{ steps.vim.outputs.executable }}

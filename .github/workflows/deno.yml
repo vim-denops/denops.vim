@@ -1,5 +1,8 @@
 name: deno
 
+env:
+  DENO_VERSION: v1.7.2
+
 on: [push]
 
 jobs:
@@ -9,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: denolib/setup-deno@v2
         with:
-          deno-version: v1.7.2
+          deno-version: ${{ env.DENO_VERSION }}
       - name: Lint
         run: deno lint --unstable
 
@@ -19,7 +22,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: denolib/setup-deno@v2
         with:
-          deno-version: v1.7.2
+          deno-version: ${{ env.DENO_VERSION }}
       - name: Format
         run: |
           deno fmt --check
@@ -30,7 +33,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: denolib/setup-deno@v2
         with:
-          deno-version: v1.7.2
+          deno-version: ${{ env.DENO_VERSION }}
       - name: Test
         run: |
           deno test
