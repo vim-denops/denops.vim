@@ -1,7 +1,7 @@
 name: deno
 
 env:
-  DENO_VERSION: "1.7.2"
+  DENO_VERSION: 1.7.2
 
 on:
   push:
