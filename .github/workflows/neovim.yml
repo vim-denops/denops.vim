@@ -6,6 +6,7 @@ on:
       - '**/*.vim'
       - '**/*.vimspec'
       - '.github/workflows/neovim.yml'
+  pull_request:
 
 jobs:
   build:

@@ -1,6 +1,8 @@
 name: reviewdog
 
-on: [push]
+on:
+  push:
+  pull_request:
 
 jobs:
   vimlint:
