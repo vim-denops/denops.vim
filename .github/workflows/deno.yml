@@ -1,7 +1,7 @@
 name: deno
 
 env:
-  DENO_VERSION: v1.7.2
+  DENO_VERSION: 1.7.2
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: denolib/setup-deno@v2
+      - uses: denoland/setup-deno@main
         with:
           deno-version: ${{ env.DENO_VERSION }}
       - name: Lint
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: denolib/setup-deno@v2
+      - uses: denoland/setup-deno@main
         with:
           deno-version: ${{ env.DENO_VERSION }}
       - name: Format
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: denolib/setup-deno@v2
+      - uses: denoland/setup-deno@main
         with:
           deno-version: ${{ env.DENO_VERSION }}
       - name: Test
