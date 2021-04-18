@@ -1,4 +1,4 @@
-import { Host } from "./host/base.ts";
+import { Service } from "./service.ts";
 import {
   Api,
   DispatcherFrom,
@@ -14,8 +14,41 @@ export interface Plugin {
   readonly script: string;
 }
 
-export function runPlugin(host: Host, plugin: Plugin): Session {
+export function runPlugin(service: Service, plugin: Plugin): Session {
+  const host = service.host;
   const dispatcher: DispatcherFrom<Api> = {
+    async dispatch(
+      name: unknown,
+      method: unknown,
+      params: unknown,
+    ): Promise<unknown> {
+      if (typeof name !== "string") {
+        throw new Error(
+          `'name' in 'dispatch()' of '${plugin.name}' plugin must be a string`,
+        );
+      }
+      if (typeof method !== "string") {
+        throw new Error(
+          `'method' in 'dispatch()' of '${plugin.name}' plugin must be a string`,
+        );
+      }
+      if (!Array.isArray(params)) {
+        throw new Error(
+          `'params' in 'dispatch()' of '${plugin.name}' plugin must be an array`,
+        );
+      }
+      return await service.dispatch(name, method, params);
+    },
+
+    async call(func: unknown, ...args: unknown[]): Promise<unknown> {
+      if (typeof func !== "string") {
+        throw new Error(
+          `'func' in 'call()' of '${plugin.name}' plugin must be a string`,
+        );
+      }
+      return await host.call(func, ...args);
+    },
+
     async cmd(cmd: unknown, context: unknown): Promise<void> {
       if (typeof cmd !== "string") {
         throw new Error(
@@ -42,15 +75,6 @@ export function runPlugin(host: Host, plugin: Plugin): Session {
         );
       }
       return await host.eval(expr, context);
-    },
-
-    async call(func: unknown, ...args: unknown[]): Promise<unknown> {
-      if (typeof func !== "string") {
-        throw new Error(
-          `'func' in 'call()' of '${plugin.name}' plugin must be a string`,
-        );
-      }
-      return await host.call(func, ...args);
     },
   };
 
