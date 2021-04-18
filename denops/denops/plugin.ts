@@ -17,6 +17,29 @@ export interface Plugin {
 export function runPlugin(service: Service, plugin: Plugin): Session {
   const host = service.host;
   const dispatcher: DispatcherFrom<Api> = {
+    async dispatch(
+      name: unknown,
+      method: unknown,
+      params: unknown,
+    ): Promise<unknown> {
+      if (typeof name !== "string") {
+        throw new Error(
+          `'name' in 'dispatch()' of '${plugin.name}' plugin must be a string`,
+        );
+      }
+      if (typeof method !== "string") {
+        throw new Error(
+          `'method' in 'dispatch()' of '${plugin.name}' plugin must be a string`,
+        );
+      }
+      if (!Array.isArray(params)) {
+        throw new Error(
+          `'params' in 'dispatch()' of '${plugin.name}' plugin must be an array`,
+        );
+      }
+      return await service.dispatch(name, method, params);
+    },
+
     async call(func: unknown, ...args: unknown[]): Promise<unknown> {
       if (typeof func !== "string") {
         throw new Error(
