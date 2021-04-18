@@ -1,5 +1,5 @@
 import { Service } from "../service.ts";
-import { Api, Context } from "../deps.ts";
+import { Api, Context } from "../api.ts";
 
 /**
  * Host (Vim/Neovim) interface.

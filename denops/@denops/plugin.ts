@@ -1,8 +1,7 @@
 import { Service } from "./service.ts";
+import { Api, isContext } from "./api.ts";
 import {
-  Api,
   DispatcherFrom,
-  isContext,
   path,
   Session,
   WorkerReader,

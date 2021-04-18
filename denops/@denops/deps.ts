@@ -2,6 +2,8 @@ export * as flags from "https://deno.land/std@0.92.0/flags/mod.ts";
 export * as path from "https://deno.land/std@0.92.0/path/mod.ts";
 export * as fs from "https://deno.land/std@0.92.0/fs/mod.ts";
 
+export { Queue } from "https://deno.land/x/async@v1.0/mod.ts";
+
 export type {
   Dispatcher,
   DispatcherFrom,
@@ -15,6 +17,3 @@ export {
   WorkerReader,
   WorkerWriter,
 } from "https://deno.land/x/workerio@v1.1/mod.ts";
-
-export type { Api, Context } from "https://deno.land/x/denops@v0.11/mod.ts";
-export { Denops, isContext } from "https://deno.land/x/denops@v0.11/mod.ts";

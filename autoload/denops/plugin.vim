@@ -9,6 +9,9 @@ function! denops#plugin#discover() abort
     let expr = denops#util#join_path(path, 'denops', '*', 'mod.ts')
     for script in glob(expr, 1, 1, 1)
       let name = fnamemodify(script, ':h:t')
+      if name[:0] ==# '@'
+        continue
+      endif
       call denops#plugin#register(name, script)
     endfor
   endfor
