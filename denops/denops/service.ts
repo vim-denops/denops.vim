@@ -11,11 +11,15 @@ export class Service {
     this.#host = host;
   }
 
+  get host(): Host {
+    return this.#host;
+  }
+
   register(name: string, script: string): void {
     if (this.#plugins[name]) {
       return;
     }
-    const session = runPlugin(this.#host, {
+    const session = runPlugin(this, {
       name,
       script,
     });
