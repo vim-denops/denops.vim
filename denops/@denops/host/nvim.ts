@@ -17,7 +17,7 @@ class Neovim extends AbstractHost {
   }
 
   registerService(service: Service): void {
-    const dispatcher: DispatcherFrom<Service> = {
+    const dispatcher: DispatcherFrom<Omit<Service, "host">> = {
       async register(
         name: unknown,
         script: unknown,

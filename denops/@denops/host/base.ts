@@ -4,7 +4,7 @@ import { Api, Context } from "../api.ts";
 /**
  * Host (Vim/Neovim) interface.
  */
-export interface Host extends Api {
+export interface Host extends Omit<Api, "dispatch"> {
   /**
    * Register service which is visible from the host through RPC.
    */
