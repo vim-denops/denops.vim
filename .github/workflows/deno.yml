@@ -1,15 +1,19 @@
 name: deno
 
 env:
-  DENO_VERSION: 1.7.2
+  DENO_VERSION: 1.x
 
 on:
+  schedule:
+    - cron: '0 7 * * 0'
   push:
   pull_request:
+
 
 jobs:
   lint:
     runs-on: ubuntu-20.04
+
     steps:
       - uses: actions/checkout@v2
       - uses: denoland/setup-deno@main
@@ -20,6 +24,7 @@ jobs:
 
   format:
     runs-on: ubuntu-20.04
+
     steps:
       - uses: actions/checkout@v2
       - uses: denoland/setup-deno@main
@@ -31,6 +36,7 @@ jobs:
 
   test:
     runs-on: ubuntu-20.04
+
     steps:
       - uses: actions/checkout@v2
       - uses: denoland/setup-deno@main
