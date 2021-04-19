@@ -1,6 +1,8 @@
 name: vim
 
 on:
+  schedule:
+    - cron: '0 7 * * 0'
   push:
     paths:
       - '**/*.vim'
