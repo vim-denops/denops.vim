@@ -1,98 +1,36 @@
-import { DispatcherFrom, Session } from "../deps.ts";
-import { AbstractHost } from "./base.ts";
-import { Service } from "../service.ts";
+import { Session } from "../deps.ts";
+import { Host, Invoker } from "./base.ts";
+import { ensureArray, ensureString } from "../utils.ts";
 
-class Neovim extends AbstractHost {
+export class Neovim implements Host {
   #session: Session;
   #listener: Promise<void>;
 
-  constructor(session: Session) {
-    super();
-    this.#session = session;
+  constructor(
+    reader: Deno.Reader & Deno.Closer,
+    writer: Deno.Writer,
+  ) {
+    this.#session = new Session(reader, writer);
     this.#listener = this.#session.listen();
   }
 
-  async call(fn: string, ...args: unknown[]): Promise<unknown> {
-    return await this.#session.call("nvim_call_function", fn, args);
+  call(fn: string, ...args: unknown[]): Promise<unknown> {
+    return this.#session.call("nvim_call_function", fn, args);
   }
 
-  registerService(service: Service): void {
-    const dispatcher: DispatcherFrom<Omit<Service, "host">> = {
-      async register(
-        name: unknown,
-        script: unknown,
-      ): Promise<void> {
-        if (typeof name !== "string") {
-          throw new Error(`'name' in 'register()' of host must be a string`);
+  listen(invoker: Invoker): Promise<void> {
+    this.#session.clearDispatcher();
+    this.#session.extendDispatcher({
+      async invoke(method: unknown, args: unknown): Promise<unknown> {
+        ensureString(method, "method");
+        ensureArray(args, "args");
+        if (!(method in invoker)) {
+          throw new Error(`Method '${method}' is not defined in the invoker`);
         }
-        if (typeof script !== "string") {
-          throw new Error(`'script' in 'register()' of host must be a string`);
-        }
-        return await service.register(name, script);
+        // deno-lint-ignore no-explicit-any
+        return await (invoker as any)[method](...args);
       },
-
-      async dispatch(
-        name: unknown,
-        fn: unknown,
-        args: unknown,
-      ): Promise<unknown> {
-        if (typeof name !== "string") {
-          throw new Error(`'name' in 'dispatch()' of host must be a string`);
-        }
-        if (typeof fn !== "string") {
-          throw new Error(`'fn' in 'dispatch()' of host must be a string`);
-        }
-        if (!Array.isArray(args)) {
-          throw new Error(`'args' in 'dispatch()' of host must be an array`);
-        }
-        return await service.dispatch(name, fn, args);
-      },
-
-      async dispatchAsync(
-        name: unknown,
-        fn: unknown,
-        args: unknown,
-        success: unknown,
-        failure: unknown,
-      ): Promise<unknown> {
-        if (typeof name !== "string") {
-          throw new Error(
-            `'name' in 'dispatchAsync()' of host must be a string`,
-          );
-        }
-        if (typeof fn !== "string") {
-          throw new Error(`'fn' in 'dispatchAsync()' of host must be a string`);
-        }
-        if (!Array.isArray(args)) {
-          throw new Error(
-            `'args' in 'dispatchAsync()' of host must be an array`,
-          );
-        }
-        if (typeof success !== "string") {
-          throw new Error(
-            `'success' in 'dispatchAsync()' of host must be a string`,
-          );
-        }
-        if (typeof failure !== "string") {
-          throw new Error(
-            `'failure' in 'dispatchAsync()' of host must be a string`,
-          );
-        }
-        return await service.dispatchAsync(name, fn, args, success, failure);
-      },
-    };
-    this.#session.extendDispatcher(dispatcher);
-  }
-
-  waitClosed(): Promise<void> {
+    });
     return this.#listener;
   }
-}
-
-export function createNeovim(
-  reader: Deno.Reader & Deno.Closer,
-  writer: Deno.Writer,
-): Neovim {
-  const session = new Session(reader, writer);
-  return new Neovim(session);
 }

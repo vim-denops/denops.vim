@@ -1,31 +1,32 @@
-import { Service } from "../service.ts";
-import { Api, Context } from "../api.ts";
-
 /**
- * Host (Vim/Neovim) interface.
+ * Host (Vim/Neovim) which is visible from Service
  */
-export interface Host extends Omit<Api, "dispatch"> {
+export interface Host {
   /**
-   * Register service which is visible from the host through RPC.
+   * Call an arbitrary function of the host and return the result.
    */
-  registerService(service: Service): void;
+  call(fn: string, ...args: unknown[]): Promise<unknown>;
 
   /**
-   * Wait until the host is closed
+   * Listen and process RPC messages forever
    */
-  waitClosed(): Promise<void>;
+  listen(invoker: Invoker): Promise<void>;
 }
 
-export abstract class AbstractHost implements Host {
-  abstract call(func: string, ...args: unknown[]): Promise<unknown>;
-  abstract registerService(sservice: Service): void;
-  abstract waitClosed(): Promise<void>;
+export interface Invoker {
+  register(name: string, script: string): void;
 
-  async cmd(cmd: string, context: Context): Promise<void> {
-    await this.call("denops#api#cmd", cmd, context);
-  }
+  dispatch(
+    name: string,
+    fn: string,
+    args: unknown[],
+  ): Promise<unknown>;
 
-  async eval(expr: string, context: Context): Promise<unknown> {
-    return await this.call("denops#api#eval", expr, context);
-  }
+  dispatchAsync(
+    name: string,
+    fn: string,
+    args: unknown[],
+    success: string, // Callback ID
+    failure: string, // Callback ID
+  ): Promise<void>;
 }

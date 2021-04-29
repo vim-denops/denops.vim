@@ -1,20 +1,25 @@
 import { flags } from "../deps.ts";
 import { Service } from "../service.ts";
-import { createVim } from "../host/vim.ts";
-import { createNeovim } from "../host/nvim.ts";
+import { Neovim, Vim } from "../host/mod.ts";
 
-const options = flags.parse(Deno.args);
-const mode = options.mode ?? "neovim";
+const opts = flags.parse(Deno.args);
+
+// Check opts
+if (!opts.address) {
+  throw new Error("No `--address` option is specified.");
+}
+if (!opts.mode) {
+  throw new Error("No `--mode` option is specified.");
+}
 
 // Connect to the address
-const address = JSON.parse(options.address);
+const address = JSON.parse(opts.address);
 const conn = await Deno.connect(address);
 
-// Create host and start communication
-const createHost = mode === "vim" ? createVim : createNeovim;
-const host = createHost(conn, conn);
+// Create host and service
+const hostClass = opts.mode === "vim" ? Vim : Neovim;
+const host = new hostClass(conn, conn);
 const service = new Service(host);
-host.registerService(service);
 
 // Listen forever
-await host.waitClosed();
+await host.listen(service);

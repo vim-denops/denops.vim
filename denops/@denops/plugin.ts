@@ -1,102 +1,88 @@
+import { DispatcherFrom, Session } from "./deps.ts";
 import { Service } from "./service.ts";
-import { Api, isContext } from "./api.ts";
-import {
-  DispatcherFrom,
-  path,
-  Session,
-  WorkerReader,
-  WorkerWriter,
-} from "./deps.ts";
+import { ensureArray, ensureRecord, ensureString } from "./utils.ts";
 
-export interface Plugin {
-  readonly name: string;
-  readonly script: string;
+/**
+ * Plugin API which is visible from each denops plugins through msgpack-rpc
+ */
+interface PluginApi {
+  /**
+   * Dispatch an arbitrary function of an arbitrary plugin and return the result.
+   *
+   * @param name: A plugin name
+   * @param fn: A function name
+   * @param args: Arguments
+   */
+  dispatch(name: string, fn: string, ...args: unknown[]): Promise<unknown>;
+
+  /**
+   * Call an arbitrary function of the host and return the result.
+   *
+   * @param fn: A function name
+   * @param args: Arguments
+   */
+  call(fn: string, ...args: unknown[]): Promise<unknown>;
 }
 
-export function runPlugin(service: Service, plugin: Plugin): Session {
-  const host = service.host;
-  const dispatcher: DispatcherFrom<Api> = {
-    async dispatch(
-      name: unknown,
-      method: unknown,
-      params: unknown,
-    ): Promise<unknown> {
-      if (typeof name !== "string") {
-        throw new Error(
-          `'name' in 'dispatch()' of '${plugin.name}' plugin must be a string`,
-        );
-      }
-      if (typeof method !== "string") {
-        throw new Error(
-          `'method' in 'dispatch()' of '${plugin.name}' plugin must be a string`,
-        );
-      }
-      if (!Array.isArray(params)) {
-        throw new Error(
-          `'params' in 'dispatch()' of '${plugin.name}' plugin must be an array`,
-        );
-      }
-      return await service.dispatch(name, method, params);
-    },
+/**
+ * An instance of denops plugin
+ */
+export class Plugin {
+  #session: Session;
+  #service: Service;
 
-    async call(func: unknown, ...args: unknown[]): Promise<unknown> {
-      if (typeof func !== "string") {
-        throw new Error(
-          `'func' in 'call()' of '${plugin.name}' plugin must be a string`,
-        );
-      }
-      return await host.call(func, ...args);
-    },
-
-    async cmd(cmd: unknown, context: unknown): Promise<void> {
-      if (typeof cmd !== "string") {
-        throw new Error(
-          `'cmd' in 'cmd()' of '${plugin.name}' plugin must be a string`,
-        );
-      }
-      if (!isContext(context)) {
-        throw new Error(
-          `'context' in 'cmd()' of '${plugin.name}' plugin must be a context object`,
-        );
-      }
-      await host.cmd(cmd, context);
-    },
-
-    async eval(expr: unknown, context: unknown): Promise<unknown> {
-      if (typeof expr !== "string") {
-        throw new Error(
-          `'expr' in 'eval()' of '${plugin.name}' plugin must be a string`,
-        );
-      }
-      if (!isContext(context)) {
-        throw new Error(
-          `'context' in 'eval()' of '${plugin.name}' plugin must be a context object`,
-        );
-      }
-      return await host.eval(expr, context);
-    },
-  };
-
-  const worker = new Worker(
-    new URL(path.toFileUrl(plugin.script).href, import.meta.url).href,
-    {
-      name: plugin.name,
-      type: "module",
-      deno: {
-        namespace: true,
+  constructor(
+    reader: Deno.Reader & Deno.Closer,
+    writer: Deno.Writer,
+    service: Service,
+  ) {
+    const dispatcher: DispatcherFrom<PluginApi> = {
+      dispatch: async (name, fn, ...args) => {
+        ensureString(name, "name");
+        ensureString(fn, "fn");
+        ensureArray(args, "args");
+        return await this.#service.dispatch(name, fn, args);
       },
-    },
-  );
-  const reader = new WorkerReader(worker);
-  const writer = new WorkerWriter(worker);
-  const session = new Session(reader, writer, dispatcher);
 
-  session
-    .listen()
-    .then()
-    .catch((e: Error) => {
-      console.error("Plugin server is closed with error:", e);
+      call: async (fn, ...args) => {
+        ensureString(fn, "fn");
+        ensureArray(args, "args");
+        return await this.#service.host.call(fn, ...args);
+      },
+    };
+    this.#service = service;
+    this.#session = new Session(reader, writer, dispatcher);
+    this.#session.listen()
+      .then()
+      .catch((e: Error) => {
+        console.error("Plugin server is closed with error:", e);
+      });
+
+    // DEPRECATED:
+    // The following dispatcher is required to support previous denops and
+    // the implementations will be removed in the future version so developers
+    // should not relies on those msgpack-rpc APIs.
+    this.#session.extendDispatcher({
+      cmd: async (cmd: unknown, ctx: unknown): Promise<unknown> => {
+        ensureString(cmd, "cmd");
+        ensureRecord(ctx, "ctx");
+        return await this.#service.host.call("denops#api#cmd", cmd, ctx);
+      },
+      eval: async (expr: unknown, ctx: unknown): Promise<unknown> => {
+        ensureString(expr, "expr");
+        ensureRecord(ctx, "ctx");
+        return await this.#service.host.call("denops#api#eval", expr, ctx);
+      },
     });
+  }
 
-  return session;
+  /**
+   * Call an arbitrary function of the host and return the result.
+   */
+  async call(
+    fn: string,
+    ...args: unknown[]
+  ): Promise<unknown> {
+    return await this.#session.call(fn, ...args);
+  }
 }

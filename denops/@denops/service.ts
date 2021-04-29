@@ -1,9 +1,12 @@
-import { Session } from "./deps.ts";
-import { runPlugin } from "./plugin.ts";
-import { Host } from "./host/mod.ts";
+import { path, WorkerReader, WorkerWriter } from "./deps.ts";
+import { Plugin } from "./plugin.ts";
+import { Host, Invoker } from "./host/mod.ts";
 
-export class Service {
-  #plugins: { [key: string]: Session };
+/**
+ * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
+ */
+export class Service implements Invoker {
+  #plugins: Record<string, { worker: Worker; plugin: Plugin }>;
   #host: Host;
 
   constructor(host: Host) {
@@ -16,23 +19,36 @@ export class Service {
   }
 
   register(name: string, script: string): void {
-    if (this.#plugins[name]) {
-      return;
+    if (name in this.#plugins) {
+      const { worker } = this.#plugins[name];
+      worker.terminate();
     }
-    const session = runPlugin(this, {
-      name,
-      script,
-    });
-    this.#plugins[name] = session;
+    const worker = new Worker(
+      new URL(path.toFileUrl(script).href, import.meta.url).href,
+      {
+        name,
+        type: "module",
+        deno: {
+          namespace: true,
+        },
+      },
+    );
+    const reader = new WorkerReader(worker);
+    const writer = new WorkerWriter(worker);
+    const plugin = new Plugin(reader, writer, this);
+    this.#plugins[name] = {
+      plugin,
+      worker,
+    };
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
     try {
-      const session = this.#plugins[name];
-      if (!session) {
+      const { plugin } = this.#plugins[name];
+      if (!plugin) {
         throw new Error(`No plugin '${name}' is registered`);
       }
-      return await session.call(fn, ...args);
+      return await plugin.call(fn, ...args);
     } catch (e) {
       // NOTE:
       // Vim/Neovim does not handle JavaScript Error instance thus use string instead
