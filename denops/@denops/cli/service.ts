@@ -16,11 +16,10 @@ if (!opts.mode) {
 const address = JSON.parse(opts.address);
 const conn = await Deno.connect(address);
 
-// Create host and start communication
+// Create host and service
 const hostClass = opts.mode === "vim" ? Vim : Neovim;
 const host = new hostClass(conn, conn);
 const service = new Service(host);
-host.registerService(service);
 
 // Listen forever
-await host.waitClosed();
+await host.listen(service);

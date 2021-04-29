@@ -1,6 +1,5 @@
 import { VimMessage, VimSession } from "../deps.ts";
-import { Host } from "./base.ts";
-import { Service } from "../service.ts";
+import { Host, Invoker } from "./base.ts";
 
 export class Vim implements Host {
   #session: VimSession;
@@ -21,13 +20,13 @@ export class Vim implements Host {
     return result;
   }
 
-  registerService(service: Service): void {
+  listen(invoker: Invoker): Promise<void> {
     this.#session.replaceCallback(async function (message: VimMessage) {
       const [msgid, expr] = message;
       let ok = null;
       let err = null;
       try {
-        ok = await dispatch(service, expr);
+        ok = await dispatch(invoker, expr);
       } catch (e) {
         err = e;
       }
@@ -37,21 +36,18 @@ export class Vim implements Host {
         console.error(err);
       }
     });
-  }
-
-  waitClosed(): Promise<void> {
     return this.#listener;
   }
 }
 
-async function dispatch(service: Service, expr: unknown): Promise<unknown> {
+async function dispatch(invoker: Invoker, expr: unknown): Promise<unknown> {
   if (isInvokeMessage(expr)) {
     const [_, method, args] = expr;
-    if (!(method in service)) {
-      throw new Error(`Method '${method}' is not defined in the service`);
+    if (!(method in invoker)) {
+      throw new Error(`Method '${method}' is not defined in the invoker`);
     }
     // deno-lint-ignore no-explicit-any
-    return await (service as any)[method](...args);
+    return await (invoker as any)[method](...args);
   } else {
     throw new Error(
       `Unexpected JSON channel message is received: ${JSON.stringify(expr)}`,

@@ -1,11 +1,11 @@
 import { path, WorkerReader, WorkerWriter } from "./deps.ts";
 import { Plugin } from "./plugin.ts";
-import { Host } from "./host/mod.ts";
+import { Host, Invoker } from "./host/mod.ts";
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
-export class Service {
+export class Service implements Invoker {
   #plugins: Record<string, { worker: Worker; plugin: Plugin }>;
   #host: Host;
 

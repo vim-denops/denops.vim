@@ -1,21 +1,32 @@
-import { Service } from "../service.ts";
-
 /**
- * Host (Vim/Neovim) interface.
+ * Host (Vim/Neovim) which is visible from Service
  */
 export interface Host {
   /**
-   * Call {func} of Vim/Nevoim with given {args} and return the result
+   * Call an arbitrary function of the host and return the result.
    */
-  call(func: string, ...args: unknown[]): Promise<unknown>;
+  call(fn: string, ...args: unknown[]): Promise<unknown>;
 
   /**
-   * Register service which is visible from the host through RPC.
+   * Listen and process RPC messages forever
    */
-  registerService(service: Service): void;
+  listen(invoker: Invoker): Promise<void>;
+}
 
-  /**
-   * Wait until the host is closed
-   */
-  waitClosed(): Promise<void>;
+export interface Invoker {
+  register(name: string, script: string): void;
+
+  dispatch(
+    name: string,
+    fn: string,
+    args: unknown[],
+  ): Promise<unknown>;
+
+  dispatchAsync(
+    name: string,
+    fn: string,
+    args: unknown[],
+    success: string, // Callback ID
+    failure: string, // Callback ID
+  ): Promise<void>;
 }
