@@ -1,32 +1,29 @@
 let s:script = denops#util#script_path('cli', 'channel.ts')
 let s:vim_exiting = 0
-let s:promise = v:null
 let s:job = v:null
 
-function! denops#server#channel#start() abort
-  if s:promise isnot# v:null
-    return s:promise
-  endif
+function! denops#server#channel#start(notify) abort
   let args = [g:denops#server#channel#deno, 'run']
   let args += g:denops#server#channel#deno_args
   let args += [s:script]
-  let s:promise = denops#lib#promise#new(funcref('s:start', [args]))
-  return s:promise
-endfunction
-
-function! denops#server#channel#restart() abort
-  if s:promise isnot# v:null
-    call denops#server#channel#stop()
-  endif
-  return denops#server#channel#start()
+  let raw_options = has('nvim')
+        \ ? {'rpc': v:true}
+        \ : {'mode': 'json', 'err_mode': 'nl'}
+  let s:job = denops#lib#job#start(args, {
+        \ 'env': {
+        \   'NO_COLOR': 1,
+        \ },
+        \ 'on_stderr': funcref('s:on_stderr', [a:notify]),
+        \ 'on_exit': funcref('s:on_exit'),
+        \ 'raw_options': raw_options,
+        \})
+  call denops#debug(printf('channel server start: %s', args))
 endfunction
 
 function! denops#server#channel#stop() abort
   if s:job isnot# v:null
     call denops#lib#job#stop(s:job)
   endif
-  let s:promise = v:null
-  let s:job = v:null
 endfunction
 
 function! denops#server#channel#notify(method, params) abort
@@ -43,32 +40,16 @@ function! denops#server#channel#request(method, params) abort
   return s:request(s:job, a:method, a:params)
 endfunction
 
-function! s:start(args, resolve, reject) abort
-  let raw_options = has('nvim')
-        \ ? {'rpc': v:true}
-        \ : {'mode': 'json', 'err_mode': 'nl'}
-  let s:job = denops#lib#job#start(a:args, {
-        \ 'env': {
-        \   'NO_COLOR': 1,
-        \ },
-        \ 'on_stderr': funcref('s:on_stderr', [a:resolve]),
-        \ 'on_exit': funcref('s:on_exit', [a:reject]),
-        \ 'raw_options': raw_options,
-        \})
-  call denops#debug(printf("channel server start: %s", a:args))
-endfunction
-
-function! s:on_stderr(resolve, data, ...) abort dict
+function! s:on_stderr(notify, data, ...) abort dict
   let address = substitute(a:data, '[\s\r\n]*$', '', '')
-  call a:resolve(address)
-  call denops#debug(printf("channel server resolve: %s", address))
+  call a:notify(address)
+  call denops#debug(printf('channel server resolve: %s', address))
 endfunction
 
-function! s:on_exit(reject, status, ...) abort dict
+function! s:on_exit(status, ...) abort dict
   if v:dying || s:vim_exiting || a:status is# 143
     return
   endif
-  call a:reject({'exception': 'channel server terminated unexpectedly'})
   call denops#error(printf(
         \ 'channel server terminated unexpectedly: %d',
         \ a:status,

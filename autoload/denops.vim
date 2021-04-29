@@ -31,15 +31,17 @@ function! denops#request(plugin, method, params) abort
   return denops#server#channel#request('dispatch', [a:plugin, a:method, a:params])
 endfunction
 
-function! denops#promise(plugin, method, params) abort
-  return denops#lib#promise#new(funcref('s:promise_start', [a:plugin, a:method, a:params]))
-endfunction
-
-function! s:promise_start(plugin, method, params, resolve, reject) abort
-  let success = denops#callback#add(a:resolve)
-  let failure = denops#callback#add(a:reject)
+function! denops#request_async(plugin, method, params, success, failure) abort
+  let success = denops#callback#add(a:success)
+  let failure = denops#callback#add(a:failure)
   return denops#server#channel#request('dispatchAsync', [a:plugin, a:method, a:params, success, failure])
 endfunction
 
 " Configuration
 let g:denops#deno = get(g:, 'denops#deno', exepath('deno'))
+
+
+" OBSOLETED
+function! denops#promise(plugin, method, params) abort
+  call denops#error('denops#promise() is obsoleted. Use denops#request_async() with Async.Promise of vital.vim instead.')
+endfunction

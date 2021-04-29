@@ -1,13 +1,9 @@
 let s:script = denops#util#script_path('cli', 'service.ts')
 let s:engine = has('nvim') ? 'nvim' : 'vim'
 let s:vim_exiting = 0
-let s:promise = v:null
 let s:job = v:null
 
 function! denops#server#service#start(address) abort
-  if s:promise isnot# v:null
-    return s:promise
-  endif
   let args = [g:denops#server#service#deno, 'run']
   let args += g:denops#server#service#deno_args
   let args += [
@@ -15,30 +11,10 @@ function! denops#server#service#start(address) abort
         \ '--mode=' . s:engine,
         \ '--address=' . a:address,
         \]
-  let s:promise = denops#lib#promise#new(funcref('s:start', [args]))
-  return s:promise
-endfunction
-
-function! denops#server#service#restart(address) abort
-  if s:promise isnot# v:null
-    call denops#server#service#stop()
-  endif
-  return denops#server#service#start(a:address)
-endfunction
-
-function! denops#server#service#stop() abort
-  if s:job isnot# v:null
-    call denops#lib#job#stop(s:job)
-  endif
-  let s:promise = v:null
-  let s:job = v:null
-endfunction
-
-function! s:start(args, resolve, reject) abort
   let raw_options = has('nvim')
         \ ? {}
         \ : { 'mode': 'nl' }
-  let s:job = denops#lib#job#start(a:args, {
+  let s:job = denops#lib#job#start(args, {
         \ 'env': {
         \   'NO_COLOR': 1,
         \ },
@@ -47,8 +23,13 @@ function! s:start(args, resolve, reject) abort
         \ 'on_exit': funcref('s:on_exit'),
         \ 'raw_options': raw_options,
         \})
-  call denops#debug(printf("service server start: %s", a:args))
-  call a:resolve()
+  call denops#debug(printf('service server start: %s', args))
+endfunction
+
+function! denops#server#service#stop() abort
+  if s:job isnot# v:null
+    call denops#lib#job#stop(s:job)
+  endif
 endfunction
 
 function! s:on_stdout(data) abort
