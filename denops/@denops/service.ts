@@ -5,7 +5,7 @@ import { ensureArray, ensureRecord, ensureString } from "./utils.ts";
 import { path, WorkerReader, WorkerWriter } from "./deps.ts";
 
 export class Service {
-  #plugins: Record<string, Session>;
+  #plugins: Record<string, { worker: Worker; plugin: Plugin }>;
   #host: Host;
 
   constructor(host: Host) {
@@ -18,13 +18,14 @@ export class Service {
   }
 
   register(name: string, script: string): void {
-    if (this.#plugins[name]) {
-      return;
+    if (name in this.#plugins) {
+      const { worker } = this.#plugins[name];
+      worker.terminate();
     }
     const worker = new Worker(
       new URL(path.toFileUrl(script).href, import.meta.url).href,
       {
-        name: name,
+        name,
         type: "module",
         deno: {
           namespace: true,
@@ -33,20 +34,23 @@ export class Service {
     );
     const reader = new WorkerReader(worker);
     const writer = new WorkerWriter(worker);
-    const session = new Session(reader, writer, buildDispatcher(this));
-    session
+    const plugin = new Session(reader, writer, buildDispatcher(this));
+    plugin
       .listen()
       .then()
       .catch((e: Error) => {
         console.error("Plugin server is closed with error:", e);
       });
 
-    this.#plugins[name] = session;
+    this.#plugins[name] = {
+      plugin,
+      worker,
+    };
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
     try {
-      const plugin = this.#plugins[name];
+      const { plugin } = this.#plugins[name];
       if (!plugin) {
         throw new Error(`No plugin '${name}' is registered`);
       }
