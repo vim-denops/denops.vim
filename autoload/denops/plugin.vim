@@ -1,6 +1,6 @@
 function! denops#plugin#register(plugin, script) abort
   call denops#debug(printf('register `%s` plugin as `%s`', a:plugin, a:script))
-  return denops#server#channel#notify('register', [a:plugin, a:script])
+  return denops#server#channel#notify('invoke', ['register', [a:plugin, a:script]])
 endfunction
 
 function! denops#plugin#discover() abort

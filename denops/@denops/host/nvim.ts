@@ -1,6 +1,7 @@
-import { DispatcherFrom, Session } from "../deps.ts";
+import { Session } from "../deps.ts";
 import { AbstractHost } from "./base.ts";
 import { Service } from "../service.ts";
+import { ensureArray, ensureString } from "../utils.ts";
 
 class Neovim extends AbstractHost {
   #session: Session;
@@ -17,71 +18,17 @@ class Neovim extends AbstractHost {
   }
 
   registerService(service: Service): void {
-    const dispatcher: DispatcherFrom<Omit<Service, "host">> = {
-      async register(
-        name: unknown,
-        script: unknown,
-      ): Promise<void> {
-        if (typeof name !== "string") {
-          throw new Error(`'name' in 'register()' of host must be a string`);
+    this.#session.extendDispatcher({
+      async invoke(method: unknown, args: unknown): Promise<unknown> {
+        ensureString(method, "method");
+        ensureArray(args, "args");
+        if (!(method in service)) {
+          throw new Error(`Method '${method}' is not defined in the service`);
         }
-        if (typeof script !== "string") {
-          throw new Error(`'script' in 'register()' of host must be a string`);
-        }
-        return await service.register(name, script);
+        // deno-lint-ignore no-explicit-any
+        return await (service as any)[method](...args);
       },
-
-      async dispatch(
-        name: unknown,
-        fn: unknown,
-        args: unknown,
-      ): Promise<unknown> {
-        if (typeof name !== "string") {
-          throw new Error(`'name' in 'dispatch()' of host must be a string`);
-        }
-        if (typeof fn !== "string") {
-          throw new Error(`'fn' in 'dispatch()' of host must be a string`);
-        }
-        if (!Array.isArray(args)) {
-          throw new Error(`'args' in 'dispatch()' of host must be an array`);
-        }
-        return await service.dispatch(name, fn, args);
-      },
-
-      async dispatchAsync(
-        name: unknown,
-        fn: unknown,
-        args: unknown,
-        success: unknown,
-        failure: unknown,
-      ): Promise<unknown> {
-        if (typeof name !== "string") {
-          throw new Error(
-            `'name' in 'dispatchAsync()' of host must be a string`,
-          );
-        }
-        if (typeof fn !== "string") {
-          throw new Error(`'fn' in 'dispatchAsync()' of host must be a string`);
-        }
-        if (!Array.isArray(args)) {
-          throw new Error(
-            `'args' in 'dispatchAsync()' of host must be an array`,
-          );
-        }
-        if (typeof success !== "string") {
-          throw new Error(
-            `'success' in 'dispatchAsync()' of host must be a string`,
-          );
-        }
-        if (typeof failure !== "string") {
-          throw new Error(
-            `'failure' in 'dispatchAsync()' of host must be a string`,
-          );
-        }
-        return await service.dispatchAsync(name, fn, args, success, failure);
-      },
-    };
-    this.#session.extendDispatcher(dispatcher);
+    });
   }
 
   waitClosed(): Promise<void> {
