@@ -2,8 +2,6 @@ import { DispatcherFrom, Session } from "./deps.ts";
 import { Service } from "./service.ts";
 import { ensureArray, ensureRecord, ensureString } from "./utils.ts";
 
-type Context = Record<string, unknown>;
-
 /**
  * Plugin API which is visible from each denops plugins through msgpack-rpc
  */
@@ -24,22 +22,6 @@ interface PluginApi {
    * @param args: Arguments
    */
   call(fn: string, ...args: unknown[]): Promise<unknown>;
-
-  /**
-   * Execute an arbitrary command of Vim/Neovim under a given context.
-   *
-   * @param cmd: A command expression to be executed.
-   * @param ctx: A context object which is expanded to the local namespace (l:)
-   */
-  cmd(cmd: string, ctx: Context): Promise<void>;
-
-  /**
-   * Evaluate an arbitrary expression of Vim/Neovim under a given context and return the result.
-   *
-   * @param expr: An expression to be evaluated.
-   * @param ctx: A context object which is expanded to the local namespace (l:)
-   */
-  eval(expr: string, ctx: Context): Promise<unknown>;
 }
 
 /**
@@ -67,18 +49,6 @@ export class Plugin {
         ensureArray(args, "args");
         return await this.#service.host.call(fn, ...args);
       },
-
-      cmd: async (cmd: unknown, ctx: unknown): Promise<unknown> => {
-        ensureString(cmd, "cmd");
-        ensureRecord(ctx, "ctx");
-        return await this.#service.host.cmd(cmd, ctx);
-      },
-
-      eval: async (expr: unknown, ctx: unknown): Promise<unknown> => {
-        ensureString(expr, "expr");
-        ensureRecord(ctx, "ctx");
-        return await this.#service.host.eval(expr, ctx);
-      },
     };
     this.#service = service;
     this.#session = new Session(reader, writer, dispatcher);
@@ -87,6 +57,23 @@ export class Plugin {
       .catch((e: Error) => {
         console.error("Plugin server is closed with error:", e);
       });
+
+    // DEPRECATED:
+    // The following dispatcher is required to support previous denops and
+    // the implementations will be removed in the future version so developers
+    // should not relies on those msgpack-rpc APIs.
+    this.#session.extendDispatcher({
+      cmd: async (cmd: unknown, ctx: unknown): Promise<unknown> => {
+        ensureString(cmd, "cmd");
+        ensureRecord(ctx, "ctx");
+        return await this.#service.host.call("denops#api#cmd", cmd, ctx);
+      },
+      eval: async (expr: unknown, ctx: unknown): Promise<unknown> => {
+        ensureString(expr, "expr");
+        ensureRecord(ctx, "ctx");
+        return await this.#service.host.call("denops#api#eval", expr, ctx);
+      },
+    });
   }
 
   /**

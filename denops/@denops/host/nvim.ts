@@ -1,14 +1,13 @@
 import { Session } from "../deps.ts";
-import { AbstractHost } from "./base.ts";
+import { Host } from "./base.ts";
 import { Service } from "../service.ts";
 import { ensureArray, ensureString } from "../utils.ts";
 
-class Neovim extends AbstractHost {
+class Neovim implements Host {
   #session: Session;
   #listener: Promise<void>;
 
   constructor(session: Session) {
-    super();
     this.#session = session;
     this.#listener = this.#session.listen();
   }

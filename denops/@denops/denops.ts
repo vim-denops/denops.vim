@@ -68,11 +68,11 @@ export class Denops {
   }
 
   async cmd(cmd: string, ctx: Context = {}): Promise<void> {
-    await this.#session.call("cmd", cmd, ctx);
+    await this.#session.call("call", "denops#api#cmd", cmd, ctx);
   }
 
   async eval(expr: string, ctx: Context = {}): Promise<unknown> {
-    return await this.#session.call("eval", expr, ctx);
+    return await this.#session.call("call", "denops#api#eval", expr, ctx);
   }
 
   /**

@@ -1,13 +1,12 @@
 import { VimMessage, VimSession } from "../deps.ts";
-import { AbstractHost } from "./base.ts";
+import { Host } from "./base.ts";
 import { Service } from "../service.ts";
 
-class Vim extends AbstractHost {
+class Vim implements Host {
   #session: VimSession;
   #listener: Promise<void>;
 
   constructor(session: VimSession) {
-    super();
     this.#session = session;
     this.#listener = this.#session.listen();
   }
