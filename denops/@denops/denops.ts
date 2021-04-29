@@ -58,7 +58,7 @@ export class Denops {
   async dispatch(
     name: string,
     fn: string,
-    args: unknown[]
+    ...args: unknown[]
   ): Promise<unknown> {
     return await this.#session.call("dispatch", name, fn, ...args);
   }
