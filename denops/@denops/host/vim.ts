@@ -2,12 +2,15 @@ import { VimMessage, VimSession } from "../deps.ts";
 import { Host } from "./base.ts";
 import { Service } from "../service.ts";
 
-class Vim implements Host {
+export class Vim implements Host {
   #session: VimSession;
   #listener: Promise<void>;
 
-  constructor(session: VimSession) {
-    this.#session = session;
+  constructor(
+    reader: Deno.Reader & Deno.Closer,
+    writer: Deno.Writer,
+  ) {
+    this.#session = new VimSession(reader, writer);
     this.#listener = this.#session.listen();
   }
 
@@ -39,14 +42,6 @@ class Vim implements Host {
   waitClosed(): Promise<void> {
     return this.#listener;
   }
-}
-
-export function createVim(
-  reader: Deno.Reader & Deno.Closer,
-  writer: Deno.Writer,
-): Vim {
-  const session = new VimSession(reader, writer);
-  return new Vim(session);
 }
 
 async function dispatch(service: Service, expr: unknown): Promise<unknown> {

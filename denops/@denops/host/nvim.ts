@@ -3,12 +3,15 @@ import { Host } from "./base.ts";
 import { Service } from "../service.ts";
 import { ensureArray, ensureString } from "../utils.ts";
 
-class Neovim implements Host {
+export class Neovim implements Host {
   #session: Session;
   #listener: Promise<void>;
 
-  constructor(session: Session) {
-    this.#session = session;
+  constructor(
+    reader: Deno.Reader & Deno.Closer,
+    writer: Deno.Writer,
+  ) {
+    this.#session = new Session(reader, writer);
     this.#listener = this.#session.listen();
   }
 
@@ -33,12 +36,4 @@ class Neovim implements Host {
   waitClosed(): Promise<void> {
     return this.#listener;
   }
-}
-
-export function createNeovim(
-  reader: Deno.Reader & Deno.Closer,
-  writer: Deno.Writer,
-): Neovim {
-  const session = new Session(reader, writer);
-  return new Neovim(session);
 }
