@@ -6,9 +6,6 @@ import {
   WorkerWriter,
 } from "./deps.ts";
 
-/**
- * Denops provides API to access plugin host (Vim/Neovim)
- */
 export type Context = Record<string, unknown>;
 
 export class Denops {
@@ -21,14 +18,13 @@ export class Denops {
     name: string,
     reader: Deno.Reader & Deno.Closer,
     writer: Deno.Writer,
-    dispatcher: Dispatcher = {},
   ) {
     this.#name = name;
-    this.#session = new Session(reader, writer, dispatcher);
+    this.#session = new Session(reader, writer);
   }
 
   /**
-   * Get thread-local denops instance
+   * Get thread-local denops instance.
    */
   static get(): Denops {
     if (!Denops.instance) {
@@ -44,9 +40,9 @@ export class Denops {
   /**
    * Start main event-loop of the plugin
    */
-  static start(main: (denops: Denops) => Promise<void>): void {
+  static start(init: (denops: Denops) => Promise<void> | void): void {
     const denops = Denops.get();
-    const waiter = Promise.all([denops.#session.listen(), main(denops)]);
+    const waiter = Promise.all([denops.#session.listen(), init(denops)]);
     waiter.catch((e) => {
       console.error(`Unexpected error occurred in '${denops.name}'`, e);
     });
@@ -61,22 +57,22 @@ export class Denops {
 
   async dispatch(
     name: string,
-    method: string,
-    params: unknown[],
+    fn: string,
+    args: unknown[]
   ): Promise<unknown> {
-    return await this.#session.call("dispatch", name, method, params);
+    return await this.#session.call("dispatch", name, fn, ...args);
   }
 
-  async call(func: string, ...args: unknown[]): Promise<unknown> {
-    return await this.#session.call("call", func, ...args);
+  async call(fn: string, ...args: unknown[]): Promise<unknown> {
+    return await this.#session.call("call", fn, ...args);
   }
 
-  async cmd(cmd: string, context: Context = {}): Promise<void> {
-    await this.#session.call("cmd", cmd, context);
+  async cmd(cmd: string, ctx: Context = {}): Promise<void> {
+    await this.#session.call("cmd", cmd, ctx);
   }
 
-  async eval(expr: string, context: Context = {}): Promise<unknown> {
-    return await this.#session.call("eval", expr, context);
+  async eval(expr: string, ctx: Context = {}): Promise<unknown> {
+    return await this.#session.call("eval", expr, ctx);
   }
 
   /**
