@@ -1,6 +1,5 @@
 # denops_core
 
-
 [![deno](https://github.com/vim-denops/denops.vim/workflows/deno/badge.svg)](https://github.com/vim-denops/denops.vim/actions?query=workflow%3Adeno)
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/denops_core/mod.ts)
 [![deno land](http://img.shields.io/badge/available%20on-deno.land/x-lightgrey.svg?logo=deno)](https://deno.land/x/denops_core)
