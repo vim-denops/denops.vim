@@ -4,6 +4,8 @@
 [![vim](https://github.com/vim-denops/denops.vim/workflows/vim/badge.svg)](https://github.com/vim-denops/denops.vim/actions?query=workflow%3Avim)
 [![neovim](https://github.com/vim-denops/denops.vim/workflows/neovim/badge.svg)](https://github.com/vim-denops/denops.vim/actions?query=workflow%3Aneovim)
 [![reviewdog](https://github.com/vim-denops/denops.vim/workflows/reviewdog/badge.svg)](https://github.com/vim-denops/denops.vim/actions?query=workflow%3Areviewdog)
+[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/denops_core/mod.ts)
+[![deno land](http://img.shields.io/badge/available%20on-deno.land/x-lightgrey.svg?logo=deno)](https://deno.land/x/denops_core)
 
 Denops is an ecosystem of Vim/Neovim which allows developers to write Vim/Neovim
 plugin in [Deno][deno].
