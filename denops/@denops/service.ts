@@ -1,9 +1,10 @@
-import { Api } from "./api.ts";
-import { Host } from "./host/mod.ts";
-import { Session, DispatcherFrom } from "./deps.ts";
-import { ensureArray, ensureRecord, ensureString } from "./utils.ts";
 import { path, WorkerReader, WorkerWriter } from "./deps.ts";
+import { Plugin } from "./plugin.ts";
+import { Host } from "./host/mod.ts";
 
+/**
+ * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
+ */
 export class Service {
   #plugins: Record<string, { worker: Worker; plugin: Plugin }>;
   #host: Host;
@@ -34,14 +35,7 @@ export class Service {
     );
     const reader = new WorkerReader(worker);
     const writer = new WorkerWriter(worker);
-    const plugin = new Session(reader, writer, buildDispatcher(this));
-    plugin
-      .listen()
-      .then()
-      .catch((e: Error) => {
-        console.error("Plugin server is closed with error:", e);
-      });
-
+    const plugin = new Plugin(reader, writer, this);
     this.#plugins[name] = {
       plugin,
       worker,
@@ -77,36 +71,4 @@ export class Service {
       });
     return Promise.resolve();
   }
-}
-
-function buildDispatcher(service: Service): DispatcherFrom<Api> {
-  const host = service.host;
-  const dispatcher: DispatcherFrom<Api> = {
-    async dispatch(
-      name: unknown,
-      fn: unknown,
-      args: unknown,
-    ): Promise<unknown> {
-      ensureString(name, 'name');
-      ensureString(fn, 'fn');
-      ensureArray(args, 'args');
-      return await service.dispatch(name, fn, args);
-    },
-    async call(fn: unknown, ...args: unknown[]): Promise<unknown> {
-      ensureString(fn, 'fn');
-      ensureArray(args, 'args');
-      return await host.call(fn, ...args);
-    },
-    async cmd(cmd: unknown, ctx: unknown): Promise<void> {
-      ensureString(cmd, 'cmd');
-      ensureRecord(ctx, 'ctx');
-      await host.cmd(cmd, ctx);
-    },
-    async eval(expr: unknown, ctx: unknown): Promise<unknown> {
-      ensureString(expr, 'expr');
-      ensureRecord(ctx, 'ctx');
-      return await host.eval(expr, ctx);
-    },
-  };
-  return dispatcher;
 }
