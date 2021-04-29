@@ -1,10 +1,26 @@
 import { Service } from "../service.ts";
-import { Api, Context } from "../api.ts";
+
+type Context = Record<string, unknown>;
 
 /**
  * Host (Vim/Neovim) interface.
  */
-export interface Host extends Omit<Api, "dispatch"> {
+export interface Host {
+  /**
+   * Call {func} of Vim/Nevoim with given {args} and return the result
+   */
+  call(func: string, ...args: unknown[]): Promise<unknown>;
+
+  /**
+   * Execute {cmd} of Vim/Neovim under the {context}
+   */
+  cmd(cmd: string, context: Context): Promise<void>;
+
+  /**
+   * Evaluate {expr} of Vim/Neovim under the {context} and return result
+   */
+  eval(expr: string, context: Context): Promise<unknown>;
+
   /**
    * Register service which is visible from the host through RPC.
    */

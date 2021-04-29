@@ -5,12 +5,13 @@ import {
   WorkerReader,
   WorkerWriter,
 } from "./deps.ts";
-import { Api, Context } from "./api.ts";
 
 /**
  * Denops provides API to access plugin host (Vim/Neovim)
  */
-export class Denops implements Api {
+export type Context = Record<string, unknown>;
+
+export class Denops {
   private static instance?: Denops;
 
   #name: string;
