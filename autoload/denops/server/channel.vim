@@ -9,7 +9,7 @@ function! denops#server#channel#start(notify) abort
   let raw_options = has('nvim')
         \ ? {'rpc': v:true}
         \ : {'mode': 'json', 'err_mode': 'nl'}
-  let s:job = denops#lib#job#start(args, {
+  let s:job = denops#util#jobstart(args, {
         \ 'env': {
         \   'NO_COLOR': 1,
         \ },
@@ -22,7 +22,7 @@ endfunction
 
 function! denops#server#channel#stop() abort
   if s:job isnot# v:null
-    call denops#lib#job#stop(s:job)
+    call denops#util#jobstop(s:job)
   endif
 endfunction
 
