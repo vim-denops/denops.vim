@@ -3,6 +3,10 @@ let s:vim_exiting = 0
 let s:job = v:null
 
 function! denops#server#channel#start(notify) abort
+  let ctx = {
+        \ 'notified': 0,
+        \ 'notify': a:notify,
+        \}
   let args = [g:denops#server#channel#deno, 'run']
   let args += g:denops#server#channel#deno_args
   let args += [s:script]
@@ -13,7 +17,7 @@ function! denops#server#channel#start(notify) abort
         \ 'env': {
         \   'NO_COLOR': 1,
         \ },
-        \ 'on_stderr': funcref('s:on_stderr', [a:notify]),
+        \ 'on_stderr': funcref('s:on_stderr', [ctx]),
         \ 'on_exit': funcref('s:on_exit'),
         \ 'raw_options': raw_options,
         \})
@@ -40,9 +44,13 @@ function! denops#server#channel#request(method, params) abort
   return s:request(s:job, a:method, a:params)
 endfunction
 
-function! s:on_stderr(notify, data, ...) abort dict
+function! s:on_stderr(ctx, data, ...) abort dict
+  if a:ctx.notified
+    return
+  endif
   let address = substitute(a:data, '[\s\r\n]*$', '', '')
-  call a:notify(address)
+  let a:ctx.notified = 1
+  call a:ctx.notify(address)
   call denops#debug(printf('channel server resolve: %s', address))
 endfunction
 
