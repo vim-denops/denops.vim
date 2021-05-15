@@ -1,5 +1,5 @@
 function! denops#plugin#register(plugin, script) abort
-  call denops#debug(printf('register `%s` plugin as `%s`', a:plugin, a:script))
+  call denops#util#debug(printf('register `%s` plugin as `%s`', a:plugin, a:script))
   return denops#server#channel#notify('invoke', ['register', [a:plugin, a:script]])
 endfunction
 
@@ -35,7 +35,7 @@ function! s:gather_plugins_deprecated(plugins) abort
       if name[:0] ==# '@' || has_key(a:plugins, name)
         continue
       endif
-      call denops#error(printf(
+      call denops#util#error(printf(
             \ 'The plugin `%s` still use `mod.ts` which has deprecated in favor of `app.ts`.',
             \ name,
             \))

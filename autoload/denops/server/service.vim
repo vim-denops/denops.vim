@@ -23,7 +23,7 @@ function! denops#server#service#start(address) abort
         \ 'on_exit': funcref('s:on_exit'),
         \ 'raw_options': raw_options,
         \})
-  call denops#debug(printf('service server start: %s', args))
+  call denops#util#debug(printf('service server start: %s', args))
 endfunction
 
 function! denops#server#service#stop() abort
@@ -50,7 +50,7 @@ function! s:on_exit(status, ...) abort dict
   if v:dying || s:vim_exiting || a:status is# 143
     return
   endif
-  call denops#error(printf(
+  call denops#util#error(printf(
         \ 'service server terminated unexpectedly: %d',
         \ a:status,
         \))

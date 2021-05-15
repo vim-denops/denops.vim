@@ -1,6 +1,34 @@
 let s:sep = has('win32') ? '\' : '/'
 let s:root = expand('<sfile>:h:h:h')
 
+function! denops#util#debug(...) abort
+  if !g:denops#debug
+    return
+  endif
+  let msg = join(a:000)
+  echohl Comment
+  for line in split(msg, '\n')
+    echomsg printf('[denops] %s', line)
+  endfor
+  echohl None
+endfunction
+
+function! denops#util#info(...) abort
+  let msg = join(a:000)
+  for line in split(msg, '\n')
+    echomsg printf('[denops] %s', line)
+  endfor
+endfunction
+
+function! denops#util#error(...) abort
+  let msg = join(a:000)
+  echohl ErrorMsg
+  for line in split(msg, '\n')
+    echomsg printf('[denops] %s', line)
+  endfor
+  echohl None
+endfunction
+
 function! denops#util#script_path(...) abort
   return call('denops#util#join_path', [s:root, 'denops', '@denops'] + a:000)
 endfunction

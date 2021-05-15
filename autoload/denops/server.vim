@@ -4,7 +4,7 @@ let s:status = s:STATUS_STOPPED
 
 function! denops#server#start() abort
   if s:status is# s:STATUS_RUNNING
-    call denops#debug('Servers are already running. Skip')
+    call denops#util#debug('Servers are already running. Skip')
     return
   endif
   let s:status = s:STATUS_RUNNING
