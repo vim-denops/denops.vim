@@ -2,6 +2,9 @@ let s:sep = has('win32') ? '\' : '/'
 let s:root = expand('<sfile>:h:h:h')
 
 function! denops#util#debug(...) abort
+  if !g:denops#debug
+    return
+  endif
   let msg = join(a:000)
   echohl Comment
   for line in split(msg, '\n')

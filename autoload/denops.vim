@@ -14,6 +14,7 @@ endfunction
 
 " Configuration
 let g:denops#deno = get(g:, 'denops#deno', exepath('deno'))
+let g:denops#debug = get(g:, 'denops#debug', 0)
 
 
 " OBSOLETED
