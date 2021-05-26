@@ -32,7 +32,7 @@ export class Denops {
   #name: string;
   #session: Session;
 
-  private constructor(
+  constructor(
     name: string,
     reader: Deno.Reader & Deno.Closer,
     writer: Deno.Writer,
