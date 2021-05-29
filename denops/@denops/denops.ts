@@ -32,13 +32,19 @@ export class Denops {
   #name: string;
   #session: Session;
 
-  private constructor(
+  constructor(
     name: string,
     reader: Deno.Reader & Deno.Closer,
     writer: Deno.Writer,
   ) {
     this.#name = name;
     this.#session = new Session(reader, writer);
+    this.#session.listen().catch((e) => {
+      if (e.name === "Interrupted") {
+        return;
+      }
+      console.error(`Unexpected error occurred in '${name}'`, e);
+    });
   }
 
   /**
@@ -62,10 +68,14 @@ export class Denops {
    */
   static start(init: (denops: Denops) => Promise<void> | void): void {
     const denops = Denops.get();
-    const waiter = Promise.all([denops.#session.listen(), init(denops)]);
-    waiter.catch((e) => {
-      console.error(`Unexpected error occurred in '${denops.name}'`, e);
-    });
+    const runner = async () => {
+      try {
+        await init(denops);
+      } catch (e) {
+        console.error(`Unexpected error occurred in '${denops.name}'`, e);
+      }
+    };
+    runner();
   }
 
   /**
