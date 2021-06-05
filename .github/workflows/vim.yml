@@ -4,11 +4,15 @@ on:
   schedule:
     - cron: "0 7 * * 0"
   push:
+    branches:
+      - main
     paths:
       - "**/*.vim"
       - "**/*.vimspec"
       - ".github/workflows/vim.yml"
   pull_request:
+    branches:
+      - main
     paths:
       - "**/*.vim"
       - "**/*.vimspec"
