@@ -5,6 +5,7 @@ import {
   WorkerReader,
   WorkerWriter,
 } from "./deps.ts";
+import { test, TestDefinition } from "./test/tester.ts";
 
 /**
  * Context which is expanded to the local namespace (l:)
@@ -76,6 +77,39 @@ export class Denops {
       }
     };
     runner();
+  }
+
+  /**
+   * Register a test which will berun when `deno test` is used on the command line
+   * and the containing module looks like a test module.
+   *
+   * `fn` receive `denops` instance which communicate with real Vim/Neovim.
+   */
+  static test(t: TestDefinition): void;
+  /**
+   * Register a test which will berun when `deno test` is used on the command line
+   * and the containing module looks like a test module.
+   *
+   * `fn` receive `denops` instance which communicate with real Vim/Neovim.
+   */
+  static test(
+    mode: "vim" | "nvim",
+    name: string,
+    fn: (denops: Denops) => Promise<void> | void,
+  ): void;
+  // deno-lint-ignore no-explicit-any
+  static test(t: any, name?: any, fn?: any): void {
+    if (typeof t === "string" && typeof name === "string" && fn != undefined) {
+      test({
+        // deno-lint-ignore no-explicit-any
+        mode: t as any,
+        name,
+        fn,
+      });
+    } else if (typeof t === "object") {
+      // deno-lint-ignore no-explicit-any
+      test(t as any);
+    }
   }
 
   /**
