@@ -84,6 +84,14 @@ export class Denops {
    * and the containing module looks like a test module.
    *
    * `fn` receive `denops` instance which communicate with real Vim/Neovim.
+   *
+   * To use this function, developer must provides the following environment variables:
+   *
+   * DENOPS_PATH      - A path to `denops.vim` for adding to Vim's `runtimepath`
+   * DENOPS_TEST_VIM  - An executable of Vim
+   * DENOPS_TEST_NVIM - An executable of Neovim
+   *
+   * Otherwise tests using this static method will be ignored.
    */
   static test(t: TestDefinition): void;
   /**
@@ -91,6 +99,14 @@ export class Denops {
    * and the containing module looks like a test module.
    *
    * `fn` receive `denops` instance which communicate with real Vim/Neovim.
+   *
+   * To use this function, developer must provides the following environment variables:
+   *
+   * DENOPS_PATH      - A path to `denops.vim` for adding to Vim's `runtimepath`
+   * DENOPS_TEST_VIM  - An executable of Vim
+   * DENOPS_TEST_NVIM - An executable of Neovim
+   *
+   * Otherwise tests using this static method will be ignored.
    */
   static test(
     mode: "vim" | "nvim",

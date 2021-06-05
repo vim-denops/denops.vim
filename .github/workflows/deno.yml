@@ -2,6 +2,7 @@ name: deno
 
 env:
   DENO_VERSION: 1.x
+  DENOPS_PATH: "./"
 
 on:
   schedule:
