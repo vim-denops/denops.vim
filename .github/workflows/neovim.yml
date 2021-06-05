@@ -2,13 +2,17 @@ name: neovim
 
 on:
   schedule:
-    - cron: '0 7 * * 0'
+    - cron: "0 7 * * 0"
   push:
     paths:
-      - '**/*.vim'
-      - '**/*.vimspec'
-      - '.github/workflows/neovim.yml'
+      - "**/*.vim"
+      - "**/*.vimspec"
+      - ".github/workflows/neovim.yml"
   pull_request:
+    paths:
+      - "**/*.vim"
+      - "**/*.vimspec"
+      - ".github/workflows/neovim.yml"
 
 jobs:
   build:
@@ -33,7 +37,7 @@ jobs:
         id: vim
         with:
           neovim: true
-          version: '${{ matrix.version }}'
+          version: "${{ matrix.version }}"
       - name: Fix %TEMP% on Windows
         shell: pwsh
         run: |

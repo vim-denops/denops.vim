@@ -2,13 +2,17 @@ name: vim
 
 on:
   schedule:
-    - cron: '0 7 * * 0'
+    - cron: "0 7 * * 0"
   push:
     paths:
-      - '**/*.vim'
-      - '**/*.vimspec'
-      - '.github/workflows/vim.yml'
+      - "**/*.vim"
+      - "**/*.vimspec"
+      - ".github/workflows/vim.yml"
   pull_request:
+    paths:
+      - "**/*.vim"
+      - "**/*.vimspec"
+      - ".github/workflows/vim.yml"
 
 jobs:
   build:
@@ -33,7 +37,7 @@ jobs:
       - uses: rhysd/action-setup-vim@v1
         id: vim
         with:
-          version: '${{ matrix.version }}'
+          version: "${{ matrix.version }}"
       - name: Fix %TEMP% on Windows
         shell: pwsh
         run: |
