@@ -52,7 +52,7 @@ async function withDenops(
 }
 
 export type TestDefinition = Omit<Deno.TestDefinition, "fn"> & {
-  mode: "vim" | "nvim";
+  mode: "vim" | "nvim" | "both" | "one";
   fn: (denops: Denops) => Promise<void> | void;
 };
 
@@ -61,14 +61,43 @@ export type TestDefinition = Omit<Deno.TestDefinition, "fn"> & {
   * and the containing module looks like a test module.
   *
   * `fn` receive `denops` instance which communicate with real Vim/Neovim.
+   *
+   * To use this function, developer must provides the following environment variables:
+   *
+   * DENOPS_PATH      - A path to `denops.vim` for adding to Vim's `runtimepath`
+   * DENOPS_TEST_VIM  - An executable of Vim
+   * DENOPS_TEST_NVIM - An executable of Neovim
+   *
+   * Otherwise tests using this static method will be ignored.
   */
 export function test(t: TestDefinition): void {
-  Deno.test({
-    ...t,
-    ignore: !DENOPS_PATH || (t.mode === "vim" && !DENOPS_TEST_VIM) ||
-      (t.mode === "nvim" && !DENOPS_TEST_NVIM),
-    fn: async () => {
-      await withDenops(t.mode, t.fn);
-    },
-  });
+  const mode = t.mode;
+  if (mode === "both") {
+    test({
+      ...t,
+      name: `${t.name} (vim)`,
+      mode: "vim",
+    });
+    test({
+      ...t,
+      name: `${t.name} (nvim)`,
+      mode: "nvim",
+    });
+  } else if (mode === "one") {
+    const m = DENOPS_TEST_NVIM ? "nvim" : "vim";
+    test({
+      ...t,
+      name: `${t.name} (${m})`,
+      mode: m,
+    });
+  } else {
+    Deno.test({
+      ...t,
+      ignore: !DENOPS_PATH || (mode === "vim" && !DENOPS_TEST_VIM) ||
+        (mode === "nvim" && !DENOPS_TEST_NVIM),
+      fn: async () => {
+        await withDenops(mode, t.fn);
+      },
+    });
+  }
 }
