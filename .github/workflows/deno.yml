@@ -44,4 +44,4 @@ jobs:
           deno-version: ${{ env.DENO_VERSION }}
       - name: Test
         run: |
-          deno test
+          deno test --unstable -A
