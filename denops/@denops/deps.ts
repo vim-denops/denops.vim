@@ -2,6 +2,9 @@ export * as flags from "https://deno.land/std@0.93.0/flags/mod.ts";
 export * as path from "https://deno.land/std@0.93.0/path/mod.ts";
 export * as fs from "https://deno.land/std@0.93.0/fs/mod.ts";
 
+export { deferred } from "https://deno.land/std@0.93.0/async/mod.ts";
+export type { Deferred } from "https://deno.land/std@0.93.0/async/mod.ts";
+
 export { Queue } from "https://deno.land/x/async@v1.0/mod.ts";
 
 export type {
