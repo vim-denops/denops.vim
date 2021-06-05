@@ -113,6 +113,24 @@ export class Denops {
     name: TestDefinition["name"],
     fn: TestDefinition["fn"],
   ): void;
+  /**
+   * Register a test which will berun when `deno test` is used on the command line
+   * and the containing module looks like a test module.
+   *
+   * `fn` receive `denops` instance which communicate with real Vim/Neovim.
+   *
+   * To use this function, developer must provides the following environment variables:
+   *
+   * DENOPS_PATH      - A path to `denops.vim` for adding to Vim's `runtimepath`
+   * DENOPS_TEST_VIM  - An executable of Vim
+   * DENOPS_TEST_NVIM - An executable of Neovim
+   *
+   * Otherwise tests using this static method will be ignored.
+   */
+  static test(
+    name: TestDefinition["name"],
+    fn: TestDefinition["fn"],
+  ): void;
   // deno-lint-ignore no-explicit-any
   static test(t: any, name?: any, fn?: any): void {
     if (typeof t === "string" && typeof name === "string" && fn != undefined) {
@@ -121,6 +139,12 @@ export class Denops {
         mode: t as any,
         name,
         fn,
+      });
+    } else if (typeof t === "string" && name != undefined) {
+      test({
+        mode: "both",
+        name: t,
+        fn: name,
       });
     } else if (typeof t === "object") {
       // deno-lint-ignore no-explicit-any
