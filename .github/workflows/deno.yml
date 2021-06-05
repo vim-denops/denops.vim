@@ -20,7 +20,7 @@ jobs:
         with:
           deno-version: ${{ env.DENO_VERSION }}
       - name: Lint
-        run: deno lint --unstable
+        run: deno lint
 
   format:
     runs-on: ubuntu-20.04
