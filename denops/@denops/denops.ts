@@ -109,9 +109,9 @@ export class Denops {
    * Otherwise tests using this static method will be ignored.
    */
   static test(
-    mode: "vim" | "nvim",
-    name: string,
-    fn: (denops: Denops) => Promise<void> | void,
+    mode: TestDefinition["mode"],
+    name: TestDefinition["name"],
+    fn: TestDefinition["fn"],
   ): void;
   // deno-lint-ignore no-explicit-any
   static test(t: any, name?: any, fn?: any): void {
