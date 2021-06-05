@@ -5,10 +5,9 @@ env:
 
 on:
   schedule:
-    - cron: '0 7 * * 0'
+    - cron: "0 7 * * 0"
   push:
   pull_request:
-
 
 jobs:
   lint:
@@ -42,6 +41,31 @@ jobs:
       - uses: denoland/setup-deno@main
         with:
           deno-version: ${{ env.DENO_VERSION }}
+      - uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          version: "v8.1.2424"
+      - uses: rhysd/action-setup-vim@v1
+        id: nvim
+        with:
+          neovim: true
+          version: "v0.4.4"
+      - name: Check Vim
+        run: |
+          echo ${DENOPS_TEST_VIM}
+          ${DENOPS_TEST_VIM} --version
+        env:
+          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
+      - name: Check Neovim
+        run: |
+          echo ${DENOPS_TEST_NVIM}
+          ${DENOPS_TEST_NVIM} --version
+        env:
+          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
       - name: Test
         run: |
           deno test --unstable -A
+        env:
+          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
+          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
+        timeout-minutes: 5
