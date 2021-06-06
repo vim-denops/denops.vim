@@ -15,6 +15,18 @@ on:
       - main
 
 jobs:
+  typecheck:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: denoland/setup-deno@main
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+      - name: Type check
+        run: |
+          deno test --unstable --no-run denops/**/*.ts
+
   lint:
     runs-on: ubuntu-20.04
 
