@@ -39,12 +39,13 @@ export class Denops {
     writer: Deno.Writer,
   ) {
     this.#name = name;
-    this.#session = new Session(reader, writer);
-    this.#session.listen().catch((e) => {
-      if (e.name === "Interrupted") {
-        return;
-      }
-      console.error(`Unexpected error occurred in '${name}'`, e);
+    this.#session = new Session(reader, writer, {}, {
+      errorCallback(e) {
+        if (e.name === "Interrupted") {
+          return;
+        }
+        console.error(`Unexpected error occurred in '${name}'`, e);
+      },
     });
   }
 

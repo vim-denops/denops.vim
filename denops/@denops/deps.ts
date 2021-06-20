@@ -10,11 +10,11 @@ export { Queue } from "https://deno.land/x/async@v1.0/mod.ts";
 export type {
   Dispatcher,
   DispatcherFrom,
-} from "https://deno.land/x/msgpack_rpc@v2.8/mod.ts";
-export { Session } from "https://deno.land/x/msgpack_rpc@v2.8/mod.ts";
+} from "https://deno.land/x/msgpack_rpc@v3.1.0/mod.ts";
+export { Session } from "https://deno.land/x/msgpack_rpc@v3.1.0/mod.ts";
 
-export type { Message as VimMessage } from "https://deno.land/x/vim_channel_command@v0.4/mod.ts";
-export { Session as VimSession } from "https://deno.land/x/vim_channel_command@v0.4/mod.ts";
+export type { Message as VimMessage } from "https://deno.land/x/vim_channel_command@v0.6.0/mod.ts";
+export { Session as VimSession } from "https://deno.land/x/vim_channel_command@v0.6.0/mod.ts";
 
 export {
   WorkerReader,

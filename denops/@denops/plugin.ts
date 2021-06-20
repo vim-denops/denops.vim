@@ -51,10 +51,8 @@ export class Plugin {
       },
     };
     this.#service = service;
-    this.#session = new Session(reader, writer, dispatcher);
-    this.#session.listen()
-      .then()
-      .catch((e: Error) => {
+    this.#session = new Session(reader, writer, dispatcher, {
+      errorCallback(e) {
         console.error("Plugin server is closed with error:", e);
       },
     });

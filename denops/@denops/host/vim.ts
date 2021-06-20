@@ -3,14 +3,12 @@ import { Host, Invoker } from "./base.ts";
 
 export class Vim implements Host {
   #session: VimSession;
-  #listener: Promise<void>;
 
   constructor(
     reader: Deno.Reader & Deno.Closer,
     writer: Deno.Writer,
   ) {
     this.#session = new VimSession(reader, writer);
-    this.#listener = this.#session.listen();
   }
 
   async call(func: string, ...args: unknown[]): Promise<unknown> {
@@ -21,7 +19,7 @@ export class Vim implements Host {
   }
 
   listen(invoker: Invoker): Promise<void> {
-    this.#session.replaceCallback(async function (message: VimMessage) {
+    this.#session.replaceCallback(async (message: VimMessage) => {
       const [msgid, expr] = message;
       let ok = null;
       let err = null;
@@ -31,12 +29,12 @@ export class Vim implements Host {
         err = e;
       }
       if (msgid !== 0) {
-        await this.reply(msgid, [ok, err]);
+        await this.#session.reply(msgid, [ok, err]);
       } else if (err !== null) {
         console.error(err);
       }
     });
-    return this.#listener;
+    return this.#session.waitClosed();
   }
 }
 

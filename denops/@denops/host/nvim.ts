@@ -4,14 +4,12 @@ import { ensureArray, ensureString } from "../utils.ts";
 
 export class Neovim implements Host {
   #session: Session;
-  #listener: Promise<void>;
 
   constructor(
     reader: Deno.Reader & Deno.Closer,
     writer: Deno.Writer,
   ) {
     this.#session = new Session(reader, writer);
-    this.#listener = this.#session.listen();
   }
 
   call(fn: string, ...args: unknown[]): Promise<unknown> {
@@ -31,6 +29,6 @@ export class Neovim implements Host {
         return await (invoker as any)[method](...args);
       },
     });
-    return this.#listener;
+    return this.#session.waitClosed();
   }
 }
