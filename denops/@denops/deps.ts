@@ -19,4 +19,4 @@ export { Session as VimSession } from "https://deno.land/x/vim_channel_command@v
 export {
   WorkerReader,
   WorkerWriter,
-} from "https://deno.land/x/workerio@v1.1/mod.ts";
+} from "https://deno.land/x/workerio@v1.3.1/mod.ts";
