@@ -12,7 +12,7 @@ function! s:checkDenoVersion() abort
   endif
   " check deno version.
   let deno_version_output = system(deno . ' --version')
-  if v:shell_error && deno_version_output !=# ""
+  if v:shell_error && deno_version_output !=# ''
     let valid = 0
     call health#report_error(deno_version_output)
   endif
@@ -58,16 +58,16 @@ function! s:checkDenops() abort
   if get(g:, 'denops#debug', 0)
     let mode = 'debug'
   endif
-  let denops_version = get(g:, 'denops#version', "0.0")
+  let denops_version = get(g:, 'denops#version', '0.0')
 
   call health#report_info('Denops.vim ' . denops_version . ' (' . mode . ')')
 endfunction
 
 function! s:checkDenopsRunning() abort
   let server_status = denops#server#status()
-  if (server_status == 'running')
+  if (server_status ==# 'running')
     call health#report_ok('Denops.vim is running')
-  elseif(server_status == 'stopped')
+  elseif(server_status ==# 'stopped')
     call health#report_error('Denops.vim is now stopped, please call `denops#server#start()` manually if needed for debugging.')
   else
     call health#report_error('Denops.vim may not exist or not loaded correctly.')
