@@ -1,5 +1,10 @@
-import { WorkerReader, WorkerWriter } from "../deps.ts";
-import { Plugin } from "./plugin.ts";
+import {
+  ensureArray,
+  ensureString,
+  Session,
+  WorkerReader,
+  WorkerWriter,
+} from "../deps.ts";
 import { Host, Invoker } from "./host/mod.ts";
 
 const workerScript = "./worker/script.ts";
@@ -8,16 +13,12 @@ const workerScript = "./worker/script.ts";
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service implements Invoker {
-  #plugins: Record<string, { worker: Worker; plugin: Plugin }>;
+  #plugins: Record<string, { worker: Worker; plugin: Session }>;
   #host: Host;
 
   constructor(host: Host) {
     this.#plugins = {};
     this.#host = host;
-  }
-
-  get host(): Host {
-    return this.#host;
   }
 
   register(name: string, script: string): void {
@@ -38,7 +39,20 @@ export class Service implements Invoker {
     worker.postMessage({ name, script });
     const reader = new WorkerReader(worker);
     const writer = new WorkerWriter(worker);
-    const plugin = new Plugin(reader, writer, this);
+    const plugin = new Session(reader, writer, {
+      dispatch: async (name, fn, ...args) => {
+        ensureString(name);
+        ensureString(fn);
+        ensureArray(args);
+        return await this.dispatch(name, fn, args);
+      },
+
+      call: async (fn, ...args) => {
+        ensureString(fn);
+        ensureArray(args);
+        return await this.#host.call(fn, ...args);
+      },
+    });
     this.#plugins[name] = {
       plugin,
       worker,
