@@ -1,4 +1,4 @@
-import { ensureArray, ensureString, Session } from "../../deps.ts";
+import { ensureArray, ensureString, Session } from "../deps.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";
 

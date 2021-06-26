@@ -4,7 +4,7 @@ import {
   Session,
   WorkerReader,
   WorkerWriter,
-} from "../deps.ts";
+} from "./deps.ts";
 import { Host } from "./host/base.ts";
 import { Invoker } from "./host/invoker.ts";
 

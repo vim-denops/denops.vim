@@ -1,4 +1,4 @@
-import { VimMessage, VimSession } from "../../deps.ts";
+import { VimMessage, VimSession } from "../deps.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";
 

@@ -1,4 +1,4 @@
-import { flags, using } from "../deps.ts";
+import { flags, using } from "./deps.ts";
 import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";

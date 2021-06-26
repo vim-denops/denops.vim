@@ -1,4 +1,4 @@
-import { Disposable } from "../../deps.ts";
+import { Disposable } from "../deps.ts";
 import { Invoker } from "./invoker.ts";
 
 /**

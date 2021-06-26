@@ -5,8 +5,8 @@ import {
   using,
   WorkerReader,
   WorkerWriter,
-} from "../../deps.ts";
-import { Denops } from "../../denops.ts";
+} from "../deps.ts";
+import { Denops } from "../../../@denops/denops.ts";
 
 // deno-lint-ignore no-explicit-any
 const worker = self as any as Worker;
