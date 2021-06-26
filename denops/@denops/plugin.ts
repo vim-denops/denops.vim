@@ -1,6 +1,5 @@
-import { DispatcherFrom, Session } from "./deps.ts";
+import { DispatcherFrom, ensureArray, ensureString, Session } from "./deps.ts";
 import { Service } from "./service.ts";
-import { ensureArray, ensureString } from "./utils.ts";
 
 /**
  * Plugin API which is visible from each denops plugins through msgpack-rpc
@@ -38,15 +37,15 @@ export class Plugin {
   ) {
     const dispatcher: DispatcherFrom<PluginApi> = {
       dispatch: async (name, fn, ...args) => {
-        ensureString(name, "name");
-        ensureString(fn, "fn");
-        ensureArray(args, "args");
+        ensureString(name);
+        ensureString(fn);
+        ensureArray(args);
         return await this.#service.dispatch(name, fn, args);
       },
 
       call: async (fn, ...args) => {
-        ensureString(fn, "fn");
-        ensureArray(args, "args");
+        ensureString(fn);
+        ensureArray(args);
         return await this.#service.host.call(fn, ...args);
       },
     };

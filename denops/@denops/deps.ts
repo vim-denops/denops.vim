@@ -20,3 +20,5 @@ export {
   WorkerReader,
   WorkerWriter,
 } from "https://deno.land/x/workerio@v1.3.1/mod.ts";
+
+export * from "https://deno.land/x/unknownutil@v0.1.1/mod.ts";

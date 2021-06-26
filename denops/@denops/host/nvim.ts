@@ -1,6 +1,5 @@
-import { Session } from "../deps.ts";
+import { ensureArray, ensureString, Session } from "../deps.ts";
 import { Host, Invoker } from "./base.ts";
-import { ensureArray, ensureString } from "../utils.ts";
 
 export class Neovim implements Host {
   #session: Session;
@@ -20,8 +19,8 @@ export class Neovim implements Host {
     this.#session.clearDispatcher();
     this.#session.extendDispatcher({
       async invoke(method: unknown, args: unknown): Promise<unknown> {
-        ensureString(method, "method");
-        ensureArray(args, "args");
+        ensureString(method);
+        ensureArray(args);
         if (!(method in invoker)) {
           throw new Error(`Method '${method}' is not defined in the invoker`);
         }
