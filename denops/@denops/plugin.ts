@@ -1,6 +1,6 @@
 import { DispatcherFrom, Session } from "./deps.ts";
 import { Service } from "./service.ts";
-import { ensureArray, ensureRecord, ensureString } from "./utils.ts";
+import { ensureArray, ensureString } from "./utils.ts";
 
 /**
  * Plugin API which is visible from each denops plugins through msgpack-rpc
@@ -56,22 +56,6 @@ export class Plugin {
       .then()
       .catch((e: Error) => {
         console.error("Plugin server is closed with error:", e);
-      });
-
-    // DEPRECATED:
-    // The following dispatcher is required to support previous denops and
-    // the implementations will be removed in the future version so developers
-    // should not relies on those msgpack-rpc APIs.
-    this.#session.extendDispatcher({
-      cmd: async (cmd: unknown, ctx: unknown): Promise<unknown> => {
-        ensureString(cmd, "cmd");
-        ensureRecord(ctx, "ctx");
-        return await this.#service.host.call("denops#api#cmd", cmd, ctx);
-      },
-      eval: async (expr: unknown, ctx: unknown): Promise<unknown> => {
-        ensureString(expr, "expr");
-        ensureRecord(ctx, "ctx");
-        return await this.#service.host.call("denops#api#eval", expr, ctx);
       },
     });
   }
