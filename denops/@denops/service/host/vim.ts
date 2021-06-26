@@ -1,5 +1,6 @@
 import { VimMessage, VimSession } from "../../deps.ts";
-import { Host, Invoker } from "./base.ts";
+import { Invoker, isInvokerMethod } from "./invoker.ts";
+import { Host } from "./base.ts";
 
 export class Vim implements Host {
   #session: VimSession;
@@ -18,7 +19,7 @@ export class Vim implements Host {
     return result;
   }
 
-  listen(invoker: Invoker): Promise<void> {
+  register(invoker: Invoker): void {
     this.#session.replaceCallback(async (message: VimMessage) => {
       const [msgid, expr] = message;
       let ok = null;
@@ -34,6 +35,9 @@ export class Vim implements Host {
         console.error(err);
       }
     });
+  }
+
+  waitClosed(): Promise<void> {
     return this.#session.waitClosed();
   }
 }
@@ -41,11 +45,11 @@ export class Vim implements Host {
 async function dispatch(invoker: Invoker, expr: unknown): Promise<unknown> {
   if (isInvokeMessage(expr)) {
     const [_, method, args] = expr;
-    if (!(method in invoker)) {
+    if (!isInvokerMethod(method)) {
       throw new Error(`Method '${method}' is not defined in the invoker`);
     }
     // deno-lint-ignore no-explicit-any
-    return await (invoker as any)[method](...args);
+    return await (invoker[method] as any)(...args);
   } else {
     throw new Error(
       `Unexpected JSON channel message is received: ${JSON.stringify(expr)}`,

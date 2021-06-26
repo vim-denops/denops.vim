@@ -1,32 +1,21 @@
+import { Invoker } from "./invoker.ts";
+
 /**
  * Host (Vim/Neovim) which is visible from Service
  */
 export interface Host {
   /**
-   * Call an arbitrary function of the host and return the result.
+   * Call host function and return result
    */
   call(fn: string, ...args: unknown[]): Promise<unknown>;
 
   /**
-   * Listen and process RPC messages forever
+   * Register invoker
    */
-  listen(invoker: Invoker): Promise<void>;
-}
+  register(invoker: Invoker): void;
 
-export interface Invoker {
-  register(name: string, script: string): void;
-
-  dispatch(
-    name: string,
-    fn: string,
-    args: unknown[],
-  ): Promise<unknown>;
-
-  dispatchAsync(
-    name: string,
-    fn: string,
-    args: unknown[],
-    success: string, // Callback ID
-    failure: string, // Callback ID
-  ): Promise<void>;
+  /**
+   * Wait host close
+   */
+  waitClosed(): Promise<void>;
 }
