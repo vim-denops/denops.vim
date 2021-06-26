@@ -1,12 +1,20 @@
-import { path, Session, using } from "../deps_test.ts";
+import { path, Session, Timeout, using } from "../deps_test.ts";
 import { Denops } from "../denops.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
 
+const DEFAULT_TIMEOUT = 1000;
+
 const DENOPS_PATH = Deno.env.get("DENOPS_PATH");
+
+type WithDenopsOptions = {
+  timeout?: number;
+  verbose?: boolean;
+};
 
 async function withDenops(
   mode: "vim" | "nvim",
   main: (denops: Denops) => Promise<void> | void,
+  options: WithDenopsOptions,
 ) {
   if (!DENOPS_PATH) {
     throw new Error("`DENOPS_PATH` environment variable is not defined");
@@ -33,6 +41,7 @@ async function withDenops(
     env: {
       "DENOPS_TEST_ADDRESS": JSON.stringify(listener.addr),
     },
+    verbose: options.verbose,
   });
   const conn = await listener.accept();
   try {
@@ -47,7 +56,10 @@ async function withDenops(
       }),
       async (session) => {
         const denops = new Denops("denops-std-test", session);
-        await main(denops);
+        const runner = async () => {
+          await main(denops);
+        };
+        await Timeout.race([runner()], options.timeout ?? DEFAULT_TIMEOUT);
       },
     );
   } finally {
@@ -59,8 +71,10 @@ async function withDenops(
 }
 
 export type TestDefinition = Omit<Deno.TestDefinition, "fn"> & {
-  mode: "vim" | "nvim" | "both" | "one";
+  mode: "vim" | "nvim" | "any" | "all";
   fn: (denops: Denops) => Promise<void> | void;
+  timeout?: number;
+  verbose?: boolean;
 };
 
 /**
@@ -77,22 +91,50 @@ export type TestDefinition = Omit<Deno.TestDefinition, "fn"> & {
    *
    * Otherwise tests using this static method will be ignored.
   */
-export function test(t: TestDefinition): void {
+export function test(
+  mode: TestDefinition["mode"],
+  name: string,
+  fn: TestDefinition["fn"],
+): void;
+export function test(t: TestDefinition): void;
+export function test(
+  modeOrDefinition: TestDefinition["mode"] | TestDefinition,
+  name?: string,
+  fn?: TestDefinition["fn"],
+): void {
+  if (typeof modeOrDefinition === "string") {
+    if (!name) {
+      throw new Error(`'name' attribute is required`);
+    }
+    if (!fn) {
+      throw new Error(`'fn' attribute is required`);
+    }
+    testInternal({
+      mode: modeOrDefinition,
+      name,
+      fn,
+    });
+  } else {
+    testInternal(modeOrDefinition);
+  }
+}
+
+function testInternal(t: TestDefinition): void {
   const mode = t.mode;
-  if (mode === "both") {
-    test({
+  if (mode === "all") {
+    testInternal({
       ...t,
       name: `${t.name} (vim)`,
       mode: "vim",
     });
-    test({
+    testInternal({
       ...t,
       name: `${t.name} (nvim)`,
       mode: "nvim",
     });
-  } else if (mode === "one") {
+  } else if (mode === "any") {
     const m = DENOPS_TEST_NVIM ? "nvim" : "vim";
-    test({
+    testInternal({
       ...t,
       name: `${t.name} (${m})`,
       mode: m,
@@ -103,7 +145,10 @@ export function test(t: TestDefinition): void {
       ignore: !DENOPS_PATH || (mode === "vim" && !DENOPS_TEST_VIM) ||
         (mode === "nvim" && !DENOPS_TEST_NVIM),
       fn: async () => {
-        await withDenops(mode, t.fn);
+        await withDenops(mode, t.fn, {
+          timeout: t.timeout,
+          verbose: t.verbose,
+        });
       },
     });
   }

@@ -10,3 +10,5 @@ export {
 } from "https://deno.land/x/workerio@v1.3.1/mod.ts";
 
 export { using, usingAll } from "https://deno.land/x/disposable@v0.2.0/mod.ts";
+
+export { Timeout } from "https://deno.land/x/timeout@2.4/mod.ts";

@@ -1,14 +1,12 @@
 export const DENOPS_TEST_VIM = Deno.env.get("DENOPS_TEST_VIM");
 export const DENOPS_TEST_NVIM = Deno.env.get("DENOPS_TEST_NVIM");
 
-const DEFAULT_TIMEOUT = 1000;
-
 /**
  * Run options.
  */
 export type RunOptions = {
+  verbose?: boolean;
   commands?: string[];
-  timeout?: number;
   env?: Record<string, string>;
 };
 
@@ -19,13 +17,11 @@ export function run(
   mode: "vim" | "nvim",
   options: RunOptions = {},
 ): Deno.Process {
-  const timeout = options.timeout ?? DEFAULT_TIMEOUT;
   const args = mode === "vim" ? buildVimArgs() : buildNvimArgs();
-  const cmds = [
-    "--cmd",
-    `call timer_start(${timeout}, { -> execute('qall!') })`,
-    ...(options.commands ?? []).map((c) => ["--cmd", c]).flat(),
-  ];
+  const cmds = (options.commands ?? []).map((c) => ["-c", c]).flat();
+  if (options.verbose) {
+    cmds.unshift("--cmd", "redir >> /dev/stdout");
+  }
   const proc = Deno.run({
     cmd: [...args, ...cmds],
     env: options.env,
