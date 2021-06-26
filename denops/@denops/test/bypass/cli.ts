@@ -1,4 +1,4 @@
-import { WorkerReader, WorkerWriter } from "../../deps.ts";
+import { WorkerReader, WorkerWriter } from "../../deps_test.ts";
 
 // deno-lint-ignore no-explicit-any
 const worker = self as any;
