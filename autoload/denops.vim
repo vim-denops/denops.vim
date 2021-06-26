@@ -13,7 +13,7 @@ function! denops#request_async(plugin, method, params, success, failure) abort
 endfunction
 
 " Configuration
-let g:denops#deno = get(g:, 'denops#deno', exepath('deno'))
+let g:denops#deno = get(g:, 'denops#deno', 'deno')
 let g:denops#debug = get(g:, 'denops#debug', 0)
 " TODO: generate automatically (by git tags).
 let g:denops#version = get(g:, 'denops#version', '0.16.0')
