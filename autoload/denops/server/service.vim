@@ -1,4 +1,4 @@
-let s:script = denops#util#script_path('service', 'cli.ts')
+let s:script = denops#util#script_path('@denops', 'service', 'cli.ts')
 let s:engine = has('nvim') ? 'nvim' : 'vim'
 let s:vim_exiting = 0
 let s:job = v:null

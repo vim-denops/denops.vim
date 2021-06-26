@@ -30,7 +30,7 @@ function! denops#util#error(...) abort
 endfunction
 
 function! denops#util#script_path(...) abort
-  return call('denops#util#join_path', [s:root, 'denops', '@denops'] + a:000)
+  return call('denops#util#join_path', [s:root, 'denops'] + a:000)
 endfunction
 
 function! denops#util#join_path(...) abort
