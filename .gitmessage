@@ -1,0 +1,25 @@
+
+
+# Guide (v1.0)
+#
+# 👍  :+1:      Apply changes.
+#
+# 🌿  :herb:    Add or update things for tests.
+# ☕  :coffee:  Add or update things for developments.
+# 📦  :package: Add or update dependencies.
+# 📝  :memo:    Add or update documentations.
+#
+# 🐛  :bug:     Bugfixes.
+# 💋  :kiss:    Critical hotfixes.
+# 🚿  :shower:  Remove features, codes, or files.
+#
+# 🚀  :rocket:  Improve performance.
+# 💪  :muscle:  Refactor codes.
+# 💥  :boom:    Breaking changes.
+# 💩  :poop:    Bad codes needs to be improved.
+#
+# How to use:
+#   git config commit.template .gitmessage
+#
+# Reference:
+#   https://github.com/lambdalisue/emojiprefix
