@@ -1,4 +1,4 @@
-import { DispatcherFrom, ensureArray, ensureString, Session } from "./deps.ts";
+import { DispatcherFrom, ensureArray, ensureString, Session } from "../deps.ts";
 import { Service } from "./service.ts";
 
 /**

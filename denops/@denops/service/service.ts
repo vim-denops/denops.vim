@@ -1,4 +1,4 @@
-import { path, WorkerReader, WorkerWriter } from "./deps.ts";
+import { path, WorkerReader, WorkerWriter } from "../deps.ts";
 import { Plugin } from "./plugin.ts";
 import { Host, Invoker } from "./host/mod.ts";
 

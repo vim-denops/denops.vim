@@ -1,4 +1,4 @@
-import { ensureArray, ensureString, Session } from "../deps.ts";
+import { ensureArray, ensureString, Session } from "../../deps.ts";
 import { Host, Invoker } from "./base.ts";
 
 export class Neovim implements Host {

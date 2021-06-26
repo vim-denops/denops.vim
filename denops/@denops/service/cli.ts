@@ -1,6 +1,6 @@
 import { flags } from "../deps.ts";
-import { Service } from "../service.ts";
-import { Neovim, Vim } from "../host/mod.ts";
+import { Service } from "./service.ts";
+import { Neovim, Vim } from "./host/mod.ts";
 
 const opts = flags.parse(Deno.args);
 
