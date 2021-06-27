@@ -1,22 +1,125 @@
 *denops.txt*		An eco-system to write Vim/Neovim plugins in Deno
->
-	 __   ___       __   __   __  
-	|  \ |__  |\ | /  \ |__) /__` 
-	|__/ |___ | \| \__/ |    .__/ 
 
-<
+Author:  Alisue <lambdalisue@hashnote.net>
+License: MIT license
+
 =============================================================================
 CONTENTS					*denops-contents*
 
 INTRODUCTION					|denops-introduction|
+INTERFACE				|denops-interface|
+  VARIABLE				|denops-variable|
+  FUNCTION				|denops-function|
+  AUTOCMD				|denops-autocmd|
 
 
 =============================================================================
 INTRODUCTION					*denops-introduction*
 
-Denops (|denops|) is an eco-system to write Vim and Neovim plugins in Deno.
+*denops.vim* (denops) is an eco-system to write plugins for Vim or Neovim in
+Deno. 
 
-UNDER DEVELOPMENT
+See denops.vim Wiki for learning how to write denops plugins.
+
+https://github.com/vim-denops/denops.vim/wiki
+
+
+=============================================================================
+INTERFACE						*denops-interface*
+
+-----------------------------------------------------------------------------
+VARIABLE						*denops-variable*
+
+*g:denops_deno*
+	Executable program of Deno. Use it to specify executable program of
+	Deno if 'deno' is not in PATH.
+	Default: 'deno'
+
+*g:denops#debug*
+	Set 1 to enable debug mode. In debug mode, some additional debug
+	messages of denops itself will be shown.
+	Default: 0
+
+*g:denops#server#channel#deno*
+	Executable program of Deno for starting a "channel" server.
+	Default: |g:denops_deno|
+
+*g:denops#server#channel#deno_args*
+	Program arguments of Deno for starting a "channel" server.
+	Default: ['-q', '--no-check', '--allow-net']
+
+*g:denops#server#service#deno*
+	Executable program of Deno for starting a "service" server.
+	Default: |g:denops_deno|
+
+*g:denops#server#service#deno_args*
+	Program arguments of Deno for starting a "service" server.
+	Default: ['-q', '--no-check', '--unstable', '-A']
+
+-----------------------------------------------------------------------------
+FUNCTION						*denops-function*
+
+						*denops#notify()*
+denops#notify({plugin}, {method}, {params})
+	Call API {method} of {plugin} with {params} and return immediately
+	without waiting a result.
+	Use |denops#request()| instead if you need a result.
+
+						*denops#request()*
+denops#request({plugin}, {method}, {params})
+	Call API {method} of {plugin} with {params} and wait a result and
+	return it.
+	Use |denops#notify()| instead if you don't need a result.
+	Use |denops#request_async()| instead if you need a result
+	asynchronously.
+
+						*denops#request_async()*
+denops#request_async({plugin}, {method}, {params}, {success}, {failure})
+	Call API {method} of {plugin} with {params} and return immediately.
+	Once the call success, the {success} callback is called with a result.
+	Otherwise the {failure} callback is called with an error.
+	Use |denops#notify()| instead if you don't need a result.
+	Use |denops#request()| instead if you need a result synchronously.
+
+						*denops#server#start()*
+denops#server#start()
+	Start denops "channel" server and "service" server asynchronously.
+	It will skip internal process if servers are already running.
+
+						*denops#server#stop()*
+denops#server#stop()
+	Stop denops "channel" server and "service" server immediately.
+
+						*denops#server#restart()*
+denops#server#restart()
+	Restart denops "channel" server and "service" server asynchronously.
+
+						*denops#server#status()*
+denops#server#status()
+	Return current server status from one of the followings.
+
+	Status		Description~
+	"stopped"	Servers are stopped.
+	"running"	Servers are running.
+
+						*denops#plugin#register()*
+denops#plugin#register({name}, {script})
+	Register denops plugin. Use this function to register denops plugins
+	which is not discovered by |denops#plugin#discover()|.
+
+						*denops#plugin#discover()*
+denops#plugin#discover()
+	Discover denops plugins from |runtimepath| and register.
+	It gathers "main.ts" under "denops/*" directories under |runtimepath|
+	if the middle directory does not starts from "@".
+	This is automatically called on |VimEnter| autocmd.
+
+-----------------------------------------------------------------------------
+AUTOCMD						*denops-autocmd*
+
+*DenopsReady*
+	Invoked when a denops "service" service become ready. Note that it is
+	not mean that all of denops plugins are ready.
 
 
 =============================================================================
