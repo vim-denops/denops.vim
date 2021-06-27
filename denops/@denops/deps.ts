@@ -22,3 +22,6 @@ export {
 } from "https://deno.land/x/workerio@v1.3.1/mod.ts";
 
 export * from "https://deno.land/x/unknownutil@v0.1.1/mod.ts";
+
+export { using, usingAll } from "https://deno.land/x/disposable@v0.2.0/mod.ts";
+export type { Disposable } from "https://deno.land/x/disposable@v0.2.0/mod.ts";

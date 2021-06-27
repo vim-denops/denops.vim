@@ -14,7 +14,7 @@ endfunction
 function! s:gather_plugins(plugins) abort
   for runtimepath in split(&runtimepath, ',')
     let path = expand(runtimepath)
-    let expr = denops#util#join_path(path, 'denops', '*', 'app.ts')
+    let expr = denops#util#join_path(path, 'denops', '*', 'main.ts')
     for script in glob(expr, 1, 1, 1)
       let name = fnamemodify(script, ':h:t')
       if name[:0] ==# '@' || has_key(a:plugins, name)

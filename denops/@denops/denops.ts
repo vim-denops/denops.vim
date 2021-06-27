@@ -1,10 +1,4 @@
-import {
-  Dispatcher,
-  DispatcherFrom,
-  Session,
-  WorkerReader,
-  WorkerWriter,
-} from "./deps.ts";
+import { Dispatcher, Disposable, Session } from "./deps.ts";
 import { test, TestDefinition } from "./test/tester.ts";
 
 /**
@@ -14,23 +8,9 @@ export type Context = Record<string, unknown>;
 
 /**
  * Denpos is a facade instance visible from each denops plugins.
- *
- * Plugins use the denops instance to
- *
- * 1. Communicate with other plugins
- * 2. Communicate with the host (Vim/Neovim)
- * 3. Register them msgpack-rpc APIs
- *
- * The instance is thread-local singleton. Plugins need to refer
- * the instance through `Denops.get()` static method.
- *
- * Note that plugins should NOT use the instance directly.
- * Use it through `denops_std` module instead.
  */
-export class Denops {
-  private static instance?: Denops;
-
-  #name: string;
+export class Denops implements Disposable {
+  readonly name: string;
   #session: Session;
 
   constructor(
@@ -38,7 +18,7 @@ export class Denops {
     reader: Deno.Reader & Deno.Closer,
     writer: Deno.Writer,
   ) {
-    this.#name = name;
+    this.name = name;
     this.#session = new Session(reader, writer, {}, {
       errorCallback(e) {
         if (e.name === "Interrupted") {
@@ -47,37 +27,6 @@ export class Denops {
         console.error(`Unexpected error occurred in '${name}'`, e);
       },
     });
-  }
-
-  /**
-   * Get thread-local denops instance.
-   */
-  static get(): Denops {
-    if (!Denops.instance) {
-      // deno-lint-ignore no-explicit-any
-      const worker = self as any;
-      const reader = new WorkerReader(worker);
-      const writer = new WorkerWriter(worker);
-      Denops.instance = new Denops(worker.name, reader, writer);
-    }
-    return Denops.instance;
-  }
-
-  /**
-   * Start denops mainloop for the plugin.
-   *
-   * @param main: An initialization function of the mainloop.
-   */
-  static start(init: (denops: Denops) => Promise<void> | void): void {
-    const denops = Denops.get();
-    const runner = async () => {
-      try {
-        await init(denops);
-      } catch (e) {
-        console.error(`Unexpected error occurred in '${denops.name}'`, e);
-      }
-    };
-    runner();
   }
 
   /**
@@ -153,26 +102,12 @@ export class Denops {
     }
   }
 
-  /**
-   * Plugin name
-   */
-  get name(): string {
-    return this.#name;
+  get dispatcher(): Dispatcher {
+    return this.#session.dispatcher;
   }
 
-  /**
-   * Dispatch an arbitrary function of an arbitrary plugin and return the result.
-   *
-   * @param name: A plugin registration name.
-   * @param fn: A function name in the API registration.
-   * @param args: Arguments of the function.
-   */
-  async dispatch(
-    name: string,
-    fn: string,
-    ...args: unknown[]
-  ): Promise<unknown> {
-    return await this.#session.call("dispatch", name, fn, ...args);
+  set dispatcher(dispatcher: Dispatcher) {
+    this.#session.dispatcher = dispatcher;
   }
 
   /**
@@ -206,21 +141,25 @@ export class Denops {
   }
 
   /**
-   * Extend dispatcher of the internal msgpack_rpc session
+   * Dispatch an arbitrary function of an arbitrary plugin and return the result.
    *
-   * @param dispatcher: An object which key and value become API function name and callback respectively.
+   * @param name: A plugin registration name.
+   * @param fn: A function name in the API registration.
+   * @param args: Arguments of the function.
    */
-  extendDispatcher(dispatcher: Dispatcher): void {
-    this.#session.extendDispatcher(dispatcher);
+  async dispatch(
+    name: string,
+    fn: string,
+    ...args: unknown[]
+  ): Promise<unknown> {
+    return await this.#session.call("dispatch", name, fn, ...args);
   }
 
-  /**
-   * Clear dispatcher of the internal msgpack_rpc session
-   */
-  clearDispatcher(): void {
-    this.#session.clearDispatcher();
+  waitClosed(): Promise<void> {
+    return this.#session.waitClosed();
+  }
+
+  dispose(): void {
+    this.#session.dispose();
   }
 }
-
-// Re-export
-export type { Dispatcher, DispatcherFrom };

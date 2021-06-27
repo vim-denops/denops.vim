@@ -1,6 +1,8 @@
-import { path, WorkerReader, WorkerWriter } from "../deps.ts";
+import { WorkerReader, WorkerWriter } from "../deps.ts";
 import { Plugin } from "./plugin.ts";
 import { Host, Invoker } from "./host/mod.ts";
+
+const workerScript = "./worker/script.ts";
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
@@ -24,7 +26,7 @@ export class Service implements Invoker {
       worker.terminate();
     }
     const worker = new Worker(
-      new URL(path.toFileUrl(script).href, import.meta.url).href,
+      new URL(workerScript, import.meta.url).href,
       {
         name,
         type: "module",
@@ -33,6 +35,7 @@ export class Service implements Invoker {
         },
       },
     );
+    worker.postMessage({ name, script });
     const reader = new WorkerReader(worker);
     const writer = new WorkerWriter(worker);
     const plugin = new Plugin(reader, writer, this);
