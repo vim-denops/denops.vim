@@ -17,8 +17,8 @@ async function withDenops(
     "denops",
     "@denops",
     "test",
-    "cli",
-    "bypass.ts",
+    "bypass",
+    "cli.ts",
   );
   const listener = Deno.listen({
     hostname: "127.0.0.1",
