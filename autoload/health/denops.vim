@@ -1,82 +1,146 @@
-function! s:checkDenoVersion() abort
-  let valid = 1
-  " check deno is executable.
-  let deno = get(g:, 'denops#deno')
-  if !executable(deno)
-    let valid = 0
-    call health#report_error('Deno runtime is not installed. Please install deno and add to `$PATH`.')
-    let deno_original = exepath('deno')
-    if !executable(deno_original)
-      call health#report_error('Deno runtime is not recognized by denops-core. Please check deno exists at the PATH. If it does and you think it is bug, please report to denops team.')
+let s:deno_version = '1.11.0'
+let s:vim_version = '8.1.2424'
+let s:neovim_version = '0.4.4'
+
+function! s:compare_version(v1, v2) abort
+  let v1 = map(split(a:v1, '\.'), { _, v -> v + 0 })
+  let v2 = map(split(a:v2, '\.'), { _, v -> v + 0 })
+  for i in range(max([len(v1), len(v2)]))
+    let t1 = get(v1, i, 0)
+    let t2 = get(v2, i, 0)
+    if t1 isnot# t2
+      return t1 > t2 ? 1 : -1
     endif
-  endif
-  " check deno version.
-  let deno_version_output = system(deno . ' --version')
-  if v:shell_error && deno_version_output !=# ''
-    let valid = 0
-    call health#report_error(deno_version_output)
-  endif
-  " split output
-  let outputs = split(deno_version_output, '\n')
-  " first line(deno version)
-  let deno_versions = matchlist(outputs[0], '\vdeno (\d+).(\d+).(\d+) \((\w)+, (\w|-)+\)')
-  if empty(deno_versions)
-     let valid = 0
-     call health#report_error('Unable to detect version of deno, make sure your deno runtime is correct.')
-  elseif str2nr(deno_versions[1]) < 1 || str2nr(deno_versions[2] < 10)
-    call health#report_warn('You should upgrade deno runtime since denops will use feature from `1.10.1`. See https://github.com/denoland/deno/pull/9323 for details.')
-  elseif str2nr(deno_versions[1]) < 1 || str2nr(deno_versions[2] < 9)
-    " TODO: Define minimum supported version of Deno.
-     let valid = 0
-    call health#report_error('You need to upgrade deno.')
-  else
-    call health#report_ok('Deno version check: passed')
-    call health#report_info('Deno version: ' . outputs[0])
-  endif
-  return valid
+  endfor
+  return 0
 endfunction
 
-function! s:checkEnvironment() abort
-  if has('nvim')
-    " TODO: check nvim version
-    call health#report_ok('Neovim version check: passed')
-    return 0
-    " call health#report_error('Invalid Neovim version. nvim xxx or above required')
-  elseif has('vim')
-    " TODO: check Vim version
-    " call health#report_error('Invalid Vim version. nvim xxx or above required')
-    call health#report_ok('Vim version check: passed')
-    return 0
-  else
-    call health#report_error('You are using invalid editor. Please use supported version Vim or Neovim.')
-    return 1
-  endif
+function! s:get_deno_version(deno) abort
+  let output = system(printf('%s --version', a:deno))
+  return matchstr(output, 'deno \zs[0-9.]\+')
 endfunction
 
-function! s:checkDenops() abort
-  let mode = 'production'
+function! s:get_vim_version() abort
+  let output = execute('version')
+  let major = matchstr(output, 'Vi IMproved \zs[0-9.]\+')
+  let patch = matchstr(output, 'Included patches: [0-9]\+-\zs[0-9]\+')
+  return printf('%s.%s', major, patch)
+endfunction
+
+function! s:get_neovim_version() abort
+  let output = execute('version')
+  return matchstr(output, 'NVIM v\zs[0-9.]\+')
+endfunction
+
+function! s:check_deno_executable() abort
+  call health#report_info(printf(
+        \ 'Deno executable: `%s` (g:denops_deno)',
+        \ g:denops_deno,
+        \))
+  if !executable(g:denops_deno)
+    call health#report_error(printf(
+          \ 'It seems `%s` is not executable. Please install deno and add to `$PATH`.',
+          \ g:denops_deno,
+          \))
+
+    if g:denops_deno !=# 'deno' && executable('deno')
+      call health#report_info(printf(
+            \ 'It seems `deno` is executable but `%s` is specified to g:denops_deno by user.',
+            \ g:denops_deno,
+            \))
+    endif
+    return
+  endif
+  call health#report_ok('Deno executable check: passed')
+endfunction
+
+function! s:check_deno_version() abort
+  let deno_version = s:get_deno_version(g:denops_deno)
+  call health#report_info(printf(
+        \ 'Supported Deno version: `%s`',
+        \ s:deno_version,
+        \))
+  call health#report_info(printf(
+        \ 'Detected Deno version: `%s`',
+        \ deno_version,
+        \))
+  if empty(deno_version)
+    call health#report_error('Unable to detect version of deno, make sure your deno runtime is correct.')
+    return
+  elseif s:compare_version(deno_version, s:deno_version) < 0
+    call health#report_error(printf(
+          \ 'Unsupported Deno version is detected. You need to upgrade it to `%s` or later.',
+          \ s:deno_version,
+          \))
+    return
+  endif
+  call health#report_ok('Deno version check: passed')
+endfunction
+
+function! s:check_vim_version() abort
+  call health#report_info(printf(
+        \ 'Supported Vim version: `%s`',
+        \ s:vim_version,
+        \))
+  call health#report_info(printf(
+        \ 'Detected Vim version: `%s`',
+        \ s:get_vim_version(),
+        \))
+  if !has(printf('patch-%s', s:vim_version))
+    call health#report_error(printf(
+          \ 'Unsupported Vim version is detected. You need to upgrade it to `%s` or later.',
+          \ s:vim_version,
+          \))
+    return
+  endif
+  call health#report_ok('Vim version check: passed')
+endfunction
+
+function! s:check_neovim_version() abort
+  call health#report_info(printf(
+        \ 'Supported Neovim version: `%s`',
+        \ s:neovim_version,
+        \))
+  call health#report_info(printf(
+        \ 'Detected Neovim version: `%s`',
+        \ s:get_neovim_version(),
+        \))
+  if !has(printf('nvim-%s', s:neovim_version))
+    call health#report_error(printf(
+          \ 'Unsupported Neovim version is detected. You need to upgrade it to `%s` or later.',
+          \ s:neovim_version,
+          \))
+    return
+  endif
+  call health#report_ok('Neovim version check: passed')
+endfunction
+
+function! s:check_denops() abort
   if get(g:, 'denops#debug', 0)
-    let mode = 'debug'
+    call health#report_warn('Denops is running with debug mode (g:denops#debug)')
   endif
-  let denops_version = get(g:, 'denops#version', '0.0')
-
-  call health#report_info('Denops.vim ' . denops_version . ' (' . mode . ')')
 endfunction
 
-function! s:checkDenopsRunning() abort
+function! s:check_denops_status() abort
   let server_status = denops#server#status()
-  if (server_status ==# 'running')
-    call health#report_ok('Denops.vim is running')
-  elseif(server_status ==# 'stopped')
-    call health#report_error('Denops.vim is now stopped, please call `denops#server#start()` manually if needed for debugging.')
-  else
-    call health#report_error('Denops.vim may not exist or not loaded correctly.')
+  call health#report_info(printf(
+        \ 'Denops status: `%s`',
+        \ server_status,
+        \))
+  if server_status ==# 'stopped'
+    call health#report_error('Denops is stopped. Execute `:message` command to find reasons.')
+    return
   endif
+  call health#report_ok('Denops status check: passed')
 endfunction
 
 function! health#denops#check() abort
-  call s:checkEnvironment()
-  call s:checkDenoVersion()
-  call s:checkDenopsRunning()
-  call s:checkDenops()
+  call s:check_deno_version()
+  if !has('nvim')
+    call s:check_vim_version()
+  else
+    call s:check_neovim_version()
+  endif
+  call s:check_denops()
+  call s:check_denops_status()
 endfunction

@@ -1,4 +1,4 @@
-let s:script = denops#util#script_path('cli', 'channel.ts')
+let s:script = denops#util#script_path('@denops-private', 'channel', 'cli.ts')
 let s:vim_exiting = 0
 let s:job = v:null
 

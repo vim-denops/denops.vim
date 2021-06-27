@@ -1,6 +1,7 @@
-import { flags } from "../deps.ts";
-import { Service } from "../service.ts";
-import { Neovim, Vim } from "../host/mod.ts";
+import { flags, using } from "./deps.ts";
+import { Service } from "./service.ts";
+import { Vim } from "./host/vim.ts";
+import { Neovim } from "./host/nvim.ts";
 
 const opts = flags.parse(Deno.args);
 
@@ -18,8 +19,7 @@ const conn = await Deno.connect(address);
 
 // Create host and service
 const hostClass = opts.mode === "vim" ? Vim : Neovim;
-const host = new hostClass(conn, conn);
-const service = new Service(host);
-
-// Listen forever
-await host.listen(service);
+await using(new hostClass(conn, conn), async (host) => {
+  const service = new Service(host);
+  await service.waitClosed();
+});

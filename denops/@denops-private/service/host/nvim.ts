@@ -1,36 +1,40 @@
-import { Session } from "../deps.ts";
-import { Host, Invoker } from "./base.ts";
-import { ensureArray, ensureString } from "../utils.ts";
+import { ensureArray, ensureString, Session } from "../deps.ts";
+import { Invoker, isInvokerMethod } from "./invoker.ts";
+import { Host } from "./base.ts";
 
 export class Neovim implements Host {
   #session: Session;
-  #listener: Promise<void>;
 
   constructor(
     reader: Deno.Reader & Deno.Closer,
     writer: Deno.Writer,
   ) {
     this.#session = new Session(reader, writer);
-    this.#listener = this.#session.listen();
   }
 
   call(fn: string, ...args: unknown[]): Promise<unknown> {
     return this.#session.call("nvim_call_function", fn, args);
   }
 
-  listen(invoker: Invoker): Promise<void> {
-    this.#session.clearDispatcher();
-    this.#session.extendDispatcher({
+  register(invoker: Invoker): void {
+    this.#session.dispatcher = {
       async invoke(method: unknown, args: unknown): Promise<unknown> {
-        ensureString(method, "method");
-        ensureArray(args, "args");
-        if (!(method in invoker)) {
+        ensureString(method);
+        ensureArray(args);
+        if (!isInvokerMethod(method)) {
           throw new Error(`Method '${method}' is not defined in the invoker`);
         }
         // deno-lint-ignore no-explicit-any
-        return await (invoker as any)[method](...args);
+        return await (invoker[method] as any)(...args);
       },
-    });
-    return this.#listener;
+    };
+  }
+
+  waitClosed(): Promise<void> {
+    return this.#session.waitClosed();
+  }
+
+  dispose(): void {
+    this.#session.dispose();
   }
 }
