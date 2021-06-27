@@ -1,6 +1,8 @@
 import {
   ensureObject,
   ensureString,
+  Session,
+  using,
   WorkerReader,
   WorkerWriter,
 } from "../../deps.ts";
@@ -13,9 +15,21 @@ async function main(name: string, script: string): Promise<void> {
   const reader = new WorkerReader(worker);
   const writer = new WorkerWriter(worker);
   const mod = await import(script);
-  const denops = new Denops(name, reader, writer);
-  await mod.main(denops);
-  await denops.waitClosed();
+  await using(
+    new Session(reader, writer, {}, {
+      errorCallback(e) {
+        if (e.name === "Interrupted") {
+          return;
+        }
+        console.error(`Unexpected error occurred in '${name}'`, e);
+      },
+    }),
+    async (session) => {
+      const denops = new Denops(name, session);
+      await mod.main(denops);
+      await session.waitClosed();
+    },
+  );
   worker.terminate();
 }
 

@@ -33,4 +33,8 @@ export class Neovim implements Host {
   waitClosed(): Promise<void> {
     return this.#session.waitClosed();
   }
+
+  dispose(): void {
+    this.#session.dispose();
+  }
 }

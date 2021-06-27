@@ -1,4 +1,4 @@
-import { Dispatcher, Disposable, Session } from "./deps.ts";
+import { Dispatcher, Session } from "./deps.ts";
 import { test, TestDefinition } from "./test/tester.ts";
 
 /**
@@ -9,24 +9,16 @@ export type Context = Record<string, unknown>;
 /**
  * Denpos is a facade instance visible from each denops plugins.
  */
-export class Denops implements Disposable {
+export class Denops {
   readonly name: string;
   #session: Session;
 
   constructor(
     name: string,
-    reader: Deno.Reader & Deno.Closer,
-    writer: Deno.Writer,
+    session: Session,
   ) {
     this.name = name;
-    this.#session = new Session(reader, writer, {}, {
-      errorCallback(e) {
-        if (e.name === "Interrupted") {
-          return;
-        }
-        console.error(`Unexpected error occurred in '${name}'`, e);
-      },
-    });
+    this.#session = session;
   }
 
   /**
@@ -153,13 +145,5 @@ export class Denops implements Disposable {
     ...args: unknown[]
   ): Promise<unknown> {
     return await this.#session.call("dispatch", name, fn, ...args);
-  }
-
-  waitClosed(): Promise<void> {
-    return this.#session.waitClosed();
-  }
-
-  dispose(): void {
-    this.#session.dispose();
   }
 }

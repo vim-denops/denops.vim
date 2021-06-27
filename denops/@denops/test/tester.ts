@@ -1,4 +1,4 @@
-import { path } from "../deps.ts";
+import { path, Session, using } from "../deps.ts";
 import { Denops } from "../denops.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
 
@@ -34,19 +34,26 @@ async function withDenops(
       "DENOPS_TEST_ADDRESS": JSON.stringify(listener.addr),
     },
   });
+  const conn = await listener.accept();
   try {
-    const conn = await listener.accept();
-    const denops = new Denops("denops-std-test", conn, conn);
-    try {
-      await main(denops);
-    } finally {
-      denops.cmd("qall!");
-      await proc.status();
-      proc.stdin?.close();
-      proc.close();
-      conn.close();
-    }
+    await using(
+      new Session(conn, conn, {}, {
+        errorCallback(e) {
+          if (e.name === "Interrupted") {
+            return;
+          }
+          console.error("Unexpected error occurred", e);
+        },
+      }),
+      async (session) => {
+        const denops = new Denops("denops-std-test", session);
+        await main(denops);
+      },
+    );
   } finally {
+    proc.stdin?.close();
+    proc.close();
+    conn.close();
     listener.close();
   }
 }

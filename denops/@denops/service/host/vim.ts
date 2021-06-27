@@ -40,6 +40,10 @@ export class Vim implements Host {
   waitClosed(): Promise<void> {
     return this.#session.waitClosed();
   }
+
+  dispose(): void {
+    this.#session.dispose();
+  }
 }
 
 async function dispatch(invoker: Invoker, expr: unknown): Promise<unknown> {

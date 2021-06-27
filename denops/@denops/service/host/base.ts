@@ -1,9 +1,10 @@
+import { Disposable } from "../../deps.ts";
 import { Invoker } from "./invoker.ts";
 
 /**
  * Host (Vim/Neovim) which is visible from Service
  */
-export interface Host {
+export interface Host extends Disposable {
   /**
    * Call host function and return result
    */
