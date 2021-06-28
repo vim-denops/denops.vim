@@ -30,7 +30,7 @@ INTERFACE						*denops-interface*
 -----------------------------------------------------------------------------
 VARIABLE						*denops-variable*
 
-*g:denops_deno*
+*g:denops#deno*
 	Executable program of Deno. Use it to specify executable program of
 	Deno if 'deno' is not in PATH.
 	Default: 'deno'
@@ -42,7 +42,7 @@ VARIABLE						*denops-variable*
 
 *g:denops#server#channel#deno*
 	Executable program of Deno for starting a "channel" server.
-	Default: |g:denops_deno|
+	Default: |g:denops#deno|
 
 *g:denops#server#channel#deno_args*
 	Program arguments of Deno for starting a "channel" server.
@@ -50,7 +50,7 @@ VARIABLE						*denops-variable*
 
 *g:denops#server#service#deno*
 	Executable program of Deno for starting a "service" server.
-	Default: |g:denops_deno|
+	Default: |g:denops#deno|
 
 *g:denops#server#service#deno_args*
 	Program arguments of Deno for starting a "service" server.

@@ -34,19 +34,19 @@ endfunction
 
 function! s:check_deno_executable() abort
   call health#report_info(printf(
-        \ 'Deno executable: `%s` (g:denops_deno)',
-        \ g:denops_deno,
+        \ 'Deno executable: `%s` (g:denops#deno)',
+        \ g:denops#deno,
         \))
-  if !executable(g:denops_deno)
+  if !executable(g:denops#deno)
     call health#report_error(printf(
           \ 'It seems `%s` is not executable. Please install deno and add to `$PATH`.',
-          \ g:denops_deno,
+          \ g:denops#deno,
           \))
 
-    if g:denops_deno !=# 'deno' && executable('deno')
+    if g:denops#deno !=# 'deno' && executable('deno')
       call health#report_info(printf(
-            \ 'It seems `deno` is executable but `%s` is specified to g:denops_deno by user.',
-            \ g:denops_deno,
+            \ 'It seems `deno` is executable but `%s` is specified to g:denops#deno by user.',
+            \ g:denops#deno,
             \))
     endif
     return
@@ -55,7 +55,7 @@ function! s:check_deno_executable() abort
 endfunction
 
 function! s:check_deno_version() abort
-  let deno_version = s:get_deno_version(g:denops_deno)
+  let deno_version = s:get_deno_version(g:denops#deno)
   call health#report_info(printf(
         \ 'Supported Deno version: `%s`',
         \ s:deno_version,
