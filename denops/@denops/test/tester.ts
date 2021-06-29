@@ -142,7 +142,8 @@ function testInternal(t: TestDefinition): void {
   } else {
     Deno.test({
       ...t,
-      ignore: !DENOPS_PATH || (mode === "vim" && !DENOPS_TEST_VIM) ||
+      ignore: t.ignore || !DENOPS_PATH ||
+        (mode === "vim" && !DENOPS_TEST_VIM) ||
         (mode === "nvim" && !DENOPS_TEST_NVIM),
       fn: async () => {
         await withDenops(mode, t.fn, {
