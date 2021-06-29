@@ -11,6 +11,11 @@ export interface Host extends Disposable {
   call(fn: string, ...args: unknown[]): Promise<unknown>;
 
   /**
+   * Batch call host functions and return results and error
+   */
+  batch(...calls: [string, ...unknown[]][]): Promise<[unknown[], string]>;
+
+  /**
    * Register invoker
    */
   register(invoker: Invoker): void;
