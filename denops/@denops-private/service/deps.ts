@@ -1,4 +1,5 @@
 export * as flags from "https://deno.land/std@0.93.0/flags/mod.ts";
+export * as path from "https://deno.land/std@0.93.0/path/mod.ts";
 
 export { Session } from "https://deno.land/x/msgpack_rpc@v3.1.0/mod.ts";
 
