@@ -55,7 +55,7 @@ export class Denops {
    * @param ctx: A context object which is expanded to the local namespace (l:)
    */
   async cmd(cmd: string, ctx: Context = {}): Promise<void> {
-    await this.#session.notify("call", "denops#api#cmd", cmd, ctx);
+    await this.#session.call("call", "denops#api#cmd", cmd, ctx);
   }
 
   /**
