@@ -27,10 +27,35 @@ jobs:
         run: |
           deno test --unstable --no-run denops/**/*.ts
 
-  lint:
-    runs-on: ubuntu-20.04
+  typecheck-windows:
+    runs-on: windows-latest
 
     steps:
+      - run: git config --global core.autocrlf false
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          path-type: inherit
+      - uses: actions/checkout@v2
+      - uses: denoland/setup-deno@main
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+      - name: Type check
+        run: |
+          deno test --unstable --no-run denops/**/*.ts
+        shell: msys2 {0}
+
+  lint:
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+          - ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - if: startsWith(matrix.os, 'windows')
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@v2
       - uses: denoland/setup-deno@main
         with:
@@ -39,9 +64,16 @@ jobs:
         run: deno lint
 
   format:
-    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+          - ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     steps:
+      - if: startsWith(matrix.os, 'windows')
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@v2
       - uses: denoland/setup-deno@main
         with:
@@ -82,6 +114,51 @@ jobs:
       - name: Test
         run: |
           deno test --unstable -A
+        env:
+          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
+          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
+        timeout-minutes: 5
+
+  test-windows:
+    runs-on: windows-latest
+
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          path-type: inherit
+      - uses: actions/checkout@v2
+      - uses: denoland/setup-deno@main
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+      - uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          version: "v8.1.2424"
+      - uses: rhysd/action-setup-vim@v1
+        id: nvim
+        with:
+          neovim: true
+          version: "v0.4.4"
+      - name: Check Vim
+        run: |
+          echo ${DENOPS_TEST_VIM}
+          ${DENOPS_TEST_VIM} --version
+        shell: msys2 {0}
+        env:
+          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
+      - name: Check Neovim
+        run: |
+          echo ${DENOPS_TEST_NVIM}
+          ${DENOPS_TEST_NVIM} --version
+        shell: msys2 {0}
+        env:
+          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
+      - name: Test
+        run: |
+          deno test --unstable -A
+        shell: msys2 {0}
         env:
           DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
           DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
