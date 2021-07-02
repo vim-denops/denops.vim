@@ -77,7 +77,9 @@ test({
         await denops.eval("g:no_such_variable");
       },
       undefined,
-      "E121: Undefined variable: g:no_such_variable",
+      "g:no_such_variable",
+      // Vim:    "E15: Invalid expression: g:no_such_variable",
+      // Neovim: "E121: Undefined variable: g:no_such_variable",
     );
   },
 });
