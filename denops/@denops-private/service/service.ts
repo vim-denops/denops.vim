@@ -7,6 +7,7 @@ import {
 } from "./deps.ts";
 import { Host } from "./host/base.ts";
 import { Invoker } from "./host/invoker.ts";
+import { Meta } from "../../@denops/denops.ts";
 
 const workerScript = "./worker/script.ts";
 
@@ -23,7 +24,7 @@ export class Service {
     this.#host.register(new Invoker(this));
   }
 
-  register(name: string, script: string): void {
+  register(name: string, script: string, meta: Meta): void {
     if (name in this.#plugins) {
       const { worker } = this.#plugins[name];
       worker.terminate();
@@ -38,7 +39,7 @@ export class Service {
         },
       },
     );
-    worker.postMessage({ name, script });
+    worker.postMessage({ name, script, meta });
     const reader = new WorkerReader(worker);
     const writer = new WorkerWriter(worker);
     const plugin = new Session(reader, writer, {

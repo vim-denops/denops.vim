@@ -20,18 +20,6 @@ function! s:get_deno_version(deno) abort
   return matchstr(output, 'deno \zs[0-9.]\+')
 endfunction
 
-function! s:get_vim_version() abort
-  let output = execute('version')
-  let major = matchstr(output, 'Vi IMproved \zs[0-9.]\+')
-  let patch = matchstr(output, 'Included patches: [0-9]\+-\zs[0-9]\+')
-  return printf('%s.%s', major, patch)
-endfunction
-
-function! s:get_neovim_version() abort
-  let output = execute('version')
-  return matchstr(output, 'NVIM v\zs[0-9.]\+')
-endfunction
-
 function! s:check_deno_executable() abort
   call health#report_info(printf(
         \ 'Deno executable: `%s` (g:denops#deno)',
@@ -84,7 +72,7 @@ function! s:check_vim_version() abort
         \))
   call health#report_info(printf(
         \ 'Detected Vim version: `%s`',
-        \ s:get_vim_version(),
+        \ denops#util#meta().version,
         \))
   if !has(printf('patch-%s', s:vim_version))
     call health#report_error(printf(
@@ -103,7 +91,7 @@ function! s:check_neovim_version() abort
         \))
   call health#report_info(printf(
         \ 'Detected Neovim version: `%s`',
-        \ s:get_neovim_version(),
+        \ denops#util#meta().version,
         \))
   if !has(printf('nvim-%s', s:neovim_version))
     call health#report_error(printf(

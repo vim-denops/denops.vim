@@ -1,6 +1,22 @@
 let s:sep = has('win32') ? '\' : '/'
 let s:root = expand('<sfile>:h:h:h')
 
+function! denops#util#meta() abort
+  if exists('s:meta')
+    return s:meta
+  endif
+  let l:host = has('nvim') ? 'nvim' : 'vim'
+  let l:version = s:get_host_version()
+  let l:platform = has('win32') ? 'windows' : has('mac') ? 'mac' : 'linux'
+  let s:meta = {
+        \ 'mode': g:denops#_test ? 'test' : g:denops#debug ? 'debug' : 'release',
+        \ 'host': l:host,
+        \ 'version': l:version,
+        \ 'platform': l:platform,
+        \}
+  return s:meta
+endfunction
+
 function! denops#util#debug(...) abort
   if !g:denops#debug
     return
@@ -55,6 +71,11 @@ function! denops#util#jobstop(job) abort
 endfunction
 
 if has('nvim')
+  function! s:get_host_version() abort
+    let output = execute('version')
+    return matchstr(output, 'NVIM v\zs[0-9.]\+')
+  endfunction
+
   function! s:start(args, options) abort
     let options = extend({
           \ 'pty': a:options.pty,
@@ -84,6 +105,13 @@ if has('nvim')
     call a:callback(a:status)
   endfunction
 else
+  function! s:get_host_version() abort
+    let output = execute('version')
+    let major = matchstr(output, 'Vi IMproved \zs[0-9.]\+')
+    let patch = matchstr(output, 'Included patches: [0-9]\+-\zs[0-9]\+')
+    return printf('%s.%s', major, patch)
+  endfunction
+
   " https://github.com/neovim/neovim/blob/f629f83/src/nvim/event/process.c#L24-L26
   let s:KILL_TIMEOUT_MS = 2000
 

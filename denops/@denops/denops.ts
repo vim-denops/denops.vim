@@ -5,18 +5,28 @@ import { Dispatcher, Session } from "./deps.ts";
  */
 export type Context = Record<string, unknown>;
 
+export type Meta = {
+  readonly mode: "release" | "debug" | "test";
+  readonly host: "vim" | "nvim";
+  readonly version: string;
+  readonly platform: "windows" | "mac" | "linux";
+};
+
 /**
  * Denpos is a facade instance visible from each denops plugins.
  */
 export class Denops {
   readonly name: string;
+  readonly meta: Meta;
   #session: Session;
 
   constructor(
     name: string,
+    meta: Meta,
     session: Session,
   ) {
     this.name = name;
+    this.meta = meta;
     this.#session = session;
   }
 
@@ -45,7 +55,7 @@ export class Denops {
    * @param ctx: A context object which is expanded to the local namespace (l:)
    */
   async cmd(cmd: string, ctx: Context = {}): Promise<void> {
-    await this.#session.notify("call", "denops#api#cmd", cmd, ctx);
+    await this.#session.call("call", "denops#api#cmd", cmd, ctx);
   }
 
   /**

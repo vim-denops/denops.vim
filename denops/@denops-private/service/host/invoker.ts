@@ -1,4 +1,5 @@
 import { Service } from "../service.ts";
+import { Meta } from "../../../@denops/denops.ts";
 
 export class Invoker {
   #service: Service;
@@ -7,8 +8,8 @@ export class Invoker {
     this.#service = service;
   }
 
-  register(name: string, script: string): void {
-    this.#service.register(name, script);
+  register(name: string, script: string, meta: Meta): void {
+    this.#service.register(name, script, meta);
   }
 
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
