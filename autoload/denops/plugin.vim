@@ -1,6 +1,7 @@
 function! denops#plugin#register(name, script) abort
-  call denops#util#debug(printf('register `%s` plugin as `%s`', a:name, a:script))
-  return denops#server#channel#notify('invoke', ['register', [a:name, a:script]])
+  let meta = denops#util#meta()
+  call denops#util#debug(printf('register `%s` plugin as `%s` (%s)', a:name, a:script, meta))
+  return denops#server#channel#notify('invoke', ['register', [a:name, a:script, meta]])
 endfunction
 
 function! denops#plugin#discover() abort

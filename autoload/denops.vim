@@ -15,3 +15,6 @@ endfunction
 " Configuration
 let g:denops#deno = get(g:, 'denops#deno', 'deno')
 let g:denops#debug = get(g:, 'denops#debug', 0)
+
+" Internal configuration
+let g:denops#_test = get(g:, 'denops#_test', 0)

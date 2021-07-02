@@ -1,5 +1,5 @@
 import { path, Session, Timeout, using } from "../deps_test.ts";
-import { Denops } from "../denops.ts";
+import { Denops, Meta } from "../denops.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
 
 const DEFAULT_TIMEOUT = 1000;
@@ -34,6 +34,7 @@ async function withDenops(
   });
   const proc = run(mode, {
     commands: [
+      `let g:denops#_test = 1`,
       `set runtimepath^=${DENOPS_PATH}`,
       `autocmd User DenopsReady call denops#plugin#register('denops-std-test', '${scriptPath}')`,
       "call denops#server#start()",
@@ -55,7 +56,8 @@ async function withDenops(
         },
       }),
       async (session) => {
-        const denops = new Denops("denops-std-test", session);
+        const meta = await session.call("call", "denops#util#meta") as Meta;
+        const denops = new Denops("@test", meta, session);
         const runner = async () => {
           await main(denops);
         };
