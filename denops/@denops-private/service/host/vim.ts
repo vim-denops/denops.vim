@@ -24,7 +24,6 @@ export class Vim implements Host {
       args,
     ) as string;
     await this.#session.ex("call denops#api#call_before_823080_call()");
-    await this.#session.redraw();
     const [ret, err] = await this.#session.expr(
       "[g:denops#api#call_before_823080, v:errmsg]",
     ) as [unknown, string];
@@ -43,7 +42,6 @@ export class Vim implements Host {
       unknown,
       string,
     ];
-    await this.#session.redraw();
     if (err !== "") {
       throw new Error(`Failed to call '${fn}(${args.join(", ")})': ${err}`);
     }
@@ -64,19 +62,23 @@ export class Vim implements Host {
     // However, such workaround would impact the performance thus we only
     // enable such workaround when 'g:denops#debug' or 'g:denops#_test' is
     // enabled.
-    if (this.#meta.mode !== "release") {
-      if (
-        this.#meta.version.localeCompare("8.2.3080", undefined, {
-          numeric: true,
-          sensitivity: "base",
-        }) === -1
-      ) {
-        return await this.callForDebugBefore823080(fn, ...args);
-      } else {
-        return await this.callForDebug(fn, ...args);
+    try {
+      if (this.#meta.mode !== "release") {
+        if (
+          this.#meta.version.localeCompare("8.2.3080", undefined, {
+            numeric: true,
+            sensitivity: "base",
+          }) === -1
+        ) {
+          return await this.callForDebugBefore823080(fn, ...args);
+        } else {
+          return await this.callForDebug(fn, ...args);
+        }
       }
+      return await this.callForRelease(fn, ...args);
+    } finally {
+      await this.#session.redraw();
     }
-    return await this.callForRelease(fn, ...args);
   }
 
   register(invoker: Invoker): void {
