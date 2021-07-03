@@ -15,6 +15,16 @@ export type Meta = {
   readonly platform: "windows" | "mac" | "linux";
 };
 
+export class BatchError extends Error {
+  readonly results: unknown[];
+
+  constructor(message: string, results: unknown[]) {
+    super(message);
+    this.name = "BatchError";
+    this.results = results;
+  }
+}
+
 /**
  * Denpos is a facade instance visible from each denops plugins.
  */
@@ -41,6 +51,18 @@ export interface Denops {
    * @param args: Arguments of the function.
    */
   call(fn: string, ...args: unknown[]): Promise<unknown>;
+
+  /**
+   * Call arbitrary functions of Vim/Neovim sequentially without redraw and
+   * return the results.
+   *
+   * It throw a BatchError when one of a function fails. The `results` attribute
+   * of the error instance holds successed results of functions prior to the
+   * error.
+   *
+   * @param calls: A list of tuple ([fn, args]) to call Vim/Neovim functions.
+   */
+  batch(...calls: [string, ...unknown[]][]): Promise<unknown[]>;
 
   /**
    * Execute an arbitrary command of Vim/Neovim under a given context.
@@ -93,6 +115,19 @@ export class DenopsImpl implements Denops {
 
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
     return await this.#session.call("call", fn, ...args);
+  }
+
+  async batch(
+    ...calls: [string, ...unknown[]][]
+  ): Promise<unknown[]> {
+    const [results, errmsg] = await this.#session.call("batch", ...calls) as [
+      unknown[],
+      string,
+    ];
+    if (errmsg !== "") {
+      throw new BatchError(errmsg, results);
+    }
+    return results;
   }
 
   async cmd(cmd: string, ctx: Context = {}): Promise<void> {

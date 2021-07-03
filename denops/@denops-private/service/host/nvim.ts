@@ -20,6 +20,19 @@ export class Neovim implements Host {
     return this.#session.call("nvim_call_function", fn, args);
   }
 
+  async batch(
+    ...calls: [string, ...unknown[]][]
+  ): Promise<[unknown[], string]> {
+    const [ret, err] = await this.#session.call(
+      "nvim_call_atomic",
+      calls.map(([fn, ...args]) => ["nvim_call_function", [fn, args]]),
+    ) as [unknown[], [number, number, string] | null];
+    if (err) {
+      return [ret, err[2]];
+    }
+    return [ret, ""];
+  }
+
   register(invoker: Invoker): void {
     this.#session.dispatcher = {
       async invoke(method: unknown, args: unknown): Promise<unknown> {
