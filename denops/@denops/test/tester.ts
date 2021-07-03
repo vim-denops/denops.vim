@@ -1,6 +1,5 @@
 import { path, Session, Timeout, using } from "../deps_test.ts";
-import { Denops, Meta } from "../denops.ts";
-import { DenopsImpl } from "../../@denops-private/denops.ts";
+import { Denops, DenopsImpl, Meta } from "../denops.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
 
 const DEFAULT_TIMEOUT = 1000;
