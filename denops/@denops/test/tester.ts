@@ -35,11 +35,12 @@ async function withDenops(
     hostname: "127.0.0.1",
     port: 0, // Automatically select free port
   });
+  const pluginName = '@denops-core-test'
   const proc = run(mode, {
     commands: [
       `let g:denops#_test = 1`,
       `set runtimepath^=${DENOPS_PATH}`,
-      `autocmd User DenopsReady call denops#plugin#register('denops-std-test', '${scriptPath}')`,
+      `autocmd User DenopsReady call denops#plugin#register('${pluginName}', '${scriptPath}')`,
       "call denops#server#start()",
     ],
     env: {
@@ -60,7 +61,7 @@ async function withDenops(
       }),
       async (session) => {
         const meta = await session.call("call", "denops#util#meta") as Meta;
-        const denops: Denops = new DenopsImpl("@test", meta, session);
+        const denops: Denops = new DenopsImpl(pluginName, meta, session);
         const runner = async () => {
           await main(denops);
         };
