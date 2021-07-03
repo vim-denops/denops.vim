@@ -1,10 +1,12 @@
 import {
   ensureArray,
   ensureString,
-  Session,
+} from "../vendor/https/deno.land/x/unknownutil/mod.ts";
+import { Session } from "../vendor/https/deno.land/x/msgpack_rpc/mod.ts";
+import {
   WorkerReader,
   WorkerWriter,
-} from "./deps.ts";
+} from "../vendor/https/deno.land/x/workerio/mod.ts";
 import { Host } from "./host/base.ts";
 import { Invoker } from "./host/invoker.ts";
 import { Meta } from "../../@denops/denops.ts";

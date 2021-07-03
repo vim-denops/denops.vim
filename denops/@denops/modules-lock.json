@@ -1,0 +1,39 @@
+{
+  "https://deno.land/std": {
+    "version": "@0.93.0",
+    "modules": [
+      "/testing/asserts.ts",
+      "/path/mod.ts"
+    ]
+  },
+  "https://deno.land/x/workerio": {
+    "version": "@v1.3.1",
+    "modules": [
+      "/mod.ts"
+    ]
+  },
+  "https://deno.land/x/msgpack_rpc": {
+    "version": "@v3.1.0",
+    "modules": [
+      "/mod.ts"
+    ]
+  },
+  "https://deno.land/x/disposable": {
+    "version": "@v0.2.0",
+    "modules": [
+      "/mod.ts"
+    ]
+  },
+  "https://deno.land/x/timeout": {
+    "version": "@2.4",
+    "modules": [
+      "/mod.ts"
+    ]
+  },
+  "https://deno.land/x/object_clone": {
+    "version": "@1.1.0",
+    "modules": [
+      "/mod.ts"
+    ]
+  }
+}
