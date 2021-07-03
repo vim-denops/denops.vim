@@ -1,4 +1,7 @@
-import { WorkerReader, WorkerWriter } from "../../deps_test.ts";
+import {
+  WorkerReader,
+  WorkerWriter,
+} from "../../vendor/https/deno.land/x/workerio/mod.ts";
 
 // deno-lint-ignore no-explicit-any
 const worker = self as any;

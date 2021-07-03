@@ -1,4 +1,7 @@
-import { path, Session, Timeout, using } from "../deps_test.ts";
+import * as path from "../vendor/https/deno.land/std/path/mod.ts";
+import { Session } from "../vendor/https/deno.land/x/msgpack_rpc/mod.ts";
+import { Timeout } from "../vendor/https/deno.land/x/timeout/mod.ts";
+import { using } from "../vendor/https/deno.land/x/disposable/mod.ts";
 import { Denops, DenopsImpl, Meta } from "../denops.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
 

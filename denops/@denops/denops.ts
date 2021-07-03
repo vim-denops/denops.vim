@@ -1,4 +1,7 @@
-import { Dispatcher, Session } from "./deps.ts";
+import {
+  Dispatcher,
+  Session,
+} from "./vendor/https/deno.land/x/msgpack_rpc/mod.ts";
 
 /**
  * Context which is expanded to the local namespace (l:)

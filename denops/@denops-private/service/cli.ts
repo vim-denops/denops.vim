@@ -1,4 +1,5 @@
-import { flags, using } from "./deps.ts";
+import * as flags from "../vendor/https/deno.land/std/flags/mod.ts";
+import { using } from "../vendor/https/deno.land/x/disposable/mod.ts";
 import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
