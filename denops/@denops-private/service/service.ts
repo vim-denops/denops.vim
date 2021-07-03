@@ -30,7 +30,7 @@ export class Service {
       worker.terminate();
     }
     const worker = new Worker(
-      new URL(workerScript, import.meta.url),
+      new URL(workerScript, import.meta.url).href,
       {
         name,
         type: "module",
