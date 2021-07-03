@@ -36,8 +36,6 @@ jobs:
     strategy:
       matrix:
         runner:
-          - windows-latest
-          - macos-latest
           - ubuntu-latest
         version:
           - "1.11.0"
