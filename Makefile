@@ -1,3 +1,9 @@
+TOOLS := ${CURDIR}/.tools
+
+tools: FORCE
+	@mkdir -p ${TOOLS}
+	@deno install -f --allow-write --allow-read --allow-net --root ${TOOLS} https://deno.land/x/dlink/dlink.ts
+
 fmt: FORCE
 	@deno fmt
 
@@ -12,5 +18,10 @@ type-check: FORCE
 
 test: FORCE
 	@deno test --unstable -A
+
+dlink: FORCE
+	@(cd denops/@denops; ${TOOLS}/bin/dlink)
+	@(cd denops/@denops-private; ${TOOLS}/bin/dlink)
+	@make fmt
 
 FORCE:
