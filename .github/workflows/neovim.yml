@@ -28,7 +28,7 @@ jobs:
           - windows-latest
           - ubuntu-latest
         version:
-          - nightly
+          - v0.5.0
           - v0.4.4
     runs-on: ${{ matrix.os }}
     steps:
