@@ -1,7 +1,6 @@
 name: deno
 
 env:
-  DENO_VERSION: 1.x
   DENOPS_PATH: "./"
 
 on:
@@ -14,71 +13,90 @@ on:
     branches:
       - main
 
-jobs:
-  typecheck:
-    runs-on: ubuntu-20.04
+defaults:
+  run:
+    shell: bash --noprofile --norc -eo pipefail {0}
 
+jobs:
+  check:
+    strategy:
+      matrix:
+        runner:
+          - windows-latest
+          - macos-latest
+          - ubuntu-latest
+        version:
+          - "1.11.0"
+          - "1.x"
+    runs-on: ${{ matrix.runner }}
     steps:
+      - run: git config --global core.autocrlf false
+        if: runner.os == 'Windows'
       - uses: actions/checkout@v2
       - uses: denoland/setup-deno@main
         with:
-          deno-version: ${{ env.DENO_VERSION }}
+          deno-version: "${{ matrix.version }}"
+      - name: Lint check
+        run: deno lint
+      - name: Format check
+        run: |
+          deno fmt --check
       - name: Type check
         run: |
           deno test --unstable --no-run denops/**/*.ts
 
-  lint:
-    runs-on: ubuntu-20.04
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: denoland/setup-deno@main
-        with:
-          deno-version: ${{ env.DENO_VERSION }}
-      - name: Lint
-        run: deno lint
-
-  format:
-    runs-on: ubuntu-20.04
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: denoland/setup-deno@main
-        with:
-          deno-version: ${{ env.DENO_VERSION }}
-      - name: Format
-        run: |
-          deno fmt --check
-
   test:
-    runs-on: ubuntu-20.04
-
+    strategy:
+      matrix:
+        runner:
+          - windows-latest
+          - macos-latest
+          - ubuntu-latest
+        version:
+          - "1.11.0"
+          - "1.x"
+        host_version:
+          - vim: "v8.1.2424"
+            nvim: ""
+          - vim: "v8.2.3081"
+            nvim: ""
+          - vim: ""
+            nvim: "v0.4.4"
+          - vim: ""
+            nvim: "v0.5.0"
+    runs-on: ${{ matrix.runner }}
     steps:
+      - run: git config --global core.autocrlf false
+        if: runner.os == 'Windows'
       - uses: actions/checkout@v2
       - uses: denoland/setup-deno@main
         with:
-          deno-version: ${{ env.DENO_VERSION }}
+          deno-version: "${{ matrix.version }}"
       - uses: rhysd/action-setup-vim@v1
         id: vim
         with:
-          version: "v8.1.2424"
-      - uses: rhysd/action-setup-vim@v1
-        id: nvim
-        with:
-          neovim: true
-          version: "v0.4.4"
+          version: "${{ matrix.host_version.vim }}"
+        if: matrix.host_version.vim != ''
       - name: Check Vim
         run: |
           echo ${DENOPS_TEST_VIM}
           ${DENOPS_TEST_VIM} --version
         env:
           DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
+        if: matrix.host_version.vim != ''
+      - uses: rhysd/action-setup-vim@v1
+        id: nvim
+        with:
+          neovim: true
+          version: "${{ matrix.host_version.nvim }}"
+        if: matrix.host_version.nvim != ''
       - name: Check Neovim
         run: |
           echo ${DENOPS_TEST_NVIM}
           ${DENOPS_TEST_NVIM} --version
         env:
           DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
+        if: matrix.host_version.nvim != ''
       - name: Test
         run: |
           deno test --unstable -A
