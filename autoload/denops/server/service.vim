@@ -62,9 +62,9 @@ augroup denops_server_service_internal
 augroup END
 
 let g:denops#server#service#deno = get(g:, 'denops#server#service#deno', g:denops#deno)
-let g:denops#server#service#deno_args = get(g:, 'denops#server#service#deno_args', [
+let g:denops#server#service#deno_args = get(g:, 'denops#server#service#deno_args', filter([
       \ '-q',
-      \ '--no-check',
+      \ g:denops#debug ? '' : '--no-check',
       \ '--unstable',
       \ '-A',
-      \])
+      \], { _, v -> !empty(v) }))
