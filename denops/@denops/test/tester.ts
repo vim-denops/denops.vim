@@ -1,5 +1,6 @@
 import { path, Session, Timeout, using } from "../deps_test.ts";
 import { Denops, Meta } from "../denops.ts";
+import { DenopsImpl } from "../../@denops-private/denops.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
 
 const DEFAULT_TIMEOUT = 1000;
@@ -57,7 +58,7 @@ async function withDenops(
       }),
       async (session) => {
         const meta = await session.call("call", "denops#util#meta") as Meta;
-        const denops = new Denops("@test", meta, session);
+        const denops: Denops = new DenopsImpl("@test", meta, session);
         const runner = async () => {
           await main(denops);
         };

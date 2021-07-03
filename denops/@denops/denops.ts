@@ -1,4 +1,4 @@
-import { Dispatcher, Session } from "./deps.ts";
+import { Dispatcher } from "./deps.ts";
 
 /**
  * Context which is expanded to the local namespace (l:)
@@ -15,28 +15,21 @@ export type Meta = {
 /**
  * Denpos is a facade instance visible from each denops plugins.
  */
-export class Denops {
+export interface Denops {
+  /**
+   * Denops instance name which uses to communicate with vim.
+   */
   readonly name: string;
+
+  /**
+   * Environment meta information.
+   */
   readonly meta: Meta;
-  #session: Session;
 
-  constructor(
-    name: string,
-    meta: Meta,
-    session: Session,
-  ) {
-    this.name = name;
-    this.meta = meta;
-    this.#session = session;
-  }
-
-  get dispatcher(): Dispatcher {
-    return this.#session.dispatcher;
-  }
-
-  set dispatcher(dispatcher: Dispatcher) {
-    this.#session.dispatcher = dispatcher;
-  }
+  /**
+   * User defined API name and method map which is used to dispatch API request
+   */
+  dispatcher: Dispatcher;
 
   /**
    * Call an arbitrary function of Vim/Neovim and return the result
@@ -44,9 +37,7 @@ export class Denops {
    * @param fn: A function name of Vim/Neovim.
    * @param args: Arguments of the function.
    */
-  async call(fn: string, ...args: unknown[]): Promise<unknown> {
-    return await this.#session.call("call", fn, ...args);
-  }
+  call(fn: string, ...args: unknown[]): Promise<unknown>;
 
   /**
    * Execute an arbitrary command of Vim/Neovim under a given context.
@@ -54,9 +45,7 @@ export class Denops {
    * @param cmd: A command expression to be executed.
    * @param ctx: A context object which is expanded to the local namespace (l:)
    */
-  async cmd(cmd: string, ctx: Context = {}): Promise<void> {
-    await this.#session.call("call", "denops#api#cmd", cmd, ctx);
-  }
+  cmd(cmd: string, ctx?: Context): Promise<void>;
 
   /**
    * Evaluate an arbitrary expression of Vim/Neovim under a given context and return the result.
@@ -64,9 +53,7 @@ export class Denops {
    * @param expr: An expression to be evaluated.
    * @param ctx: A context object which is expanded to the local namespace (l:)
    */
-  async eval(expr: string, ctx: Context = {}): Promise<unknown> {
-    return await this.#session.call("call", "denops#api#eval", expr, ctx);
-  }
+  eval(expr: string, ctx?: Context): Promise<unknown>;
 
   /**
    * Dispatch an arbitrary function of an arbitrary plugin and return the result.
@@ -75,11 +62,5 @@ export class Denops {
    * @param fn: A function name in the API registration.
    * @param args: Arguments of the function.
    */
-  async dispatch(
-    name: string,
-    fn: string,
-    ...args: unknown[]
-  ): Promise<unknown> {
-    return await this.#session.call("dispatch", name, fn, ...args);
-  }
+  dispatch(name: string, fn: string, ...args: unknown[]): Promise<unknown>;
 }

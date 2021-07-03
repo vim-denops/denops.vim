@@ -10,6 +10,7 @@ import {
   WorkerWriter,
 } from "../deps.ts";
 import { Denops, Meta } from "../../../@denops/denops.ts";
+import { DenopsImpl } from "../../../@denops-private/denops.ts";
 
 // deno-lint-ignore no-explicit-any
 const worker = self as any as Worker;
@@ -28,7 +29,7 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
       },
     }),
     async (session) => {
-      const denops = new Denops(name, meta, session);
+      const denops: Denops = new DenopsImpl(name, meta, session);
       await mod.main(denops);
       await session.waitClosed();
     },
