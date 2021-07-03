@@ -13,6 +13,8 @@ on:
       - "**/*.md"
       - "**/*.ts"
       - "**/*.vim"
+      - "denops/@denops/modules-lock.json"
+      - "denops/@denops-private/modules-lock.json"
       - ".github/workflows/deno.yml"
   pull_request:
     branches:
@@ -21,6 +23,8 @@ on:
       - "**/*.md"
       - "**/*.ts"
       - "**/*.vim"
+      - "denops/@denops/modules-lock.json"
+      - "denops/@denops-private/modules-lock.json"
       - ".github/workflows/deno.yml"
 
 defaults:
