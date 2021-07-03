@@ -36,8 +36,16 @@ VARIABLE						*denops-variable*
 	Default: 'deno'
 
 *g:denops#debug*
-	Set 1 to enable debug mode. In debug mode, some additional debug
-	messages of denops itself will be shown.
+	Set 1 to enable debug mode. In debug mode, the following additional
+	features become enabled.
+
+	- Additional debug messages of denops itself
+	- Error checks become enabled on Vim (always enabled on Neovim)
+	- Type checks of Deno modules become enabled
+
+	Note that the debug mode would affect the performance so disable it
+	unless you are debugging deno plugins.
+
 	Default: 0
 
 *g:denops#server#channel#deno*
