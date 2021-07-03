@@ -9,9 +9,19 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "**/*.md"
+      - "**/*.ts"
+      - "**/*.vim"
+      - ".github/workflows/deno.yml"
   pull_request:
     branches:
       - main
+    paths:
+      - "**/*.md"
+      - "**/*.ts"
+      - "**/*.vim"
+      - ".github/workflows/deno.yml"
 
 defaults:
   run:
