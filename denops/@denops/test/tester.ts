@@ -35,7 +35,7 @@ async function withDenops(
     hostname: "127.0.0.1",
     port: 0, // Automatically select free port
   });
-  const pluginName = '@denops-core-test'
+  const pluginName = "@denops-core-test";
   const proc = run(mode, {
     commands: [
       `let g:denops#_test = 1`,
