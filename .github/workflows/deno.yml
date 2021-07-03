@@ -37,13 +37,11 @@ jobs:
         with:
           deno-version: "${{ matrix.version }}"
       - name: Lint check
-        run: deno lint
+        run: make lint
       - name: Format check
-        run: |
-          deno fmt --check
+        run: make fmt-check
       - name: Type check
-        run: |
-          deno test --unstable --no-run denops/**/*.ts
+        run: make type-check
 
   test:
     strategy:
@@ -98,8 +96,7 @@ jobs:
           DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
         if: matrix.host_version.nvim != ''
       - name: Test
-        run: |
-          deno test --unstable -A
+        run: make test
         env:
           DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
           DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
