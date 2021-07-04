@@ -1,8 +1,4 @@
-import {
-  ensureArray,
-  ensureString,
-} from "../../vendor/https/deno.land/x/unknownutil/mod.ts";
-import { Session } from "../../vendor/https/deno.land/x/msgpack_rpc/mod.ts";
+import { ensureArray, ensureString, Session } from "../deps.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";
 

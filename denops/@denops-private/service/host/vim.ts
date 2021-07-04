@@ -1,7 +1,4 @@
-import {
-  Message as VimMessage,
-  Session as VimSession,
-} from "../../vendor/https/deno.land/x/vim_channel_command/mod.ts";
+import { VimMessage, VimSession } from "../deps.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";
 import { Meta } from "../../../@denops/denops.ts";
