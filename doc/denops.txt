@@ -122,6 +122,22 @@ denops#plugin#discover()
 	if the middle directory does not starts from "@".
 	This is automatically called on |VimEnter| autocmd.
 
+						*denops#callback#add()*
+denops#callback#add({callback})
+	Add {callback} to internal callback map as one-time anonymous
+	function and return an unique {id} to call the {callback} later.
+
+						*denops#callback#call()*
+denops#callback#call({id}[, {args}...])
+	Find a callback of {id} from internal callback map and call it with
+	given {args}. Note that the callback called is automatically removed
+	from the internal callback map.
+
+						*denops#callback#clear()*
+denops#callback#clear()
+	Clear an internal callback map.
+
+
 -----------------------------------------------------------------------------
 AUTOCMD						*denops-autocmd*
 
