@@ -1,4 +1,5 @@
-import { path, Session, Timeout, using } from "../deps.ts";
+import { path, Session, using } from "../deps.ts";
+import { Timeout } from "../deps_test.ts";
 import { Denops, DenopsImpl, Meta } from "../denops.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
 
