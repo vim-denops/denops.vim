@@ -3,14 +3,12 @@ import {
   ensureString,
   isObject,
   isString,
-} from "../../vendor/https/deno.land/x/unknownutil/mod.ts";
-import * as path from "../../vendor/https/deno.land/std/path/mod.ts";
-import { Session } from "../../vendor/https/deno.land/x/msgpack_rpc/mod.ts";
-import { using } from "../../vendor/https/deno.land/x/disposable/mod.ts";
-import {
+  path,
+  Session,
+  using,
   WorkerReader,
   WorkerWriter,
-} from "../../vendor/https/deno.land/x/workerio/mod.ts";
+} from "../deps.ts";
 import { Denops, Meta } from "../../../@denops/denops.ts";
 import { DenopsImpl } from "../../../@denops/denops.ts";
 

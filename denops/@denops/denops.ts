@@ -1,21 +1,31 @@
-import {
-  Dispatcher,
-  Session,
-} from "./vendor/https/deno.land/x/msgpack_rpc/mod.ts";
+import { Dispatcher, Session } from "./deps.ts";
 
 /**
  * Context which is expanded to the local namespace (l:)
  */
 export type Context = Record<string, unknown>;
 
+/**
+ * Environment meta information.
+ */
 export type Meta = {
+  // Current denops mode.
+  // In "debug" or "test" mode, some features become enabled
+  // which might impact the performance.
   readonly mode: "release" | "debug" | "test";
+  // Host program.
   readonly host: "vim" | "nvim";
+  // Host program version.
   readonly version: string;
+  // Host platform name.
   readonly platform: "windows" | "mac" | "linux";
 };
 
+/**
+ * Batch error which is raised when one of function fails during batch process
+ */
 export class BatchError extends Error {
+  // A result list which is successfully completed prior to the error
   readonly results: unknown[];
 
   constructor(message: string, results: unknown[]) {

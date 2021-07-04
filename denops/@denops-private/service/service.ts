@@ -3,12 +3,10 @@ import {
   ensureString,
   isArray,
   isString,
-} from "../vendor/https/deno.land/x/unknownutil/mod.ts";
-import { Session } from "../vendor/https/deno.land/x/msgpack_rpc/mod.ts";
-import {
+  Session,
   WorkerReader,
   WorkerWriter,
-} from "../vendor/https/deno.land/x/workerio/mod.ts";
+} from "./deps.ts";
 import { Host } from "./host/base.ts";
 import { Invoker } from "./host/invoker.ts";
 import { Meta } from "../../@denops/denops.ts";

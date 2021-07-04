@@ -9,7 +9,7 @@ help:
 
 tools: FORCE	## Install development tools
 	@mkdir -p ${TOOLS}
-	@deno install -f --allow-write --allow-read --allow-net --root ${TOOLS} https://deno.land/x/dlink/dlink.ts
+	@deno install -A -f -n udd --root ${TOOLS} https://deno.land/x/udd@0.4.0/main.ts
 
 fmt: FORCE	## Format code
 	@deno fmt
@@ -26,9 +26,8 @@ type-check: FORCE	## Type check
 test: FORCE	## Test
 	@deno test --unstable -A
 
-dlink: FORCE	## Update dlink
-	@(cd denops/@denops; ${TOOLS}/bin/dlink)
-	@(cd denops/@denops-private; ${TOOLS}/bin/dlink)
+update: FORCE	## Update dependencies
+	@${TOOLS}/bin/udd $$(find . -name '*.ts')
 	@make fmt
 
 FORCE:

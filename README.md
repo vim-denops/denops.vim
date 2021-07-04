@@ -19,49 +19,33 @@
 
 </div>
 
-<div align="center">
-<strong>WARNING</strong><br>
-Denops is under active development. Any kind of breaking changes may be applied without any announcements.
-
-</div>
-
 ## Quick start
 
-Install the latest [Deno][deno] with:
+First of all, install the latest [Deno][deno]. See
+[Deno's official manual](https://deno.land/manual/getting_started/installation)
+for details.
 
-##### macOS or Linux
-
-```
-curl -fsSL https://deno.land/x/install/install.sh | sh
-```
-
-##### Windows
-
-```
-iwr https://deno.land/x/install/install.ps1 -useb | iex
-```
-
-##### Others
-
-See [Deno Manual](https://deno.land/manual/getting_started/installation).
-
-Note that `deno` need to be executable from Vim/Neovim. You can confirm it by
-execute the following command in Vim/Neovim.
+Note that `deno` command need to be executable from Vim/Neovim. You can confirm
+it by `exepath()` function in Vim/Neovim like below:
 
 ```vim
-:echo executable('deno')
-1
+:echo exepath('deno')
+/usr/local/bin/deno
 ```
 
-Once you got deno to work, install denops.vim via [vim-plug][vim-plug] like:
+Or specify an absolute path to `g:denops#deno` variable (See
+`:help g:denops#deno`.)
+
+Once you got deno to work, install `vim-denops/denops.vim` as a general Vim
+plugin. For example, the following uses [vim-plug][vim-plug]:
 
 ```vim
 Plug 'vim-denops/denops.vim'
 Plug 'vim-denops/denops-helloworld.vim'
 ```
 
-Then you can confirm if denops is working by executing `HelloDenops` command
-like:
+Then you can confirm if denops is working properly by executing `HelloDenops`
+command like:
 
 ```vim
 :HelloDenops
@@ -77,7 +61,8 @@ Once you've confirmed that denops is working, you can remove
 
 ## Documentations
 
-See [denops.vim Wiki](https://github.com/vim-denops/denops.vim/wiki).
+To learn how to write Vim/Neovim plugins by denops, see
+[denops.vim Wiki](https://github.com/vim-denops/denops.vim/wiki).
 
 ## Developpers
 
