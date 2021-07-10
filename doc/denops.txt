@@ -93,6 +93,11 @@ denops#request_async({plugin}, {method}, {params}, {success}, {failure})
 denops#server#start()
 	Start denops "channel" server and "service" server asynchronously.
 	It will skip internal process if servers are already running.
+	It is automatically called 1) on |VimEnter| autocmd when denops is
+	in |runtimepath| during Vim startup, 2) immediately when denops is
+	added to |runtimepath| after Vim startup.
+	It will invoke |User| |DenopsReady| autocmd to discover denops plugins.
+	See |denops#plugin#discover()| for detail.
 
 						*denops#server#stop()*
 denops#server#stop()
@@ -127,7 +132,8 @@ denops#plugin#discover([{options}])
 	Discover denops plugins from |runtimepath| and register.
 	It gathers "main.ts" under "denops/*" directories under |runtimepath|
 	if the middle directory does not starts from "@".
-	This is automatically called on |VimEnter| autocmd.
+	This is automatically called on |User| |DenopsReady| autocmd invoked by
+	|denops#server#start()|.
 	See |denops#plugin#register()| for {options}.
 
 						*denops#callback#add()*
