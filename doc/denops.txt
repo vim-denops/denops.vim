@@ -40,7 +40,6 @@ VARIABLE						*denops-variable*
 	features become enabled.
 
 	- Additional debug messages of denops itself
-	- Error checks become enabled on Vim (always enabled on Neovim)
 	- Type checks of Deno modules become enabled
 
 	Note that the debug mode would affect the performance so disable it

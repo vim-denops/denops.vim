@@ -48,29 +48,24 @@ export class Vim implements Host {
     return ret;
   }
 
-  private callForRelease(fn: string, ...args: unknown[]): Promise<unknown> {
-    return this.#session.call(fn, ...args);
-  }
-
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
     if (!this.#meta) {
       this.#meta = await this.#session.call("denops#util#meta") as Meta;
     }
     // NOTE:
-    // A channel command SILENCE/IGNORE any errors occured in 'call' thus
-    // we need workaround to detect errors.
-    // However, such workaround would impact the performance thus we only
-    // enable such workaround when 'g:denops#debug' or 'g:denops#_test' is
-    // enabled.
+    // A `call` channel command IGNORE/SILENCE any errors occured so we need workaround
+    // to detect errors.
+    // Vim before 8.2.3080 IGNORE errors so we need to use `ex` channel command with reading
+    // `v:error` instead. However, it's cost a bit thus we only enable that when denops is
+    // running on non relese mode.
+    // Vim after 8.2.2081 SILENCE errors so we can detect errors by try/catch tech. The cost
+    // of the tech is quite small (determined by vim-denops/denops-benchmark) thus we alreays
+    // enable this workaround.
     try {
-      if (this.#meta.mode !== "release") {
-        if (isBefore823080(this.#meta.version)) {
-          return await this.callForDebugBefore823080(fn, ...args);
-        } else {
-          return await this.callForDebug(fn, ...args);
-        }
+      if (this.#meta.mode !== "release" && isBefore823080(this.#meta.version)) {
+        return await this.callForDebugBefore823080(fn, ...args);
       }
-      return await this.callForRelease(fn, ...args);
+      return await this.callForDebug(fn, ...args);
     } finally {
       await this.#session.redraw();
     }
@@ -89,14 +84,10 @@ export class Vim implements Host {
     // enable such workaround when 'g:denops#debug' or 'g:denops#_test' is
     // enabled.
     let call;
-    if (this.#meta.mode !== "release") {
-      if (isBefore823080(this.#meta.version)) {
-        call = this.callForDebugBefore823080;
-      } else {
-        call = this.callForDebug;
-      }
+    if (this.#meta.mode !== "release" && isBefore823080(this.#meta.version)) {
+      call = this.callForDebugBefore823080;
     } else {
-      call = this.callForRelease;
+      call = this.callForDebug;
     }
     const results = [];
     try {
