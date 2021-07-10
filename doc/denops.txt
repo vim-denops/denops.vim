@@ -116,17 +116,22 @@ denops#server#status()
 	"running"	Servers are running.
 
 						*denops#plugin#register()*
-denops#plugin#register({name}, {script}[, {options}])
+denops#plugin#register({name}[, {script}[, {options}]])
 	Register denops plugin. Use this function to register denops plugins
 	which is not discovered by |denops#plugin#discover()|.
+	When a {script} is omitted, a "denops/{name}/main.ts" file is searched
+	from |runtimepath| like discover.
 	The following attributes are available on {options}.
 
 	"reload"	|v:true| to reload a {name} plugin if it has already
 			registered.
 
 	It throws an error when a {name} plugin has already registered unless
-	"reload" {options} is specified.
-
+	"reload" {options} is specified. So use a "reload" option to reload
+	registered plugin like:
+>
+	call denops#plugin#register('helloworld', { 'reload': v:true })
+<
 						*denops#plugin#discover()*
 denops#plugin#discover([{options}])
 	Discover denops plugins from |runtimepath| and register.

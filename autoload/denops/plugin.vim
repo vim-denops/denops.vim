@@ -1,7 +1,13 @@
-function! denops#plugin#register(name, script, ...) abort
+function! denops#plugin#register(name, ...) abort
+  if a:0 is# 0 || type(a:1) is# v:t_dict
+    let options = s:options(a:0 > 0 ? a:1 : {})
+    let script = s:find_plugin(a:name)
+  else
+    let script = a:1
+    let options = s:options(a:0 > 1 ? a:2 : {})
+  endif
   let meta = denops#util#meta()
-  let options = s:options(a:0 > 0 ? a:1 : {})
-  return s:register(a:name, a:script, meta, options)
+  return s:register(a:name, script, meta, options)
 endfunction
 
 function! denops#plugin#discover(...) abort
@@ -16,8 +22,7 @@ endfunction
 
 function! s:gather_plugins(plugins) abort
   for runtimepath in split(&runtimepath, ',')
-    let path = expand(runtimepath)
-    let expr = denops#util#join_path(path, 'denops', '*', 'main.ts')
+    let expr = denops#util#join_path(expand(runtimepath), 'denops', '*', 'main.ts')
     for script in glob(expr, 1, 1, 1)
       let name = fnamemodify(script, ':h:t')
       if name[:0] ==# '@' || has_key(a:plugins, name)
@@ -39,4 +44,16 @@ function! s:register(name, script, meta, options) abort
   let args = [a:name, a:script, a:meta, a:options]
   call denops#util#debug(printf('register plugin: %s', args))
   return denops#server#channel#notify('invoke', ['register', args])
+endfunction
+
+function! s:find_plugin(name) abort
+  for runtimepath in split(&runtimepath, ',')
+    let script = denops#util#join_path(expand(runtimepath), 'denops', a:name, 'main.ts')
+    let name = fnamemodify(script, ':h:t')
+    if name[:0] ==# '@' || !filereadable(script)
+      continue
+    endif
+    return script
+  endfor
+  throw printf('No denops plugin for "%s" exists', a:name)
 endfunction
