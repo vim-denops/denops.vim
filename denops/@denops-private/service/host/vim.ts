@@ -64,12 +64,7 @@ export class Vim implements Host {
     // enabled.
     try {
       if (this.#meta.mode !== "release") {
-        if (
-          this.#meta.version.localeCompare("8.2.3080", undefined, {
-            numeric: true,
-            sensitivity: "base",
-          }) === -1
-        ) {
+        if (isBefore823080(this.#meta.version)) {
           return await this.callForDebugBefore823080(fn, ...args);
         } else {
           return await this.callForDebug(fn, ...args);
@@ -95,12 +90,7 @@ export class Vim implements Host {
     // enabled.
     let call;
     if (this.#meta.mode !== "release") {
-      if (
-        this.#meta.version.localeCompare("8.2.3080", undefined, {
-          numeric: true,
-          sensitivity: "base",
-        }) === -1
-      ) {
+      if (isBefore823080(this.#meta.version)) {
         call = this.callForDebugBefore823080;
       } else {
         call = this.callForDebug;
@@ -146,6 +136,13 @@ export class Vim implements Host {
   dispose(): void {
     this.#session.dispose();
   }
+}
+
+function isBefore823080(version: string): boolean {
+  return version.localeCompare("8.2.3080", undefined, {
+    numeric: true,
+    sensitivity: "base",
+  }) === -1;
 }
 
 async function dispatch(invoker: Invoker, expr: unknown): Promise<unknown> {
