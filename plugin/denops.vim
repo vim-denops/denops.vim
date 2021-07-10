@@ -13,6 +13,8 @@ endif
 augroup denops_plugin_internal
   autocmd!
   autocmd User DenopsReady call denops#plugin#discover()
+  autocmd User DenopsPluginPre:* :
+  autocmd User DenopsPluginPost:* :
 augroup END
 
 if has('vim_starting')

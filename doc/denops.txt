@@ -132,6 +132,10 @@ denops#plugin#register({name}[, {script}[, {options}]])
 >
 	call denops#plugin#register('helloworld', { 'reload': v:true })
 <
+	It invokes |User| |DenopsPluginPre|:{name} just before denops execute
+	a "main" function of the plugin and |User| |DenopsPluginPost|:{name}
+	just after denops execute a "main" function of the plugin.
+
 						*denops#plugin#discover()*
 denops#plugin#discover([{options}])
 	Discover denops plugins from |runtimepath| and register.
@@ -160,10 +164,15 @@ denops#callback#clear()
 -----------------------------------------------------------------------------
 AUTOCMD						*denops-autocmd*
 
-*DenopsReady*
+DenopsReady						*DenopsReady*
 	Invoked when a denops "service" service become ready. Note that it is
 	not mean that all of denops plugins are ready.
 
+DenopsPluginPre:{name}					*DenopsPluginPre*
+	Invoked just before denops call a "main" function of a plugin {name}.
+
+DenopsPluginPost:{name}					*DenopsPluginPost*
+	Invoked just after denops called a "main" function of a plugin {name}.
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
