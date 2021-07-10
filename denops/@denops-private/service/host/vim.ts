@@ -19,13 +19,13 @@ export class Vim implements Host {
     ...args: unknown[]
   ): Promise<unknown> {
     await this.#session.call(
-      "denops#api#call_before_823080_pre",
+      "denops#api#vim#call_before_823080_pre",
       fn,
       args,
     ) as string;
-    await this.#session.ex("call denops#api#call_before_823080_call()");
+    await this.#session.ex("call denops#api#vim#call_before_823080_call()");
     const [ret, err] = await this.#session.expr(
-      "[g:denops#api#call_before_823080, v:errmsg]",
+      "[g:denops#api#vim#call_before_823080, v:errmsg]",
     ) as [unknown, string];
     if (err !== "") {
       throw new Error(`Failed to call '${fn}(${args.join(", ")})': ${err}`);
@@ -35,7 +35,7 @@ export class Vim implements Host {
 
   private async callForDebug(fn: string, ...args: unknown[]): Promise<unknown> {
     const [ret, err] = await this.#session.call(
-      "denops#api#call",
+      "denops#api#vim#call",
       fn,
       args,
     ) as [
@@ -48,37 +48,52 @@ export class Vim implements Host {
     return ret;
   }
 
-  private callForRelease(fn: string, ...args: unknown[]): Promise<unknown> {
-    return this.#session.call(fn, ...args);
-  }
-
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
     if (!this.#meta) {
       this.#meta = await this.#session.call("denops#util#meta") as Meta;
     }
     // NOTE:
-    // A channel command SILENCE/IGNORE any errors occured in 'call' thus
-    // we need workaround to detect errors.
-    // However, such workaround would impact the performance thus we only
-    // enable such workaround when 'g:denops#debug' or 'g:denops#_test' is
-    // enabled.
+    // A `call` channel command IGNORE/SILENCE any errors occured so we need workaround
+    // to detect errors.
+    // Vim before 8.2.3080 IGNORE errors so we need to use `ex` channel command with reading
+    // `v:error` instead. However, it's cost a bit thus we only enable that when denops is
+    // running on non relese mode.
+    // Vim after 8.2.2081 SILENCE errors so we can detect errors by try/catch tech. The cost
+    // of the tech is quite small (determined by vim-denops/denops-benchmark) thus we alreays
+    // enable this workaround.
     try {
-      if (this.#meta.mode !== "release") {
-        if (
-          this.#meta.version.localeCompare("8.2.3080", undefined, {
-            numeric: true,
-            sensitivity: "base",
-          }) === -1
-        ) {
-          return await this.callForDebugBefore823080(fn, ...args);
-        } else {
-          return await this.callForDebug(fn, ...args);
-        }
+      if (this.#meta.mode !== "release" && isBefore823080(this.#meta.version)) {
+        return await this.callForDebugBefore823080(fn, ...args);
       }
-      return await this.callForRelease(fn, ...args);
+      return await this.callForDebug(fn, ...args);
     } finally {
       await this.#session.redraw();
     }
+  }
+
+  private async batchForDebugBefore823080(
+    ...calls: [string, ...unknown[]][]
+  ): Promise<[unknown[], string]> {
+    await this.#session.call(
+      "denops#api#vim#batch_before_823080_pre",
+      calls,
+    ) as string;
+    await this.#session.ex("call denops#api#vim#batch_before_823080_call()");
+    return await this.#session.expr(
+      "[g:denops#api#vim#batch_before_823080, v:errmsg]",
+    ) as [unknown[], string];
+  }
+
+  private async batchForDebug(
+    ...calls: [string, ...unknown[]][]
+  ): Promise<[unknown[], string]> {
+    return await this.#session.call(
+      "denops#api#vim#batch",
+      calls,
+    ) as [
+      unknown[],
+      string,
+    ];
   }
 
   async batch(
@@ -93,29 +108,11 @@ export class Vim implements Host {
     // However, such workaround would impact the performance thus we only
     // enable such workaround when 'g:denops#debug' or 'g:denops#_test' is
     // enabled.
-    let call;
-    if (this.#meta.mode !== "release") {
-      if (
-        this.#meta.version.localeCompare("8.2.3080", undefined, {
-          numeric: true,
-          sensitivity: "base",
-        }) === -1
-      ) {
-        call = this.callForDebugBefore823080;
-      } else {
-        call = this.callForDebug;
-      }
-    } else {
-      call = this.callForRelease;
-    }
-    const results = [];
     try {
-      for (const [fn, ...args] of calls) {
-        results.push(await call.call(this, fn, ...args));
+      if (this.#meta.mode !== "release" && isBefore823080(this.#meta.version)) {
+        return this.batchForDebugBefore823080(...calls);
       }
-      return [results, ""];
-    } catch (e) {
-      return [results, e.toString()];
+      return this.batchForDebug(...calls);
     } finally {
       await this.#session.redraw();
     }
@@ -146,6 +143,13 @@ export class Vim implements Host {
   dispose(): void {
     this.#session.dispose();
   }
+}
+
+function isBefore823080(version: string): boolean {
+  return version.localeCompare("8.2.3080", undefined, {
+    numeric: true,
+    sensitivity: "base",
+  }) === -1;
 }
 
 async function dispatch(invoker: Invoker, expr: unknown): Promise<unknown> {
