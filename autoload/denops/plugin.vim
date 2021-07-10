@@ -1,14 +1,16 @@
-function! denops#plugin#register(name, script) abort
+function! denops#plugin#register(name, script, ...) abort
   let meta = denops#util#meta()
-  call denops#util#debug(printf('register `%s` plugin as `%s` (%s)', a:name, a:script, meta))
-  return denops#server#channel#notify('invoke', ['register', [a:name, a:script, meta]])
+  let options = s:options(a:0 > 0 ? a:1 : {})
+  return s:register(a:name, a:script, meta, options)
 endfunction
 
-function! denops#plugin#discover() abort
+function! denops#plugin#discover(...) abort
+  let meta = denops#util#meta()
+  let options = s:options(a:0 > 0 ? a:1 : {})
   let plugins = {}
   call s:gather_plugins(plugins)
   for [name, script] in items(plugins)
-    call denops#plugin#register(name, script)
+    call s:register(name, script, meta, options)
   endfor
 endfunction
 
@@ -24,4 +26,17 @@ function! s:gather_plugins(plugins) abort
       call extend(a:plugins, { name : script })
     endfor
   endfor
+endfunction
+
+function! s:options(base) abort
+  let default = {
+        \ 'reload': v:false,
+        \}
+  return extend(default, a:base)
+endfunction
+
+function! s:register(name, script, meta, options) abort
+  let args = [a:name, a:script, a:meta, a:options]
+  call denops#util#debug(printf('register plugin: %s', args))
+  return denops#server#channel#notify('invoke', ['register', args])
 endfunction

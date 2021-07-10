@@ -111,16 +111,24 @@ denops#server#status()
 	"running"	Servers are running.
 
 						*denops#plugin#register()*
-denops#plugin#register({name}, {script})
+denops#plugin#register({name}, {script}[, {options}])
 	Register denops plugin. Use this function to register denops plugins
 	which is not discovered by |denops#plugin#discover()|.
+	The following attributes are available on {options}.
+
+	"reload"	|v:true| to reload a {name} plugin if it has already
+			registered.
+
+	It throws an error when a {name} plugin has already registered unless
+	"reload" {options} is specified.
 
 						*denops#plugin#discover()*
-denops#plugin#discover()
+denops#plugin#discover([{options}])
 	Discover denops plugins from |runtimepath| and register.
 	It gathers "main.ts" under "denops/*" directories under |runtimepath|
 	if the middle directory does not starts from "@".
 	This is automatically called on |VimEnter| autocmd.
+	See |denops#plugin#register()| for {options}.
 
 						*denops#callback#add()*
 denops#callback#add({callback})

@@ -8,7 +8,7 @@ import {
   WorkerWriter,
 } from "./deps.ts";
 import { Host } from "./host/base.ts";
-import { Invoker } from "./host/invoker.ts";
+import { Invoker, RegisterOptions } from "./host/invoker.ts";
 import { Meta } from "../../@denops/denops.ts";
 
 const workerScript = "./worker/script.ts";
@@ -26,10 +26,19 @@ export class Service {
     this.#host.register(new Invoker(this));
   }
 
-  register(name: string, script: string, meta: Meta): void {
+  register(
+    name: string,
+    script: string,
+    meta: Meta,
+    options: RegisterOptions,
+  ): void {
     if (name in this.#plugins) {
-      const { worker } = this.#plugins[name];
-      worker.terminate();
+      if (options.reload) {
+        const { worker } = this.#plugins[name];
+        worker.terminate();
+      } else {
+        throw new Error(`A denops plugin '${name}' has already registered`);
+      }
     }
     const worker = new Worker(
       new URL(workerScript, import.meta.url).href,
