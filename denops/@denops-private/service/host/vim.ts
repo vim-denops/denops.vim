@@ -19,13 +19,13 @@ export class Vim implements Host {
     ...args: unknown[]
   ): Promise<unknown> {
     await this.#session.call(
-      "denops#api#call_before_823080_pre",
+      "denops#api#vim#call_before_823080_pre",
       fn,
       args,
     ) as string;
-    await this.#session.ex("call denops#api#call_before_823080_call()");
+    await this.#session.ex("call denops#api#vim#call_before_823080_call()");
     const [ret, err] = await this.#session.expr(
-      "[g:denops#api#call_before_823080, v:errmsg]",
+      "[g:denops#api#vim#call_before_823080, v:errmsg]",
     ) as [unknown, string];
     if (err !== "") {
       throw new Error(`Failed to call '${fn}(${args.join(", ")})': ${err}`);
@@ -35,7 +35,7 @@ export class Vim implements Host {
 
   private async callForDebug(fn: string, ...args: unknown[]): Promise<unknown> {
     const [ret, err] = await this.#session.call(
-      "denops#api#call",
+      "denops#api#vim#call",
       fn,
       args,
     ) as [
