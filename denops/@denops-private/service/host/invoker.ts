@@ -1,6 +1,10 @@
 import { Service } from "../service.ts";
 import { Meta } from "../../../@denops/denops.ts";
 
+export type RegisterOptions = {
+  reload?: boolean;
+};
+
 export class Invoker {
   #service: Service;
 
@@ -8,8 +12,13 @@ export class Invoker {
     this.#service = service;
   }
 
-  register(name: string, script: string, meta: Meta): void {
-    this.#service.register(name, script, meta);
+  register(
+    name: string,
+    script: string,
+    meta: Meta,
+    options: RegisterOptions,
+  ): void {
+    this.#service.register(name, script, meta, options);
   }
 
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {

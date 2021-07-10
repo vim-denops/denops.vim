@@ -93,6 +93,11 @@ denops#request_async({plugin}, {method}, {params}, {success}, {failure})
 denops#server#start()
 	Start denops "channel" server and "service" server asynchronously.
 	It will skip internal process if servers are already running.
+	It is automatically called 1) on |VimEnter| autocmd when denops is
+	in |runtimepath| during Vim startup, 2) immediately when denops is
+	added to |runtimepath| after Vim startup.
+	It will invoke |User| |DenopsReady| autocmd to discover denops plugins.
+	See |denops#plugin#discover()| for detail.
 
 						*denops#server#stop()*
 denops#server#stop()
@@ -111,16 +116,34 @@ denops#server#status()
 	"running"	Servers are running.
 
 						*denops#plugin#register()*
-denops#plugin#register({name}, {script})
+denops#plugin#register({name}[, {script}[, {options}]])
 	Register denops plugin. Use this function to register denops plugins
 	which is not discovered by |denops#plugin#discover()|.
+	When a {script} is omitted, a "denops/{name}/main.ts" file is searched
+	from |runtimepath| like discover.
+	The following attributes are available on {options}.
+
+	"reload"	|v:true| to reload a {name} plugin if it has already
+			registered.
+
+	It throws an error when a {name} plugin has already registered unless
+	"reload" {options} is specified. So use a "reload" option to reload
+	registered plugin like:
+>
+	call denops#plugin#register('helloworld', { 'reload': v:true })
+<
+	It invokes |User| |DenopsPluginPre|:{name} just before denops execute
+	a "main" function of the plugin and |User| |DenopsPluginPost|:{name}
+	just after denops execute a "main" function of the plugin.
 
 						*denops#plugin#discover()*
-denops#plugin#discover()
+denops#plugin#discover([{options}])
 	Discover denops plugins from |runtimepath| and register.
 	It gathers "main.ts" under "denops/*" directories under |runtimepath|
 	if the middle directory does not starts from "@".
-	This is automatically called on |VimEnter| autocmd.
+	This is automatically called on |User| |DenopsReady| autocmd invoked by
+	|denops#server#start()|.
+	See |denops#plugin#register()| for {options}.
 
 						*denops#callback#add()*
 denops#callback#add({callback})
@@ -141,10 +164,15 @@ denops#callback#clear()
 -----------------------------------------------------------------------------
 AUTOCMD						*denops-autocmd*
 
-*DenopsReady*
+DenopsReady						*DenopsReady*
 	Invoked when a denops "service" service become ready. Note that it is
 	not mean that all of denops plugins are ready.
 
+DenopsPluginPre:{name}					*DenopsPluginPre*
+	Invoked just before denops call a "main" function of a plugin {name}.
+
+DenopsPluginPost:{name}					*DenopsPluginPost*
+	Invoked just after denops called a "main" function of a plugin {name}.
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

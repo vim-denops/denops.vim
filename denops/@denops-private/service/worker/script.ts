@@ -30,7 +30,17 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
     }),
     async (session) => {
       const denops: Denops = new DenopsImpl(name, meta, session);
+      await denops.call(
+        "execute",
+        `doautocmd <nomodeline> User DenopsPluginPre:${name}`,
+        "",
+      );
       await mod.main(denops);
+      await denops.call(
+        "execute",
+        `doautocmd <nomodeline> User DenopsPluginPost:${name}`,
+        "",
+      );
       await session.waitClosed();
     },
   );

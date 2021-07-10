@@ -12,6 +12,16 @@ endif
 
 augroup denops_plugin_internal
   autocmd!
-  autocmd VimEnter * call denops#server#start()
   autocmd User DenopsReady call denops#plugin#discover()
+  autocmd User DenopsPluginPre:* :
+  autocmd User DenopsPluginPost:* :
 augroup END
+
+if has('vim_starting')
+  augroup denops_plugin_internal_startup
+    autocmd!
+    autocmd VimEnter * call denops#server#start()
+  augroup END
+else
+  call denops#server#start()
+endif
