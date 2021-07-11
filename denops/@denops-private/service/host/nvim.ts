@@ -1,4 +1,5 @@
 import { ensureArray, ensureString, Session } from "../deps.ts";
+import { responseTimeout } from "../defs.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";
 
@@ -9,7 +10,9 @@ export class Neovim implements Host {
     reader: Deno.Reader & Deno.Closer,
     writer: Deno.Writer,
   ) {
-    this.#session = new Session(reader, writer);
+    this.#session = new Session(reader, writer, undefined, {
+      responseTimeout,
+    });
   }
 
   call(fn: string, ...args: unknown[]): Promise<unknown> {

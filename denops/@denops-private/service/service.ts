@@ -7,6 +7,7 @@ import {
   WorkerReader,
   WorkerWriter,
 } from "./deps.ts";
+import { responseTimeout } from "./defs.ts";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions } from "./host/invoker.ts";
 import { Meta } from "../../@denops/denops.ts";
@@ -73,6 +74,8 @@ export class Service {
         ensureArray(args);
         return await this.dispatch(name, fn, args);
       },
+    }, {
+      responseTimeout,
     });
     this.#plugins[name] = {
       plugin,
