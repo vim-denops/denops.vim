@@ -9,6 +9,7 @@ import {
   WorkerReader,
   WorkerWriter,
 } from "../deps.ts";
+import { responseTimeout } from "../defs.ts";
 import { Denops, Meta } from "../../../@denops/denops.ts";
 import { DenopsImpl } from "../../../@denops/denops.ts";
 
@@ -21,6 +22,7 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
   const mod = await import(path.toFileUrl(script).href);
   await using(
     new Session(reader, writer, {}, {
+      responseTimeout,
       errorCallback(e) {
         if (e.name === "Interrupted") {
           return;

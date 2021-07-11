@@ -1,4 +1,5 @@
 import { VimMessage, VimSession } from "../deps.ts";
+import { responseTimeout } from "../defs.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";
 import { Meta } from "../../../@denops/denops.ts";
@@ -11,7 +12,9 @@ export class Vim implements Host {
     reader: Deno.Reader & Deno.Closer,
     writer: Deno.Writer,
   ) {
-    this.#session = new VimSession(reader, writer);
+    this.#session = new VimSession(reader, writer, undefined, {
+      responseTimeout,
+    });
   }
 
   private async callForDebugBefore823080(
