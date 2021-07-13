@@ -1,3 +1,7 @@
+function! denops#api#id(...) abort
+  return a:000
+endfunction
+
 function! denops#api#cmd(cmd, context) abort
   call extend(l:, a:context)
   call execute(a:cmd, '')

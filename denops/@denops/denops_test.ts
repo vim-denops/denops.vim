@@ -29,6 +29,34 @@ test({
 
 test({
   mode: "all",
+  name:
+    "denops.call() drop arguments after `undefined` (but `null`) for convenience",
+  fn: async (denops) => {
+    assertEquals(
+      await denops.call("denops#api#id", 0, 1, 2),
+      [0, 1, 2],
+    );
+    assertEquals(
+      await denops.call("denops#api#id", 0, 1, undefined, 2),
+      [0, 1],
+    );
+    assertEquals(
+      await denops.call("denops#api#id", 0, undefined, 1, 2),
+      [0],
+    );
+    assertEquals(
+      await denops.call("denops#api#id", 0, 1, null, 2),
+      [0, 1, null, 2],
+    );
+    assertEquals(
+      await denops.call("denops#api#id", 0, null, 1, 2),
+      [0, null, 1, 2],
+    );
+  },
+});
+
+test({
+  mode: "all",
   name: "denops.cmd() invoke a Vim/Neovim command",
   fn: async (denops) => {
     await denops.cmd("execute 'let g:denops_test = value'", {
@@ -110,5 +138,26 @@ test({
       );
     }, BatchError) as BatchError;
     assertEquals(err.results, [[0]]);
+  },
+});
+
+test({
+  mode: "all",
+  name:
+    "denops.batch() drop arguments after `undefined` (but `null`) for convenience",
+  fn: async (denops) => {
+    const results = await denops.batch(
+      ["denops#api#id", 0, 1, 2],
+      ["denops#api#id", 0, 1, undefined, 2],
+      ["denops#api#id", 0, undefined, 1, 2],
+      ["denops#api#id", 0, 1, null, 2],
+      ["denops#api#id", 0, null, 1, 2],
+    );
+    assertEquals(results, [[0, 1, 2], [0, 1], [0], [0, 1, null, 2], [
+      0,
+      null,
+      1,
+      2,
+    ]]);
   },
 });
