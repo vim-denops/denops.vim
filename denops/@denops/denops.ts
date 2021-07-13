@@ -59,6 +59,8 @@ export interface Denops {
    *
    * @param fn: A function name of Vim/Neovim.
    * @param args: Arguments of the function.
+   *
+   * Note that aruguments after `undefined` in `args` will be dropped for convenience.
    */
   call(fn: string, ...args: unknown[]): Promise<unknown>;
 
@@ -71,6 +73,8 @@ export interface Denops {
    * error.
    *
    * @param calls: A list of tuple ([fn, args]) to call Vim/Neovim functions.
+   *
+   * Note that aruguments after `undefined` in `args` will be dropped for convenience.
    */
   batch(...calls: [string, ...unknown[]][]): Promise<unknown[]>;
 
@@ -100,6 +104,17 @@ export interface Denops {
   dispatch(name: string, fn: string, ...args: unknown[]): Promise<unknown>;
 }
 
+function normArgs(args: unknown[]): unknown[] {
+  const normArgs = [];
+  for (const arg of args) {
+    if (arg === undefined) {
+      break;
+    }
+    normArgs.push(arg);
+  }
+  return normArgs;
+}
+
 export class DenopsImpl implements Denops {
   readonly name: string;
   readonly meta: Meta;
@@ -124,13 +139,17 @@ export class DenopsImpl implements Denops {
   }
 
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
-    return await this.#session.call("call", fn, ...args);
+    return await this.#session.call("call", fn, ...normArgs(args));
   }
 
   async batch(
     ...calls: [string, ...unknown[]][]
   ): Promise<unknown[]> {
-    const [results, errmsg] = await this.#session.call("batch", ...calls) as [
+    const normCalls = calls.map(([fn, ...args]) => [fn, ...normArgs(args)]);
+    const [results, errmsg] = await this.#session.call(
+      "batch",
+      ...normCalls,
+    ) as [
       unknown[],
       string,
     ];
