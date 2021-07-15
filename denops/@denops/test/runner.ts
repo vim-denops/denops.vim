@@ -40,6 +40,7 @@ function buildVimArgs(): string[] {
     "NONE",
     "-i",
     "NONE",
+    "-n",
     "-N",
     "-X",
     "-e",
@@ -56,5 +57,6 @@ function buildNvimArgs(): string[] {
     "--clean",
     "--embed",
     "--headless",
+    "-n",
   ];
 }
