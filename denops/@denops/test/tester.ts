@@ -1,7 +1,7 @@
 import { path, Session, using } from "../deps.ts";
+import { deadline } from "../deps_test.ts";
 import { Denops, DenopsImpl, Meta } from "../denops.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
-import { timeout } from "./timeout.ts";
 
 const DEFAULT_TIMEOUT = 1000;
 
@@ -63,7 +63,7 @@ async function withDenops(
         const runner = async () => {
           await main(denops);
         };
-        await timeout(runner(), options.timeout ?? DEFAULT_TIMEOUT);
+        await deadline(runner(), options.timeout ?? DEFAULT_TIMEOUT);
       },
     );
   } finally {
