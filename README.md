@@ -8,9 +8,11 @@
 [![Neovim 0.4.4 or above](https://img.shields.io/badge/Neovim-Support%200.4.4-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.4.4)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Doc](https://img.shields.io/badge/doc-%3Ah%20denops-orange.svg)](doc/denops.txt)
+[![deno land](http://img.shields.io/badge/available%20on-deno.land/x/denops__core-lightgrey.svg?logo=deno)](https://deno.land/x/denops_core)
+
+[![vim help](https://img.shields.io/badge/vim-%3Ah%20denops-orange.svg)](doc/denops.txt)
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/denops_core/mod.ts)
-[![deno land](http://img.shields.io/badge/available%20on-deno.land/x-lightgrey.svg?logo=deno)](https://deno.land/x/denops_core)
+[![Documentation](https://img.shields.io/badge/denops-Documentation-yellow.svg)](https://vim-denops.github.io/denops-documentation/)
 
 [![deno](https://github.com/vim-denops/denops.vim/workflows/deno/badge.svg)](https://github.com/vim-denops/denops.vim/actions?query=workflow%3Adeno)
 [![vim](https://github.com/vim-denops/denops.vim/workflows/vim/badge.svg)](https://github.com/vim-denops/denops.vim/actions?query=workflow%3Avim)
@@ -62,6 +64,7 @@ Once you've confirmed that denops is working, you can remove
 ## Documentations
 
 To learn how to write Vim/Neovim plugins by denops, see
+[Denops Documentation](https://vim-denops.github.io/denops-documentation/) or
 [denops.vim Wiki](https://github.com/vim-denops/denops.vim/wiki).
 
 ## Developpers
