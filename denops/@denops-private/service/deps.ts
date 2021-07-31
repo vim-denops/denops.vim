@@ -12,10 +12,10 @@ export { Session } from "https://deno.land/x/msgpack_rpc@v3.1.0/mod.ts#^";
 
 export {
   Session as VimSession,
-} from "https://deno.land/x/vim_channel_command@v0.6.0/mod.ts#^";
+} from "https://deno.land/x/vim_channel_command@v0.6.1/mod.ts#^";
 export type {
   Message as VimMessage,
-} from "https://deno.land/x/vim_channel_command@v0.6.0/mod.ts#^";
+} from "https://deno.land/x/vim_channel_command@v0.6.1/mod.ts#^";
 
 export { using } from "https://deno.land/x/disposable@v0.2.0/mod.ts#^";
 export type { Disposable } from "https://deno.land/x/disposable@v0.2.0/mod.ts#^";
