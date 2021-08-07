@@ -1,3 +1,11 @@
+let s:redraw_timer = -1
+let s:redraw_interval = 10
+
+function! s:debounce_redraw() abort
+  call timer_stop(s:redraw_timer)
+  let s:redraw_timer = timer_start(s:redraw_interval, { -> execute('redraw') })
+endfunction
+
 " NOTE:
 " This is a workaround function to detect errors in Vim while Vim 8.2.3081 or
 " above SILENCE any errors occured in `call` channel command.
@@ -7,6 +15,8 @@ function! denops#api#vim#call(fn, args) abort
     return [call(a:fn, a:args), '']
   catch
     return [v:null, v:exception]
+  finally
+    call s:debounce_redraw()
   endtry
 endfunction
 
@@ -25,6 +35,7 @@ function! denops#api#vim#call_before_823080_call() abort
   let v:errmsg = ''
   let g:denops#api#vim#call_before_823080 = v:null
   let g:denops#api#vim#call_before_823080 = call(s:call_before_823080.fn, s:call_before_823080.args)
+  call s:debounce_redraw()
 endfunction
 
 " NOTE:
@@ -40,6 +51,8 @@ function! denops#api#vim#batch(calls) abort
     return [results, '']
   catch
     return [results, v:exception]
+  finally
+    call s:debounce_redraw()
   endtry
 endfunction
 
@@ -61,4 +74,5 @@ function! denops#api#vim#batch_before_823080_call() abort
     endif
     call add(g:denops#api#vim#batch_before_823080, result)
   endfor
+  call s:debounce_redraw()
 endfunction
