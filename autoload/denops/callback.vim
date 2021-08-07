@@ -6,6 +6,13 @@ function! denops#callback#add(callback) abort
   return id
 endfunction
 
+function! denops#callback#remove(id) abort
+  if !has_key(s:registry, a:id)
+    return
+  endif
+  silent unlet s:registry[a:id]
+endfunction
+
 function! denops#callback#call(id, ...) abort
   if !has_key(s:registry, a:id)
     throw printf('No callback function for %s exist', a:id)

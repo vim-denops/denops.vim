@@ -7,6 +7,14 @@ Describe denops#callback
     End
   End
 
+  Describe #remove()
+    It removes an {id} callback
+      let id = denops#callback#add({ -> 0 })
+      call denops#callback#remove(id)
+      Throws /No callback function/ denops#callback#call(id)
+    End
+  End
+
   Describe #call()
     It calls an {id} callback
       let rs = []
