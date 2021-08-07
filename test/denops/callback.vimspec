@@ -1,34 +1,51 @@
 Describe denops#callback
   Describe #add()
-    It add a specified callback and return a string ID
+    It adds a callback and return {id}
       let id = denops#callback#add({ -> 0 })
       Assert Equals(type(id), v:t_string)
+      call denops#callback#call(id)
+    End
+  End
+
+  Describe #remove()
+    It removes an {id} callback
+      let id = denops#callback#add({ -> 0 })
+      call denops#callback#remove(id)
+      Throws /No callback function/ denops#callback#call(id)
     End
   End
 
   Describe #call()
-    It calls added callback specified by {id}
-      let rs = []
-      let id = denops#callback#add({ name -> add(rs, ['Hello', name]) })
-      call denops#callback#call(id, 'World')
-      Assert Equals(rs, [['Hello', 'World']])
+    It calls an {id} callback
+      let id = denops#callback#add({ name -> printf('Hello %s', name) })
+      let ret = denops#callback#call(id, 'World')
+      Assert Equals(ret, 'Hello World')
     End
 
-    It can call callback only onetime
-      let rs = []
-      let id = denops#callback#add({ name -> add(rs, ['Hello', name]) })
-      call denops#callback#call(id, 'World')
-      Assert Equals(rs, [['Hello', 'World']])
+    It removes an {id} callback after call
+      let id = denops#callback#add({ name -> printf('Hello %s', name) })
+      let ret = denops#callback#call(id, 'World')
+      Assert Equals(ret, 'Hello World')
       Throws /No callback function/ denops#callback#call(id, 'Second')
+    End
+
+    It does NOT remove an {id} callback after call if 'once' option is v:false
+      let id = denops#callback#add(
+            \ { name -> printf('Hello %s', name) },
+            \ { 'once': v:false },
+            \)
+      let ret = denops#callback#call(id, 'World')
+      Assert Equals(ret, 'Hello World')
+      let ret = denops#callback#call(id, 'Second')
+      Assert Equals(ret, 'Hello Second')
     End
   End
 
   Describe #clear()
-    It clear registered callbacks
-      let rs = []
-      let id = denops#callback#add({ name -> add(rs, ['Hello', name]) })
+    It clears all callbacks
+      let id = denops#callback#add({ name -> printf('Hello %s', name) })
       call denops#callback#clear()
-      Throws /No callback function/ denops#callback#call(id, 'Second')
+      Throws /No callback function/ denops#callback#call(id, 'World')
     End
   End
 End
