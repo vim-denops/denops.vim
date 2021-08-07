@@ -1,8 +1,15 @@
 let s:registry = {}
 
-function! denops#callback#add(callback) abort
+function! denops#callback#add(callback, ...) abort
+  let options = extend({
+        \ 'once': v:true,
+        \}, a:0 ? a:1 : {},
+        \)
   let id = sha256(string(get(a:callback, 'func')))
-  let s:registry[id] = a:callback
+  let s:registry[id] = {
+        \ 'callback': a:callback,
+        \ 'options': options,
+        \}
   return id
 endfunction
 
@@ -19,7 +26,9 @@ function! denops#callback#call(id, ...) abort
   endif
   let entry = s:registry[a:id]
   let ret = call(entry.callback, a:000)
-  call denops#callback#remove(a:id)
+  if entry.options.once
+    call denops#callback#remove(a:id)
+  endif
   return ret
 endfunction
 

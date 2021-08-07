@@ -145,12 +145,25 @@ denops#plugin#discover([{options}])
 	See |denops#plugin#register()| for {options}.
 
 						*denops#callback#add()*
-denops#callback#add({callback})
-	Add {callback} to internal callback map as one-time anonymous
-	function and return an unique {id} to call the {callback} later.
+denops#callback#add({callback}[, {options}])
+	Add {callback} to internal callback map as an anonymous function and
+	return an unique {id} to call the {callback} later.
+	The following attributes are available on {options}.
+
+	"once"		|v:true| to add the callback as a one-time anonymous
+			function which will be removed when the callback has
+			called. It is a default behavior due to backward
+			compatibility. Use |v:false| to make the callback
+			persistent.
 >
+	" One-time callback
 	let id = denops#call#add({ a, b -> a + b })
 	let ret = denops#callback#call(id, 1, 2)
+
+	" Persistent callback
+	let id = denops#call#add({ a, b -> a + b }, { 'once': v:false })
+	let ret1 = denops#callback#call(id, 1, 2)
+	let ret2 = denops#callback#call(id, 2, 3)
 <
 						*denops#callback#remove()*
 denops#callback#remove({id})
@@ -163,7 +176,7 @@ denops#callback#call({id}[, {args}...])
 	given {args} and return a result. It throw an error when no {id}
 	callback exists.
 	Note that the callback called is automatically removed from the
-	internal callback map.
+	internal callback map if "once" option had specified.
 
 						*denops#callback#clear()*
 denops#callback#clear()
