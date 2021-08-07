@@ -64,14 +64,10 @@ export class Vim implements Host {
     // Vim after 8.2.2081 SILENCE errors so we can detect errors by try/catch tech. The cost
     // of the tech is quite small (determined by vim-denops/denops-benchmark) thus we alreays
     // enable this workaround.
-    try {
-      if (this.#meta.mode !== "release" && isBefore823080(this.#meta.version)) {
-        return await this.callForDebugBefore823080(fn, ...args);
-      }
-      return await this.callForDebug(fn, ...args);
-    } finally {
-      await this.#session.redraw();
+    if (this.#meta.mode !== "release" && isBefore823080(this.#meta.version)) {
+      return await this.callForDebugBefore823080(fn, ...args);
     }
+    return await this.callForDebug(fn, ...args);
   }
 
   private async batchForDebugBefore823080(
@@ -111,14 +107,10 @@ export class Vim implements Host {
     // However, such workaround would impact the performance thus we only
     // enable such workaround when 'g:denops#debug' or 'g:denops#_test' is
     // enabled.
-    try {
-      if (this.#meta.mode !== "release" && isBefore823080(this.#meta.version)) {
-        return this.batchForDebugBefore823080(...calls);
-      }
-      return this.batchForDebug(...calls);
-    } finally {
-      await this.#session.redraw();
+    if (this.#meta.mode !== "release" && isBefore823080(this.#meta.version)) {
+      return this.batchForDebugBefore823080(...calls);
     }
+    return this.batchForDebug(...calls);
   }
 
   register(invoker: Invoker): void {
