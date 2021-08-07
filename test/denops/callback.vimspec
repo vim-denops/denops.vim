@@ -1,20 +1,21 @@
 Describe denops#callback
   Describe #add()
-    It add a specified callback and return a string ID
+    It adds a callback and return {id}
       let id = denops#callback#add({ -> 0 })
       Assert Equals(type(id), v:t_string)
+      call denops#callback#call(id)
     End
   End
 
   Describe #call()
-    It calls added callback specified by {id}
+    It calls an {id} callback
       let rs = []
       let id = denops#callback#add({ name -> add(rs, ['Hello', name]) })
       call denops#callback#call(id, 'World')
       Assert Equals(rs, [['Hello', 'World']])
     End
 
-    It can call callback only onetime
+    It removes an {id} callback after call
       let rs = []
       let id = denops#callback#add({ name -> add(rs, ['Hello', name]) })
       call denops#callback#call(id, 'World')
@@ -24,7 +25,7 @@ Describe denops#callback
   End
 
   Describe #clear()
-    It clear registered callbacks
+    It clears all callbacks
       let rs = []
       let id = denops#callback#add({ name -> add(rs, ['Hello', name]) })
       call denops#callback#clear()
