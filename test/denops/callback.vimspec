@@ -17,27 +17,24 @@ Describe denops#callback
 
   Describe #call()
     It calls an {id} callback
-      let rs = []
-      let id = denops#callback#add({ name -> add(rs, ['Hello', name]) })
-      call denops#callback#call(id, 'World')
-      Assert Equals(rs, [['Hello', 'World']])
+      let id = denops#callback#add({ name -> printf('Hello %s', name) })
+      let ret = denops#callback#call(id, 'World')
+      Assert Equals(ret, 'Hello World')
     End
 
     It removes an {id} callback after call
-      let rs = []
-      let id = denops#callback#add({ name -> add(rs, ['Hello', name]) })
-      call denops#callback#call(id, 'World')
-      Assert Equals(rs, [['Hello', 'World']])
+      let id = denops#callback#add({ name -> printf('Hello %s', name) })
+      let ret = denops#callback#call(id, 'World')
+      Assert Equals(ret, 'Hello World')
       Throws /No callback function/ denops#callback#call(id, 'Second')
     End
   End
 
   Describe #clear()
     It clears all callbacks
-      let rs = []
-      let id = denops#callback#add({ name -> add(rs, ['Hello', name]) })
+      let id = denops#callback#add({ name -> printf('Hello %s', name) })
       call denops#callback#clear()
-      Throws /No callback function/ denops#callback#call(id, 'Second')
+      Throws /No callback function/ denops#callback#call(id, 'World')
     End
   End
 End

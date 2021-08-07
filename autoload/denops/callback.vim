@@ -17,8 +17,10 @@ function! denops#callback#call(id, ...) abort
   if !has_key(s:registry, a:id)
     throw printf('No callback function for %s exist', a:id)
   endif
-  call call(s:registry[a:id], a:000)
-  silent unlet s:registry[a:id]
+  let entry = s:registry[a:id]
+  let ret = call(entry.callback, a:000)
+  call denops#callback#remove(a:id)
+  return ret
 endfunction
 
 function! denops#callback#clear() abort

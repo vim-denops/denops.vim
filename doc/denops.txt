@@ -148,7 +148,10 @@ denops#plugin#discover([{options}])
 denops#callback#add({callback})
 	Add {callback} to internal callback map as one-time anonymous
 	function and return an unique {id} to call the {callback} later.
-
+>
+	let id = denops#call#add({ a, b -> a + b })
+	let ret = denops#callback#call(id, 1, 2)
+<
 						*denops#callback#remove()*
 denops#callback#remove({id})
 	Remove a callback of {id} from internal callback map. It does nothing
@@ -157,7 +160,8 @@ denops#callback#remove({id})
 						*denops#callback#call()*
 denops#callback#call({id}[, {args}...])
 	Find a callback of {id} from internal callback map and call it with
-	given {args}. It throw an error when no {id} callback exists.
+	given {args} and return a result. It throw an error when no {id}
+	callback exists.
 	Note that the callback called is automatically removed from the
 	internal callback map.
 
