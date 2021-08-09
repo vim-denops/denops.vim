@@ -1,6 +1,7 @@
 import { assertEquals, assertThrowsAsync } from "./deps_test.ts";
 import { test } from "./test/tester.ts";
 import { BatchError } from "./denops.ts";
+import { path } from "./deps.ts";
 
 test({
   mode: "all",
@@ -159,5 +160,31 @@ test({
       1,
       2,
     ]]);
+  },
+});
+
+test({
+  mode: "all",
+  name: "denops.call() works properly even when called concurrently",
+  fn: async (denops) => {
+    const cwd = await denops.call("getcwd") as string;
+    await denops.cmd("edit dummy1");
+    await denops.cmd("file dummy2");
+    const results = await Promise.all([
+      denops.call("expand", "%"),
+      denops.call("expand", "%:p"),
+      denops.call("expand", "%hello"),
+      denops.call("expand", "#"),
+      denops.call("expand", "#:p"),
+      denops.call("expand", "#hello"),
+    ]);
+    assertEquals(results, [
+      "dummy2",
+      path.join(cwd, "dummy2"),
+      "dummy2",
+      "dummy1",
+      path.join(cwd, "dummy1"),
+      "dummy1",
+    ]);
   },
 });
