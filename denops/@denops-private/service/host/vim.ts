@@ -1,8 +1,10 @@
-import { VimMessage, VimSession } from "../deps.ts";
+import { Lock, VimMessage, VimSession } from "../deps.ts";
 import { responseTimeout } from "../defs.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";
 import { Meta } from "../../../@denops/denops.ts";
+
+const callForDebugBefore823080Lock = new Lock();
 
 export class Vim implements Host {
   #session: VimSession;
@@ -21,19 +23,23 @@ export class Vim implements Host {
     fn: string,
     ...args: unknown[]
   ): Promise<unknown> {
-    await this.#session.call(
-      "denops#api#vim#call_before_823080_pre",
-      fn,
-      args,
-    ) as string;
-    await this.#session.ex("call denops#api#vim#call_before_823080_call()");
-    const [ret, err] = await this.#session.expr(
-      "[g:denops#api#vim#call_before_823080, v:errmsg]",
-    ) as [unknown, string];
-    if (err !== "") {
-      throw new Error(`Failed to call '${fn}(${args.join(", ")})': ${err}`);
-    }
-    return ret;
+    let result: unknown;
+    await callForDebugBefore823080Lock.with(async () => {
+      await this.#session.call(
+        "denops#api#vim#call_before_823080_pre",
+        fn,
+        args,
+      ) as string;
+      await this.#session.ex("call denops#api#vim#call_before_823080_call()");
+      const [ret, err] = await this.#session.expr(
+        "[g:denops#api#vim#call_before_823080, v:errmsg]",
+      ) as [unknown, string];
+      if (err !== "") {
+        throw new Error(`Failed to call '${fn}(${args.join(", ")})': ${err}`);
+      }
+      result = ret;
+    });
+    return result;
   }
 
   private async callForDebug(fn: string, ...args: unknown[]): Promise<unknown> {
