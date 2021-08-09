@@ -19,3 +19,5 @@ export type {
 
 export { using } from "https://deno.land/x/disposable@v0.2.0/mod.ts#^";
 export type { Disposable } from "https://deno.land/x/disposable@v0.2.0/mod.ts#^";
+
+export { Lock } from "https://deno.land/x/async@v1.1.2/mod.ts#^";
