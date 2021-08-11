@@ -47,6 +47,12 @@ VARIABLE						*denops-variable*
 
 	Default: 0
 
+*g:denops#trace*
+	Set 1 to enable trace mode. In trace mode, all raw RPC messages
+	between Vim/Neovim and denops are echoed.
+
+	Default: 0
+
 *g:denops#server#channel#deno*
 	Executable program of Deno for starting a "channel" server.
 	Default: |g:denops#deno|

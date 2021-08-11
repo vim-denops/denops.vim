@@ -11,6 +11,9 @@ function! denops#server#service#start(address) abort
         \ '--mode=' . s:engine,
         \ '--address=' . a:address,
         \]
+  if g:denops#trace
+    let args += ['--trace']
+  endif
   let raw_options = has('nvim')
         \ ? {}
         \ : { 'mode': 'nl' }
