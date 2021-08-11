@@ -45,6 +45,11 @@ VARIABLE						*denops-variable*
 	Note that the debug mode would affect the performance so disable it
 	unless you are debugging deno plugins.
 
+	WARNING In debug mode, any interactive functions (such as |input()|)
+	does not work properly in Vim prior to 8.2.3081 due to internal
+	workaround implementations. See an issue #93 for details.
+	https://github.com/vim-denops/denops.vim/issues/93
+
 	Default: 0
 
 *g:denops#server#channel#deno*

@@ -2,14 +2,15 @@ let s:sep = has('win32') ? '\' : '/'
 let s:root = expand('<sfile>:h:h:h')
 
 function! denops#util#meta() abort
+  let mode = g:denops#_test ? 'test' : g:denops#debug ? 'debug' : 'release'
   if exists('s:meta')
-    return s:meta
+    return extend({'mode': mode}, s:meta, 'keep')
   endif
   let l:host = has('nvim') ? 'nvim' : 'vim'
   let l:version = s:get_host_version()
   let l:platform = has('win32') ? 'windows' : has('mac') ? 'mac' : 'linux'
   let s:meta = {
-        \ 'mode': g:denops#_test ? 'test' : g:denops#debug ? 'debug' : 'release',
+        \ 'mode': mode,
         \ 'host': l:host,
         \ 'version': l:version,
         \ 'platform': l:platform,
