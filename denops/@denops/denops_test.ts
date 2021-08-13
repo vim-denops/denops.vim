@@ -26,6 +26,7 @@ test({
       "E117: Unknown function: no-such-function",
     );
   },
+  prelude: ["let g:denops#enable_workaround_vim_before_8_2_3081 = 1"],
 });
 
 test({
@@ -82,6 +83,7 @@ test({
       "E492: Not an editor command: NoSuchCommand",
     );
   },
+  prelude: ["let g:denops#enable_workaround_vim_before_8_2_3081 = 1"],
 });
 
 test({
@@ -112,6 +114,7 @@ test({
       // Neovim: "E121: Undefined variable: g:no_such_variable",
     );
   },
+  prelude: ["let g:denops#enable_workaround_vim_before_8_2_3081 = 1"],
 });
 
 test({
@@ -140,6 +143,7 @@ test({
     }, BatchError) as BatchError;
     assertEquals(err.results, [[0]]);
   },
+  prelude: ["let g:denops#enable_workaround_vim_before_8_2_3081 = 1"],
 });
 
 test({
