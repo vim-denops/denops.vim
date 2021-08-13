@@ -10,6 +10,7 @@ const DENOPS_PATH = Deno.env.get("DENOPS_PATH");
 type WithDenopsOptions = {
   timeout?: number;
   verbose?: boolean;
+  prelude?: string[];
 };
 
 async function withDenops(
@@ -36,6 +37,7 @@ async function withDenops(
   const pluginName = "@denops-core-test";
   const proc = run(mode, {
     commands: [
+      ...(options.prelude ?? []),
       `let g:denops#_test = 1`,
       `set runtimepath^=${DENOPS_PATH}`,
       `autocmd User DenopsReady call denops#plugin#register('${pluginName}', '${scriptPath}')`,
@@ -79,6 +81,7 @@ export type TestDefinition = Omit<Deno.TestDefinition, "fn"> & {
   fn: (denops: Denops) => Promise<void> | void;
   timeout?: number;
   verbose?: boolean;
+  prelude?: string[];
 };
 
 /**
@@ -158,6 +161,7 @@ function testInternal(t: TestDefinition): void {
         await withDenops(mode, t.fn, {
           timeout: t.timeout,
           verbose: t.verbose,
+          prelude: t.prelude,
         });
       },
     });
