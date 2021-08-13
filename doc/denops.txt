@@ -43,18 +43,26 @@ VARIABLE						*denops-variable*
 	- Type checks of Deno modules become enabled
 
 	Note that the debug mode would affect the performance so disable it
-	unless you are debugging deno plugins.
-
-	WARNING In debug mode, any interactive functions (such as |input()|)
-	does not work properly in Vim prior to 8.2.3081 due to internal
-	workaround implementations. See an issue #93 for details.
-	https://github.com/vim-denops/denops.vim/issues/93
+	unless you are debugging denops plugins.
 
 	Default: 0
 
 *g:denops#trace*
 	Set 1 to enable trace mode. In trace mode, all raw RPC messages
 	between Vim/Neovim and denops are echoed.
+
+	Default: 0
+
+*g:denops#enable_workaround_vim_before_8_2_3081*
+	Set 1 to enable workaround implementation for operations in Vim before
+	8.2.3081. Without this workaround, any errors occurred in operations
+	are ignored thus denops and denops plugins cannot detect errors.
+	However, with this workaround, interactive features (such as |input()|)
+	would always returns |v:null| so break plugins which relies on it.
+	Note that if you are using Vim 8.2.3081 or later, this option does
+	nothing.
+	https://github.com/vim/vim/pull/8477
+	https://github.com/vim-denops/denops.vim/issues/93
 
 	Default: 0
 

@@ -2,13 +2,12 @@ import { Lock, VimMessage, VimSession } from "../deps.ts";
 import { responseTimeout } from "../defs.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";
-import { Meta } from "../../../@denops/denops.ts";
-
-const callForDebugBefore823080Lock = new Lock();
 
 export class Vim implements Host {
   #session: VimSession;
-  #meta?: Meta;
+  #isWorkaroundRequired?: boolean;
+  #callBefore823081Lock: Lock;
+  #batchBefore823081Lock: Lock;
 
   constructor(
     reader: Deno.Reader & Deno.Closer,
@@ -17,22 +16,35 @@ export class Vim implements Host {
     this.#session = new VimSession(reader, writer, undefined, {
       responseTimeout,
     });
+    this.#callBefore823081Lock = new Lock();
+    this.#batchBefore823081Lock = new Lock();
   }
 
-  private async callForDebugBefore823080(
+  private async isWorkaroundRequired(): Promise<boolean> {
+    if (this.#isWorkaroundRequired == undefined) {
+      const patched = await this.#session.call("has", "patch-8.2.3081");
+      const enabled = await this.#session.expr(
+        "g:denops#enable_workaround_vim_before_8_2_3081",
+      );
+      this.#isWorkaroundRequired = !patched && !!enabled;
+    }
+    return this.#isWorkaroundRequired;
+  }
+
+  private async callBefore823081(
     fn: string,
     ...args: unknown[]
   ): Promise<unknown> {
     let result: unknown;
-    await callForDebugBefore823080Lock.with(async () => {
+    await this.#callBefore823081Lock.with(async () => {
       await this.#session.call(
-        "denops#api#vim#call_before_823080_pre",
+        "denops#api#vim#call_before_823081_pre",
         fn,
         args,
       ) as string;
-      await this.#session.ex("call denops#api#vim#call_before_823080_call()");
+      await this.#session.ex("call denops#api#vim#call_before_823081_call()");
       const [ret, err] = await this.#session.expr(
-        "[g:denops#api#vim#call_before_823080, v:errmsg]",
+        "[g:denops#api#vim#call_before_823081, v:errmsg]",
       ) as [unknown, string];
       if (err !== "") {
         throw new Error(`Failed to call '${fn}(${args.join(", ")})': ${err}`);
@@ -42,7 +54,16 @@ export class Vim implements Host {
     return result;
   }
 
-  private async callForDebug(fn: string, ...args: unknown[]): Promise<unknown> {
+  async call(fn: string, ...args: unknown[]): Promise<unknown> {
+    // Vim before 8.2.3081 IGNOREs any errors in `call` operation
+    // thus we need to use `ex` operation with `v:error` instead
+    // to detect errors. However, that workaround break interactive
+    // features (such as `input()`) so this workaround is disabled
+    // unless users set a corresponding option.
+    // https://github.com/vim/vim/commit/11a632d60bde616feb298d180108819ebb1d04a0
+    if (await this.isWorkaroundRequired()) {
+      return await this.callBefore823081(fn, ...args);
+    }
     const [ret, err] = await this.#session.call(
       "denops#api#vim#call",
       fn,
@@ -57,66 +78,39 @@ export class Vim implements Host {
     return ret;
   }
 
-  async call(fn: string, ...args: unknown[]): Promise<unknown> {
-    if (!this.#meta) {
-      this.#meta = await this.#session.call("denops#util#meta") as Meta;
-    }
-    // NOTE:
-    // A `call` channel command IGNORE/SILENCE any errors occured so we need workaround
-    // to detect errors.
-    // Vim before 8.2.3080 IGNORE errors so we need to use `ex` channel command with reading
-    // `v:error` instead. However, it's cost a bit thus we only enable that when denops is
-    // running on non relese mode.
-    // Vim after 8.2.2081 SILENCE errors so we can detect errors by try/catch tech. The cost
-    // of the tech is quite small (determined by vim-denops/denops-benchmark) thus we alreays
-    // enable this workaround.
-    if (this.#meta.mode !== "release" && isBefore823080(this.#meta.version)) {
-      return await this.callForDebugBefore823080(fn, ...args);
-    }
-    return await this.callForDebug(fn, ...args);
-  }
-
-  private async batchForDebugBefore823080(
+  private async batchBefore823081(
     ...calls: [string, ...unknown[]][]
   ): Promise<[unknown[], string]> {
-    await this.#session.call(
-      "denops#api#vim#batch_before_823080_pre",
-      calls,
-    ) as string;
-    await this.#session.ex("call denops#api#vim#batch_before_823080_call()");
-    return await this.#session.expr(
-      "[g:denops#api#vim#batch_before_823080, v:errmsg]",
-    ) as [unknown[], string];
-  }
-
-  private async batchForDebug(
-    ...calls: [string, ...unknown[]][]
-  ): Promise<[unknown[], string]> {
-    return await this.#session.call(
-      "denops#api#vim#batch",
-      calls,
-    ) as [
-      unknown[],
-      string,
-    ];
+    let result: [unknown[], string] = [[], ""];
+    await this.#batchBefore823081Lock.with(async () => {
+      await this.#session.call(
+        "denops#api#vim#batch_before_823081_pre",
+        calls,
+      ) as string;
+      await this.#session.ex("call denops#api#vim#batch_before_823081_call()");
+      result = await this.#session.expr(
+        "[g:denops#api#vim#batch_before_823081, v:errmsg]",
+      ) as [unknown[], string];
+    });
+    return result;
   }
 
   async batch(
     ...calls: [string, ...unknown[]][]
   ): Promise<[unknown[], string]> {
-    if (!this.#meta) {
-      this.#meta = await this.#session.call("denops#util#meta") as Meta;
+    // Vim before 8.2.3081 IGNOREs any errors in `call` operation
+    // thus we need to use `ex` operation with `v:error` instead
+    // to detect errors. However, that workaround break interactive
+    // features (such as `input()`) so this workaround is disabled
+    // unless users set a corresponding option.
+    // https://github.com/vim/vim/commit/11a632d60bde616feb298d180108819ebb1d04a0
+    if (await this.isWorkaroundRequired()) {
+      return this.batchBefore823081(...calls);
     }
-    // NOTE:
-    // A channel command SILENCE/IGNORE any errors occured in 'call' thus
-    // we need workaround to detect errors.
-    // However, such workaround would impact the performance thus we only
-    // enable such workaround when 'g:denops#debug' or 'g:denops#_test' is
-    // enabled.
-    if (this.#meta.mode !== "release" && isBefore823080(this.#meta.version)) {
-      return this.batchForDebugBefore823080(...calls);
-    }
-    return this.batchForDebug(...calls);
+    return await this.#session.call("denops#api#vim#batch", calls) as [
+      unknown[],
+      string,
+    ];
   }
 
   register(invoker: Invoker): void {
@@ -144,13 +138,6 @@ export class Vim implements Host {
   dispose(): void {
     this.#session.dispose();
   }
-}
-
-function isBefore823080(version: string): boolean {
-  return version.localeCompare("8.2.3080", undefined, {
-    numeric: true,
-    sensitivity: "base",
-  }) === -1;
 }
 
 async function dispatch(invoker: Invoker, expr: unknown): Promise<unknown> {

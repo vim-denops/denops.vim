@@ -12,10 +12,15 @@ function! denops#request_async(plugin, method, params, success, failure) abort
   return denops#server#channel#request('invoke', ['dispatchAsync', [a:plugin, a:method, a:params, success, failure]])
 endfunction
 
+function! s:define(name, default) abort
+  let g:{a:name} = get(g:, a:name, a:default)
+endfunction
+
 " Configuration
-let g:denops#deno = get(g:, 'denops#deno', 'deno')
-let g:denops#debug = get(g:, 'denops#debug', 0)
-let g:denops#trace = get(g:, 'denops#trace', 0)
+call s:define('denops#deno', 'deno')
+call s:define('denops#debug', 0)
+call s:define('denops#trace', 0)
+call s:define('denops#enable_workaround_vim_before_8_2_3081', 0)
 
 " Internal configuration
-let g:denops#_test = get(g:, 'denops#_test', 0)
+call s:define('denops#_test', 0)
