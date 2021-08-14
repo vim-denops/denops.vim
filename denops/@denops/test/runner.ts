@@ -26,6 +26,8 @@ export function run(
     cmd: [...args, ...cmds],
     env: options.env,
     stdin: "piped",
+    stdout: options.verbose ? "inherit" : "null",
+    stderr: options.verbose ? "inherit" : "null",
   });
   return proc;
 }
