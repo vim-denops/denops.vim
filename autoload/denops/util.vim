@@ -116,6 +116,9 @@ else
   " https://github.com/neovim/neovim/blob/f629f83/src/nvim/event/process.c#L24-L26
   let s:KILL_TIMEOUT_MS = 2000
 
+  " We are using `'stoponexit': 'kill'` for trying to solve #98.
+  " We are not sure if it work so we need to see how it gose.
+  " https://github.com/vim-denops/denops.vim/issues/98
   function! s:start(args, options) abort
     let options = extend({
           \ 'pty': a:options.pty,
@@ -123,6 +126,7 @@ else
           \ 'out_cb': funcref('s:out_cb', [a:options.on_stdout]),
           \ 'err_cb': funcref('s:out_cb', [a:options.on_stderr]),
           \ 'exit_cb': funcref('s:exit_cb', [a:options.on_exit]),
+          \ 'stoponexit': 'kill',
           \}, a:options.raw_options)
     return job_start(a:args, options)
   endfunction
