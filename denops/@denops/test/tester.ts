@@ -70,6 +70,8 @@ async function withDenops(
     );
   } finally {
     proc.stdin?.close();
+    proc.kill(Deno.Signal.SIGTERM);
+    await proc.status();
     proc.close();
     conn.close();
     listener.close();
