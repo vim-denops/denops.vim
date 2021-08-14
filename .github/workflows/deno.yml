@@ -70,6 +70,28 @@ jobs:
             nvim: "v0.4.4"
           - vim: "v8.2.3081"
             nvim: "v0.5.0"
+        include:
+          - runner: windows-latest
+            version: 1.11.0
+            host_version:
+              vim: v8.2.0671 # Instead of v8.2.0662
+              nvim: v0.4.4
+          - runner: windows-latest
+            version: 1.x
+            host_version:
+              vim: v8.2.0671 # Instead of v8.2.0662
+              nvim: v0.4.4
+        exclude:
+          - runner: windows-latest
+            version: 1.11.0
+            host_version:
+              vim: v8.2.0662 # Not found on vim-win32-installer
+              nvim: v0.4.4
+          - runner: windows-latest
+            version: 1.x
+            host_version:
+              vim: v8.2.0662 # Not found on vim-win32-installer
+              nvim: v0.4.4
     runs-on: ${{ matrix.runner }}
     steps:
       - run: git config --global core.autocrlf false
