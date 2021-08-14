@@ -28,8 +28,14 @@ jobs:
           - windows-latest
           - ubuntu-latest
         version:
-          - v8.1.2424
+          - v8.2.0662
           - v8.2.3081
+        include:
+          - os: windows-latest
+            version: v8.2.0671 # Instead of v8.2.0662
+        exclude:
+          - os: windows-latest
+            version: v8.2.0662 # Not found on vim-win32-installer
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2

@@ -4,7 +4,7 @@
 <sup>An ecosystem of Vim/Neovim which allows developers to write plugins in Deno.</sup>
 
 [![Deno 1.11.0 or above](https://img.shields.io/badge/Deno-Support%201.11.0-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v1.11.0)
-[![Vim 8.1.2424 or above](https://img.shields.io/badge/Vim-Support%208.1.2424-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v8.1.2424)
+[![Vim 8.2.0662 or above](https://img.shields.io/badge/Vim-Support%208.2.0662-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v8.2.0662)
 [![Neovim 0.4.4 or above](https://img.shields.io/badge/Neovim-Support%200.4.4-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.4.4)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
