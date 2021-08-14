@@ -28,7 +28,7 @@ jobs:
           - windows-latest
           - ubuntu-latest
         version:
-          - v8.1.2424
+          - v8.2.0662
           - v8.2.3081
     runs-on: ${{ matrix.os }}
     steps:
