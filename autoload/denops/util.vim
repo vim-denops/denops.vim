@@ -37,6 +37,15 @@ function! denops#util#info(...) abort
   endfor
 endfunction
 
+function! denops#util#warn(...) abort
+  let msg = join(a:000)
+  echohl WarningMsg
+  for line in split(msg, '\n')
+    echomsg printf('[denops] %s', line)
+  endfor
+  echohl None
+endfunction
+
 function! denops#util#error(...) abort
   let msg = join(a:000)
   echohl ErrorMsg
@@ -130,6 +139,11 @@ else
   function! s:stop(job) abort
     call job_stop(a:job)
     call timer_start(s:KILL_TIMEOUT_MS, { -> job_stop(a:job, 'kill') })
+    " Wait until the job is actually closed
+    while job_status(a:job) ==# 'run'
+      sleep 10m
+    endwhile
+    redraw
   endfunction
 
   function! s:out_cb(callback, ch, msg) abort

@@ -147,15 +147,17 @@ denops#plugin#register({name}[, {script}[, {options}]])
 	from |runtimepath| like discover.
 	The following attributes are available on {options}.
 
-	"reload"	|v:true| to reload a {name} plugin if it has already
+	"reload"	|v:true| to reload a {name} plugin if it is already
 			registered.
+			DEPRECATED: Use "duplicated" option instead.
 
-	It throws an error when a {name} plugin has already registered unless
-	"reload" {options} is specified. So use a "reload" option to reload
-	registered plugin like:
->
-	call denops#plugin#register('helloworld', { 'reload': v:true })
-<
+	"mode"		|String| to regulate the behavior of registration when
+			a {name} plugin is already registered.
+
+			"reload"	Reload the plugin. (Default)
+			"skip"		Skip plugin registration.
+			"error"		Throw an error.
+
 	It invokes |User| |DenopsPluginPre|:{name} just before denops execute
 	a "main" function of the plugin and |User| |DenopsPluginPost|:{name}
 	just after denops execute a "main" function of the plugin.
@@ -167,7 +169,8 @@ denops#plugin#discover([{options}])
 	if the middle directory does not starts from "@".
 	This is automatically called on |User| |DenopsReady| autocmd invoked by
 	|denops#server#start()|.
-	See |denops#plugin#register()| for {options}.
+	It uses same {options} as |denops#plugin#register()| except that the
+	default value of "mode" is "skip".
 
 						*denops#callback#add()*
 denops#callback#add({callback}[, {options}])
@@ -212,14 +215,26 @@ denops#callback#clear()
 AUTOCMD						*denops-autocmd*
 
 DenopsReady						*DenopsReady*
-	Invoked when a denops "service" service become ready. Note that it is
-	not mean that all of denops plugins are ready.
+	Invoked when a denops become ready. Note that it is not mean that all
+	of denops plugins are ready.
 
 DenopsPluginPre:{name}					*DenopsPluginPre*
 	Invoked just before denops call a "main" function of a plugin {name}.
 
 DenopsPluginPost:{name}					*DenopsPluginPost*
 	Invoked just after denops called a "main" function of a plugin {name}.
+
+DenopsChannelStarted					*DenopsChannelStarted*
+	Invoked when a denops "channel" server is started.
+
+DenopsChannelStopped					*DenopsChannelStopped*
+	Invoked when a denops "channel" server is stopped.
+
+DenopsServiceStarted					*DenopsServiceStarted*
+	Invoked when a denops "service" server is started.
+
+DenopsServiceStopped					*DenopsServiceStopped*
+	Invoked when a denops "service" server is stopped.
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

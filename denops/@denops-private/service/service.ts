@@ -18,11 +18,11 @@ const workerScript = "./worker/script.ts";
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service {
-  #plugins: Record<string, { worker: Worker; plugin: Session }>;
+  #plugins: Map<string, { worker: Worker; session: Session }>;
   #host: Host;
 
   constructor(host: Host) {
-    this.#plugins = {};
+    this.#plugins = new Map();
     this.#host = host;
     this.#host.register(new Invoker(this));
   }
@@ -33,12 +33,22 @@ export class Service {
     meta: Meta,
     options: RegisterOptions,
   ): void {
-    if (name in this.#plugins) {
-      if (options.reload) {
-        const { worker } = this.#plugins[name];
-        worker.terminate();
+    const plugin = this.#plugins.get(name);
+    if (plugin) {
+      if (options.mode === "reload") {
+        if (meta.mode === "debug") {
+          console.log(
+            `A denops plugin '${name}' is already registered. Reload`,
+          );
+        }
+        plugin.worker.terminate();
+      } else if (options.mode === "skip") {
+        if (meta.mode === "debug") {
+          console.log(`A denops plugin '${name}' is already registered. Skip`);
+        }
+        return;
       } else {
-        throw new Error(`A denops plugin '${name}' has already registered`);
+        throw new Error(`A denops plugin '${name}' is already registered`);
       }
     }
     const worker = new Worker(
@@ -54,7 +64,7 @@ export class Service {
     worker.postMessage({ name, script, meta });
     const reader = new WorkerReader(worker);
     const writer = new WorkerWriter(worker);
-    const plugin = new Session(reader, writer, {
+    const session = new Session(reader, writer, {
       call: async (fn, ...args) => {
         ensureString(fn);
         ensureArray(args);
@@ -77,10 +87,10 @@ export class Service {
     }, {
       responseTimeout,
     });
-    this.#plugins[name] = {
-      plugin,
+    this.#plugins.set(name, {
+      session,
       worker,
-    };
+    });
   }
 
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
@@ -95,11 +105,11 @@ export class Service {
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
     try {
-      const { plugin } = this.#plugins[name];
+      const plugin = this.#plugins.get(name);
       if (!plugin) {
         throw new Error(`No plugin '${name}' is registered`);
       }
-      return await plugin.call(fn, ...args);
+      return await plugin.session.call(fn, ...args);
     } catch (e) {
       // NOTE:
       // Vim/Neovim does not handle JavaScript Error instance thus use string instead

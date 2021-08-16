@@ -1,18 +1,23 @@
 function! denops#plugin#register(name, ...) abort
   if a:0 is# 0 || type(a:1) is# v:t_dict
-    let options = s:options(a:0 > 0 ? a:1 : {})
+    let options = a:0 > 0 ? a:1 : {}
     let script = s:find_plugin(a:name)
   else
     let script = a:1
-    let options = s:options(a:0 > 1 ? a:2 : {})
+    let options = a:0 > 1 ? a:2 : {}
   endif
   let meta = denops#util#meta()
+  let options = s:options(options, {
+        \ 'mode': 'error',
+        \})
   return s:register(a:name, script, meta, options)
 endfunction
 
 function! denops#plugin#discover(...) abort
   let meta = denops#util#meta()
-  let options = s:options(a:0 > 0 ? a:1 : {})
+  let options = s:options(a:0 > 0 ? a:1 : {}, {
+        \ 'mode': 'skip',
+        \})
   let plugins = {}
   call s:gather_plugins(plugins)
   for [name, script] in items(plugins)
@@ -33,11 +38,16 @@ function! s:gather_plugins(plugins) abort
   endfor
 endfunction
 
-function! s:options(base) abort
-  let default = {
-        \ 'reload': v:false,
-        \}
-  return extend(default, a:base)
+function! s:options(base, default) abort
+  let options = extend(a:default, a:base)
+  if has_key(options, 'reload')
+    call denops#util#warn('The "reload" option is deprecated. Use "mode" option instead.')
+    let options.mode = 'reload'
+  endif
+  if options.mode !~# '^\(reload\|skip\|error\)$'
+    throw printf('Unknown mode "%s" is specified', options.mode)
+  endif
+  return options
 endfunction
 
 function! s:register(name, script, meta, options) abort
