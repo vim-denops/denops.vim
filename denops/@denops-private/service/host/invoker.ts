@@ -6,9 +6,10 @@ export type RegisterOptions = {
    * The behavior of register when the plugin is already registered.
    *
    * reload:  Reload the plugin
+   * skip:    Skip registration
    * error:   Throw an error
    */
-  mode?: "reload" | "error";
+  mode?: "reload" | "skip" | "error";
 };
 
 export class Invoker {

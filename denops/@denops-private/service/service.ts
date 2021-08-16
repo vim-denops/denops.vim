@@ -42,6 +42,11 @@ export class Service {
         }
         const { worker } = this.#plugins[name];
         worker.terminate();
+      } else if (options.mode === "skip") {
+        if (meta.mode === "debug") {
+          console.log(`A denops plugin '${name}' is already registered. Skip`);
+        }
+        return;
       } else {
         throw new Error(`A denops plugin '${name}' is already registered`);
       }
