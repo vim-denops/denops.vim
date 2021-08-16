@@ -215,14 +215,26 @@ denops#callback#clear()
 AUTOCMD						*denops-autocmd*
 
 DenopsReady						*DenopsReady*
-	Invoked when a denops "service" service become ready. Note that it is
-	not mean that all of denops plugins are ready.
+	Invoked when a denops become ready. Note that it is not mean that all
+	of denops plugins are ready.
 
 DenopsPluginPre:{name}					*DenopsPluginPre*
 	Invoked just before denops call a "main" function of a plugin {name}.
 
 DenopsPluginPost:{name}					*DenopsPluginPost*
 	Invoked just after denops called a "main" function of a plugin {name}.
+
+DenopsChannelStarted					*DenopsChannelStarted*
+	Invoked when a denops "channel" server is started.
+
+DenopsChannelStopped					*DenopsChannelStopped*
+	Invoked when a denops "channel" server is stopped.
+
+DenopsServiceStarted					*DenopsServiceStarted*
+	Invoked when a denops "service" server is started.
+
+DenopsServiceStopped					*DenopsServiceStopped*
+	Invoked when a denops "service" server is stopped.
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

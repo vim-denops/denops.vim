@@ -29,6 +29,7 @@ function! denops#server#service#start(address) abort
         \ 'raw_options': raw_options,
         \})
   call denops#util#debug(printf('service server started: %s', args))
+  doautocmd <nomodeline> User DenopsServiceStarted
 endfunction
 
 function! denops#server#service#stop() abort
@@ -54,6 +55,7 @@ endfunction
 
 function! s:on_exit(status, ...) abort dict
   call denops#util#debug(printf('service server stopped: %s', a:status))
+  doautocmd <nomodeline> User DenopsServiceStopped
   if s:stopped_by_user || v:dying || s:vim_exiting || a:status is# 143
     return
   endif
@@ -65,6 +67,8 @@ endfunction
 
 augroup denops_server_service_internal
   autocmd!
+  autocmd User DenopsServiceStarted :
+  autocmd User DenopsServiceStopped :
   autocmd VimLeave * let s:vim_exiting = 1
 augroup END
 

@@ -24,6 +24,7 @@ function! denops#server#channel#start(notify) abort
         \ 'raw_options': raw_options,
         \})
   call denops#util#debug(printf('channel server started: %s', args))
+  doautocmd <nomodeline> User DenopsChannelStarted
 endfunction
 
 function! denops#server#channel#stop() abort
@@ -59,6 +60,7 @@ endfunction
 
 function! s:on_exit(status, ...) abort dict
   call denops#util#debug(printf('channel server stopped: %s', a:status))
+  doautocmd <nomodeline> User DenopsChannelStopped
   if s:stopped_by_user || v:dying || s:vim_exiting || a:status is# 143
     return
   endif
@@ -92,6 +94,8 @@ endif
 
 augroup denops_server_channel_internal
   autocmd!
+  autocmd User DenopsChannelStarted :
+  autocmd User DenopsChannelStopped :
   autocmd VimLeave * let s:vim_exiting = 1
 augroup END
 
