@@ -1,6 +1,7 @@
 let s:script = denops#util#script_path('@denops-private', 'service', 'cli.ts')
 let s:engine = has('nvim') ? 'nvim' : 'vim'
 let s:vim_exiting = 0
+let s:stopped_by_user = 0
 let s:job = v:null
 
 function! denops#server#service#start(address) abort
@@ -17,6 +18,7 @@ function! denops#server#service#start(address) abort
   let raw_options = has('nvim')
         \ ? {}
         \ : { 'mode': 'nl' }
+  let s:stopped_by_user = 0
   let s:job = denops#util#jobstart(args, {
         \ 'env': {
         \   'NO_COLOR': 1,
@@ -26,11 +28,12 @@ function! denops#server#service#start(address) abort
         \ 'on_exit': funcref('s:on_exit'),
         \ 'raw_options': raw_options,
         \})
-  call denops#util#debug(printf('service server start: %s', args))
+  call denops#util#debug(printf('service server started: %s', args))
 endfunction
 
 function! denops#server#service#stop() abort
   if s:job isnot# v:null
+    let s:stopped_by_user = 1
     call denops#util#jobstop(s:job)
   endif
 endfunction
@@ -50,7 +53,8 @@ function! s:on_stderr(data) abort
 endfunction
 
 function! s:on_exit(status, ...) abort dict
-  if v:dying || s:vim_exiting || a:status is# 143
+  call denops#util#debug(printf('service server stopped: %s', a:status))
+  if s:stopped_by_user || v:dying || s:vim_exiting || a:status is# 143
     return
   endif
   call denops#util#error(printf(
