@@ -34,11 +34,16 @@ export class Service {
     options: RegisterOptions,
   ): void {
     if (name in this.#plugins) {
-      if (options.reload) {
+      if (options.mode === "reload") {
+        if (meta.mode === "debug") {
+          console.log(
+            `A denops plugin '${name}' is already registered. Reload`,
+          );
+        }
         const { worker } = this.#plugins[name];
         worker.terminate();
       } else {
-        throw new Error(`A denops plugin '${name}' has already registered`);
+        throw new Error(`A denops plugin '${name}' is already registered`);
       }
     }
     const worker = new Worker(

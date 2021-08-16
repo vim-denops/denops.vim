@@ -147,15 +147,16 @@ denops#plugin#register({name}[, {script}[, {options}]])
 	from |runtimepath| like discover.
 	The following attributes are available on {options}.
 
-	"reload"	|v:true| to reload a {name} plugin if it has already
+	"reload"	|v:true| to reload a {name} plugin if it is already
 			registered.
+			DEPRECATED: Use "duplicated" option instead.
 
-	It throws an error when a {name} plugin has already registered unless
-	"reload" {options} is specified. So use a "reload" option to reload
-	registered plugin like:
->
-	call denops#plugin#register('helloworld', { 'reload': v:true })
-<
+	"mode"		|String| to regulate the behavior of registration when
+			a {name} plugin is already registered.
+
+			"reload"	Reload the plugin. (Default)
+			"error"		Throw an error.
+
 	It invokes |User| |DenopsPluginPre|:{name} just before denops execute
 	a "main" function of the plugin and |User| |DenopsPluginPost|:{name}
 	just after denops execute a "main" function of the plugin.

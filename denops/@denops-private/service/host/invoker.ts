@@ -2,7 +2,13 @@ import { Service } from "../service.ts";
 import { Meta } from "../../../@denops/denops.ts";
 
 export type RegisterOptions = {
-  reload?: boolean;
+  /**
+   * The behavior of register when the plugin is already registered.
+   *
+   * reload:  Reload the plugin
+   * error:   Throw an error
+   */
+  mode?: "reload" | "error";
 };
 
 export class Invoker {

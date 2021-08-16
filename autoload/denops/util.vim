@@ -37,6 +37,15 @@ function! denops#util#info(...) abort
   endfor
 endfunction
 
+function! denops#util#warn(...) abort
+  let msg = join(a:000)
+  echohl WarningMsg
+  for line in split(msg, '\n')
+    echomsg printf('[denops] %s', line)
+  endfor
+  echohl None
+endfunction
+
 function! denops#util#error(...) abort
   let msg = join(a:000)
   echohl ErrorMsg

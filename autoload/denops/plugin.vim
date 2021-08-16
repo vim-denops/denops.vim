@@ -34,10 +34,18 @@ function! s:gather_plugins(plugins) abort
 endfunction
 
 function! s:options(base) abort
-  let default = {
-        \ 'reload': v:false,
-        \}
-  return extend(default, a:base)
+  let options = extend({
+        \ 'mode': 'error',
+        \}, a:base,
+        \)
+  if has_key(options, 'reload')
+    call denops#util#warn('The "reload" option is deprecated. Use "mode" option instead.')
+    let options.mode = 'reload'
+  endif
+  if options.mode !~# '^\(reload\|error\)$'
+    throw printf('Unknown mode "%s" is specified', options.mode)
+  endif
+  return options
 endfunction
 
 function! s:register(name, script, meta, options) abort
