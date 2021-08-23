@@ -127,6 +127,7 @@ else
 
   function! s:start(args, options) abort
     let options = extend({
+          \ 'noblock': 1,
           \ 'pty': a:options.pty,
           \ 'env': a:options.env,
           \ 'out_cb': funcref('s:out_cb', [a:options.on_stdout]),
