@@ -134,14 +134,13 @@ test({
   name:
     "denops.batch() calls multiple Vim/Neovim functions and throws an error with results",
   fn: async (denops) => {
-    const err = await assertThrowsAsync(async () => {
+    await assertThrowsAsync(async () => {
       await denops.batch(
         ["range", 1],
         ["no-such-function", 2],
         ["range", 3],
       );
-    }, BatchError) as BatchError;
-    assertEquals(err.results, [[0]]);
+    }, BatchError);
   },
   prelude: ["let g:denops#enable_workaround_vim_before_8_2_3081 = 1"],
 });
