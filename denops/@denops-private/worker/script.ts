@@ -10,8 +10,8 @@ import {
   WorkerWriter,
 } from "../deps.ts";
 import { responseTimeout } from "../defs.ts";
-import { Denops, Meta } from "../../../@denops/denops.ts";
-import { DenopsImpl } from "../../../@denops/denops.ts";
+import { Denops, Meta } from "../../@denops/denops.ts";
+import { DenopsImpl } from "../../@denops/denops.ts";
 
 // deno-lint-ignore no-explicit-any
 const worker = self as any as Worker;

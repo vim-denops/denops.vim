@@ -1,15 +1,15 @@
 function! denops#notify(plugin, method, params) abort
-  return denops#server#channel#notify('invoke', ['dispatch', [a:plugin, a:method, a:params]])
+  return denops#server#notify('invoke', ['dispatch', [a:plugin, a:method, a:params]])
 endfunction
 
 function! denops#request(plugin, method, params) abort
-  return denops#server#channel#request('invoke', ['dispatch', [a:plugin, a:method, a:params]])
+  return denops#server#request('invoke', ['dispatch', [a:plugin, a:method, a:params]])
 endfunction
 
 function! denops#request_async(plugin, method, params, success, failure) abort
   let success = denops#callback#add(a:success)
   let failure = denops#callback#add(a:failure)
-  return denops#server#channel#request('invoke', ['dispatchAsync', [a:plugin, a:method, a:params, success, failure]])
+  return denops#server#request('invoke', ['dispatchAsync', [a:plugin, a:method, a:params, success, failure]])
 endfunction
 
 function! s:define(name, default) abort

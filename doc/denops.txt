@@ -72,21 +72,25 @@ VARIABLE						*denops-variable*
 
 	Default: 0
 
-*g:denops#server#channel#deno*
-	Executable program of Deno for starting a "channel" server.
+*g:denops#server#deno*
+	Executable program of Deno for starting a server.
 	Default: |g:denops#deno|
+
+*g:denops#server#deno_args*
+	Program arguments of Deno for starting a server.
+	Default: ['-q', '--no-check', '--unstable', '-A']
+
+*g:denops#server#channel#deno*
+	OBSOLETED: A channel server is removed.
 
 *g:denops#server#channel#deno_args*
-	Program arguments of Deno for starting a "channel" server.
-	Default: ['-q', '--no-check', '--allow-net']
+	OBSOLETED: A channel server is removed.
 
 *g:denops#server#service#deno*
-	Executable program of Deno for starting a "service" server.
-	Default: |g:denops#deno|
+	DEPRECATED: Use |g:denops#server#deno| instead.
 
 *g:denops#server#service#deno_args*
-	Program arguments of Deno for starting a "service" server.
-	Default: ['-q', '--no-check', '--unstable', '-A']
+	DEPRECATED: Use |g:denops#server#deno_args| instead.
 
 -----------------------------------------------------------------------------
 FUNCTION						*denops-function*
@@ -115,8 +119,8 @@ denops#request_async({plugin}, {method}, {params}, {success}, {failure})
 
 						*denops#server#start()*
 denops#server#start()
-	Start denops "channel" server and "service" server asynchronously.
-	It will skip internal process if servers are already running.
+	Start a denops server.
+	It will skip internal process if server is already running.
 	It is automatically called 1) on |VimEnter| autocmd when denops is
 	in |runtimepath| during Vim startup, 2) immediately when denops is
 	added to |runtimepath| after Vim startup.
@@ -125,19 +129,19 @@ denops#server#start()
 
 						*denops#server#stop()*
 denops#server#stop()
-	Stop denops "channel" server and "service" server immediately.
+	Stop a denops server immediately.
 
 						*denops#server#restart()*
 denops#server#restart()
-	Restart denops "channel" server and "service" server asynchronously.
+	Restart a denops server.
 
 						*denops#server#status()*
 denops#server#status()
-	Return current server status from one of the followings.
+	Return a current server status from one of the followings.
 
 	Status		Description~
-	"stopped"	Servers are stopped.
-	"running"	Servers are running.
+	"stopped"	Server is stopped.
+	"running"	Server is running.
 
 						*denops#plugin#register()*
 denops#plugin#register({name}[, {script}[, {options}]])
@@ -224,17 +228,23 @@ DenopsPluginPre:{name}					*DenopsPluginPre*
 DenopsPluginPost:{name}					*DenopsPluginPost*
 	Invoked just after denops called a "main" function of a plugin {name}.
 
+DenopsStarted						*DenopsStarted*
+	Invoked when a denops server is started.
+
+DenopsStopped						*DenopsStopped*
+	Invoked when a denops server is stopped.
+
 DenopsChannelStarted					*DenopsChannelStarted*
-	Invoked when a denops "channel" server is started.
+	DEPRECATED: Use |DenopsStarted| instead.
 
 DenopsChannelStopped					*DenopsChannelStopped*
-	Invoked when a denops "channel" server is stopped.
+	DEPRECATED: Use |DenopsStopped| instead.
 
 DenopsServiceStarted					*DenopsServiceStarted*
-	Invoked when a denops "service" server is started.
+	DEPRECATED: Use |DenopsStarted| instead.
 
 DenopsServiceStopped					*DenopsServiceStopped*
-	Invoked when a denops "service" server is stopped.
+	DEPRECATED: Use |DenopsStopped| instead.
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
