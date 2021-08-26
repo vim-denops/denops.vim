@@ -166,6 +166,10 @@ augroup denops_server_internal_deprecated
   autocmd User DenopsStarted ++nested doautocmd <nomodeline> User DenopsServiceStarted
   autocmd User DenopsStopped ++nested doautocmd <nomodeline> User DenopsChannelStopped
   autocmd User DenopsStopped ++nested doautocmd <nomodeline> User DenopsServiceStopped
+  autocmd User DenopsChannelStarted :
+  autocmd User DenopsServiceStarted :
+  autocmd User DenopsChannelStopped :
+  autocmd User DenopsServiceStopped :
 augroup END
 
 " Deprecated
