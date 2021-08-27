@@ -3,6 +3,7 @@ name: udd
 on:
   schedule:
     - cron: "0 0 * * *"
+  push:
 
 jobs:
   udd:
@@ -15,6 +16,8 @@ jobs:
       - run: |
           make tools
           make update
+          make type-check
+          make test
       - uses: peter-evans/create-pull-request@v3
         with:
           commit-message: ":package: Update deno dependencies"
