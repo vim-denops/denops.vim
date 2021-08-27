@@ -1,4 +1,4 @@
-name: deno
+name: test
 
 env:
   DENOPS_PATH: "./"
@@ -13,19 +13,13 @@ on:
       - "**/*.md"
       - "**/*.ts"
       - "**/*.vim"
-      - "denops/@denops/modules-lock.json"
-      - "denops/@denops-private/modules-lock.json"
-      - ".github/workflows/deno.yml"
+      - ".github/workflows/test.yml"
   pull_request:
-    branches:
-      - main
     paths:
       - "**/*.md"
       - "**/*.ts"
       - "**/*.vim"
-      - "denops/@denops/modules-lock.json"
-      - "denops/@denops-private/modules-lock.json"
-      - ".github/workflows/deno.yml"
+      - ".github/workflows/test.yml"
 
 defaults:
   run:
