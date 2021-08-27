@@ -10,7 +10,7 @@ import {
 import { responseTimeout } from "./defs.ts";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions } from "./host/invoker.ts";
-import { Meta } from "../../@denops/denops.ts";
+import { Meta } from "../@denops/denops.ts";
 
 const workerScript = "./worker/script.ts";
 
