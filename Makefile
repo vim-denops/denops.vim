@@ -24,7 +24,7 @@ type-check: FORCE	## Type check
 	@deno test --unstable --no-run $$(find . -name '*.ts' -not -name '.deno')
 
 test: FORCE	## Test
-	@deno test --unstable -A --jobs --shuffle
+	@deno test --unstable -A --jobs
 
 update: FORCE	## Update dependencies
 	@${TOOLS}/bin/udd $$(find . -name '*.ts' -not -name '.deno')
