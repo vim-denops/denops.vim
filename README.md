@@ -9,15 +9,12 @@
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![deno land](http://img.shields.io/badge/available%20on-deno.land/x/denops__core-lightgrey.svg?logo=deno)](https://deno.land/x/denops_core)
+[![test](https://github.com/vim-denops/denops.vim/actions/workflows/test.yml/badge.svg)](https://github.com/vim-denops/denops.vim/actions/workflows/test.yml)
+[![reviewdog](https://github.com/vim-denops/denops.vim/actions/workflows/reviewdog.yml/badge.svg)](https://github.com/vim-denops/denops.vim/actions/workflows/reviewdog.yml)
 
 [![vim help](https://img.shields.io/badge/vim-%3Ah%20denops-orange.svg)](doc/denops.txt)
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/denops_core/mod.ts)
 [![Documentation](https://img.shields.io/badge/denops-Documentation-yellow.svg)](https://vim-denops.github.io/denops-documentation/)
-
-[![deno](https://github.com/vim-denops/denops.vim/workflows/deno/badge.svg)](https://github.com/vim-denops/denops.vim/actions?query=workflow%3Adeno)
-[![vim](https://github.com/vim-denops/denops.vim/workflows/vim/badge.svg)](https://github.com/vim-denops/denops.vim/actions?query=workflow%3Avim)
-[![neovim](https://github.com/vim-denops/denops.vim/workflows/neovim/badge.svg)](https://github.com/vim-denops/denops.vim/actions?query=workflow%3Aneovim)
-[![reviewdog](https://github.com/vim-denops/denops.vim/workflows/reviewdog/badge.svg)](https://github.com/vim-denops/denops.vim/actions?query=workflow%3Areviewdog)
 
 </div>
 
