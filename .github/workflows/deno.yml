@@ -100,31 +100,28 @@ jobs:
       - uses: denoland/setup-deno@main
         with:
           deno-version: "${{ matrix.version }}"
-      - uses: rhysd/action-setup-vim@v1
+      - uses: thinca/action-setup-vim@v1
         id: vim
         with:
-          version: "${{ matrix.host_version.vim }}"
-        if: matrix.host_version.vim != ''
+          vim_type: "Vim"
+          vim_version: "${{ matrix.host_version.vim }}"
       - name: Check Vim
         run: |
           echo ${DENOPS_TEST_VIM}
           ${DENOPS_TEST_VIM} --version
         env:
           DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
-        if: matrix.host_version.vim != ''
-      - uses: rhysd/action-setup-vim@v1
+      - uses: thinca/action-setup-vim@v1
         id: nvim
         with:
-          neovim: true
-          version: "${{ matrix.host_version.nvim }}"
-        if: matrix.host_version.nvim != ''
+          vim_type: "Neovim"
+          vim_version: "${{ matrix.host_version.nvim }}"
       - name: Check Neovim
         run: |
           echo ${DENOPS_TEST_NVIM}
           ${DENOPS_TEST_NVIM} --version
         env:
           DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
-        if: matrix.host_version.nvim != ''
       - name: Test
         run: make test
         env:
