@@ -1,5 +1,5 @@
-export * as flags from "https://deno.land/std@0.105.0/flags/mod.ts#^";
-export * as path from "https://deno.land/std@0.105.0/path/mod.ts#^";
+export * as flags from "https://deno.land/std@0.106.0/flags/mod.ts#^";
+export * as path from "https://deno.land/std@0.106.0/path/mod.ts#^";
 
 export * from "https://deno.land/x/unknownutil@v0.1.1/mod.ts#^";
 
