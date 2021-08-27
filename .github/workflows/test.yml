@@ -1,7 +1,8 @@
-name: deno
+name: test
 
 env:
   DENOPS_PATH: "./"
+  DENO_DIR: ".deno"
 
 on:
   schedule:
@@ -13,19 +14,13 @@ on:
       - "**/*.md"
       - "**/*.ts"
       - "**/*.vim"
-      - "denops/@denops/modules-lock.json"
-      - "denops/@denops-private/modules-lock.json"
-      - ".github/workflows/deno.yml"
+      - ".github/workflows/test.yml"
   pull_request:
-    branches:
-      - main
     paths:
       - "**/*.md"
       - "**/*.ts"
       - "**/*.vim"
-      - "denops/@denops/modules-lock.json"
-      - "denops/@denops-private/modules-lock.json"
-      - ".github/workflows/deno.yml"
+      - ".github/workflows/test.yml"
 
 defaults:
   run:
@@ -45,9 +40,16 @@ jobs:
       - run: git config --global core.autocrlf false
         if: runner.os == 'Windows'
       - uses: actions/checkout@v2
-      - uses: denoland/setup-deno@main
+      - uses: denoland/setup-deno@v1
         with:
           deno-version: "${{ matrix.version }}"
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.DENO_DIR }}
+          key: ${{ runner.os }}-deno-${{ matrix.version }}-${{ hashFiles('**/*.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-${{ matrix.version }}-
+            ${{ runner.os }}-deno-
       - name: Lint check
         run: make lint
       - name: Format check
@@ -70,64 +72,48 @@ jobs:
             nvim: "v0.4.4"
           - vim: "v8.2.3081"
             nvim: "v0.5.0"
-        include:
-          - runner: windows-latest
-            version: 1.11.0
-            host_version:
-              vim: v8.2.0671 # Instead of v8.2.0662
-              nvim: v0.4.4
-          - runner: windows-latest
-            version: 1.x
-            host_version:
-              vim: v8.2.0671 # Instead of v8.2.0662
-              nvim: v0.4.4
-        exclude:
-          - runner: windows-latest
-            version: 1.11.0
-            host_version:
-              vim: v8.2.0662 # Not found on vim-win32-installer
-              nvim: v0.4.4
-          - runner: windows-latest
-            version: 1.x
-            host_version:
-              vim: v8.2.0662 # Not found on vim-win32-installer
-              nvim: v0.4.4
     runs-on: ${{ matrix.runner }}
     steps:
       - run: git config --global core.autocrlf false
         if: runner.os == 'Windows'
       - uses: actions/checkout@v2
-      - uses: denoland/setup-deno@main
+      - uses: denoland/setup-deno@v1
         with:
           deno-version: "${{ matrix.version }}"
-      - uses: rhysd/action-setup-vim@v1
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: ${{ env.DENO_DIR }}
+          key: ${{ runner.os }}-deno-${{ matrix.version }}-${{ hashFiles('**/*.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-${{ matrix.version }}-
+            ${{ runner.os }}-deno-
+      - uses: thinca/action-setup-vim@v1
         id: vim
         with:
-          version: "${{ matrix.host_version.vim }}"
-        if: matrix.host_version.vim != ''
+          vim_type: "Vim"
+          vim_version: "${{ matrix.host_version.vim }}"
+          download: "never"
       - name: Check Vim
         run: |
           echo ${DENOPS_TEST_VIM}
           ${DENOPS_TEST_VIM} --version
         env:
-          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
-        if: matrix.host_version.vim != ''
-      - uses: rhysd/action-setup-vim@v1
+          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable_path }}
+      - uses: thinca/action-setup-vim@v1
         id: nvim
         with:
-          neovim: true
-          version: "${{ matrix.host_version.nvim }}"
-        if: matrix.host_version.nvim != ''
+          vim_type: "Neovim"
+          vim_version: "${{ matrix.host_version.nvim }}"
       - name: Check Neovim
         run: |
           echo ${DENOPS_TEST_NVIM}
           ${DENOPS_TEST_NVIM} --version
         env:
-          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
-        if: matrix.host_version.nvim != ''
+          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable_path }}
       - name: Test
         run: make test
         env:
-          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
-          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
+          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable_path }}
+          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable_path }}
         timeout-minutes: 5
