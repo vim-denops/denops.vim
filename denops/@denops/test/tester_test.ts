@@ -96,3 +96,26 @@ test(
     );
   },
 );
+
+test({
+  mode: "all",
+  name: "test(mode:all) start both vim and nvim with plugin name",
+  pluginName: "my-denops-plugin",
+  fn: (denops) => {
+    assertEquals(
+      denops.name,
+      "my-denops-plugin",
+    );
+  },
+});
+
+test({
+  mode: "all",
+  name: "test(mode:all) start both vim and nvim with plugin name",
+  fn: (denops) => {
+    assertEquals(
+      denops.name,
+      "@denops-core-test",
+    );
+  },
+});

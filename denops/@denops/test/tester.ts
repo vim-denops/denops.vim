@@ -8,6 +8,7 @@ const DEFAULT_TIMEOUT = 1000;
 const DENOPS_PATH = Deno.env.get("DENOPS_PATH");
 
 type WithDenopsOptions = {
+  pluginName?: string;
   timeout?: number;
   verbose?: boolean;
   prelude?: string[];
@@ -34,7 +35,7 @@ async function withDenops(
     hostname: "127.0.0.1",
     port: 0, // Automatically select free port
   });
-  const pluginName = "@denops-core-test";
+  const pluginName = options.pluginName ?? "@denops-core-test";
   const proc = run(mode, {
     commands: [
       ...(options.prelude ?? []),
@@ -81,6 +82,7 @@ async function withDenops(
 export type TestDefinition = Omit<Deno.TestDefinition, "fn"> & {
   mode: "vim" | "nvim" | "any" | "all";
   fn: (denops: Denops) => Promise<void> | void;
+  pluginName?: string;
   timeout?: number;
   verbose?: boolean;
   prelude?: string[];
@@ -161,6 +163,7 @@ function testInternal(t: TestDefinition): void {
         (mode === "nvim" && !DENOPS_TEST_NVIM),
       fn: async () => {
         await withDenops(mode, t.fn, {
+          pluginName: t.pluginName,
           timeout: t.timeout,
           verbose: t.verbose,
           prelude: t.prelude,
