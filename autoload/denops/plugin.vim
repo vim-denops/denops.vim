@@ -1,3 +1,36 @@
+let s:loaded_plugins = {}
+let s:load_callbacks = {}
+
+function! denops#plugin#is_loaded(name) abort
+  return has_key(s:loaded_plugins, a:name)
+endfunction
+
+function! denops#plugin#wait(name, ...) abort
+  if has_key(s:loaded_plugins, a:name)
+    return
+  endif
+  let options = extend({
+        \ 'interval': g:denops#plugin#wait_interval,
+        \}, a:0 ? a:1 : {},
+        \)
+  let expr = printf('sleep %dm', options.interval)
+  while !has_key(s:loaded_plugins, a:name)
+    execute expr
+  endwhile
+endfunction
+
+function! denops#plugin#wait_async(name, callback) abort
+  if has_key(s:loaded_plugins, a:name)
+    " Some features behave differently in functions invoked from timer_start()
+    " so use it even for immediate execution to keep consistent behavior.
+    call timer_start(0, { -> a:callback() })
+    return
+  endif
+  let callbacks = get(s:load_callbacks, a:name, [])
+  call add(callbacks, a:callback)
+  let s:load_callbacks = callbacks
+endfunction
+
 function! denops#plugin#register(name, ...) abort
   if a:0 is# 0 || type(a:1) is# v:t_dict
     let options = a:0 > 0 ? a:1 : {}
@@ -67,3 +100,27 @@ function! s:find_plugin(name) abort
   endfor
   throw printf('No denops plugin for "%s" exists', a:name)
 endfunction
+
+function! s:DenopsPluginPost() abort
+  let name = matchstr(expand('<amatch>'), 'DenopsPluginPost:\zs.*')
+  let s:loaded_plugins[name] = 1
+  if !has_key(s:load_callbacks, name)
+    return
+  endif
+  let callbacks = remove(s:load_callbacks, name)
+  " Vim uses FILO for a task execution registered by timer_start().
+  " That's why reverse 'callbacks' in the case of Vim to keep consistent
+  " behavior.
+  let callbacks = has('nvim') ? callbacks : reverse(callbacks)
+  for l:Callback in callbacks
+    call timer_start(0, { -> l:Callback() })
+  endfor
+endfunction
+
+augroup denops_autoload_plugin_internal
+  autocmd!
+  autocmd User DenopsPluginPost:* call s:DenopsPluginPost()
+  autocmd User DenopsStopped let s:loaded_plugins = {}
+augroup END
+
+let g:denops#plugin#wait_interval = get(g:, 'denops#plugin#wait_interval', 10)

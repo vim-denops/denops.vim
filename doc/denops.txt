@@ -92,6 +92,10 @@ VARIABLE						*denops-variable*
 *g:denops#server#service#deno_args*
 	DEPRECATED: Use |g:denops#server#deno_args| instead.
 
+*g:denops#plugin#wait_interval*
+	Interval in milliseconds for |denops#plugin#wait()|.
+	Default: 10
+
 -----------------------------------------------------------------------------
 FUNCTION						*denops-function*
 
@@ -142,6 +146,28 @@ denops#server#status()
 	Status		Description~
 	"stopped"	Server is stopped.
 	"running"	Server is running.
+
+						*denops#plugin#is_loaded()*
+denops#plugin#is_loaded({name})
+	Return 1 if a {name} plugin is already loaded. Otherwise return 0.
+
+						*denops#plugin#wait()*
+denops#plugin#wait({name}[, {options}])
+	Wait synchronously until a {name} plugin is loaded. It returns
+	immediately when the {name} plugin is already loaded.
+	The following attributes are available on {options}.
+
+	"interval"	Interval in milliseconds for |sleep| in internal loop.
+			Default: |g:denops#plugin#wait_interval|
+
+						*denops#plugin#wait_async()*
+denops#plugin#wait_async({name}, {callback})
+	Wait asynchronously until a {name} plugin is loaded and invoke a
+	{callback}. It invokes the {callback} immediately when the {name}
+	plugin is already loaded. If this function is called multiple times
+	for same {name} plugin, callbacks registered for the plugin are called
+	in order of registration. Note that the {callback} is called from
+	|timer_start()| in any cases to keep consistent behavior.
 
 						*denops#plugin#register()*
 denops#plugin#register({name}[, {script}[, {options}]])
