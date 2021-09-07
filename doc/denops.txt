@@ -92,6 +92,10 @@ VARIABLE						*denops-variable*
 *g:denops#server#service#deno_args*
 	DEPRECATED: Use |g:denops#server#deno_args| instead.
 
+*g:denops#plugin#wait_interval*
+	Interval in milliseconds for |denops#plugin#wait()|.
+	Default: 10
+
 -----------------------------------------------------------------------------
 FUNCTION						*denops-function*
 
@@ -143,28 +147,51 @@ denops#server#status()
 	"stopped"	Server is stopped.
 	"running"	Server is running.
 
-						*denops#plugin#register()*
-denops#plugin#register({name}[, {script}[, {options}]])
-	Register denops plugin. Use this function to register denops plugins
-	which is not discovered by |denops#plugin#discover()|.
-	When a {script} is omitted, a "denops/{name}/main.ts" file is searched
-	from |runtimepath| like discover.
+						*denops#plugin#is_loaded()*
+denops#plugin#is_loaded({plugin})
+	Return 1 if a {plugin} plugin is already loaded. Otherwise return 0.
+
+						*denops#plugin#wait()*
+denops#plugin#wait({plugin}[, {options}])
+	Wait synchronously until a {plugin} plugin is loaded. It returns
+	immediately when the {plugin} plugin is already loaded.
 	The following attributes are available on {options}.
 
-	"reload"	|v:true| to reload a {name} plugin if it is already
+	"interval"	Interval in milliseconds for |sleep| in internal loop.
+			Default: |g:denops#plugin#wait_interval|
+
+						*denops#plugin#wait_async()*
+denops#plugin#wait_async({plugin}, {callback})
+	Wait asynchronously until a {plugin} plugin is loaded and invoke a
+	{callback}. It invokes the {callback} immediately when the {plugin}
+	plugin is already loaded. If this function is called multiple times
+	for same {plugin} plugin, callbacks registered for the plugin are
+	called in order of registration. Note that the {callback} is called
+	from |timer_start()| in any cases to keep consistent behavior.
+
+						*denops#plugin#register()*
+denops#plugin#register({plugin}[, {script}[, {options}]])
+	Register denops plugin. Use this function to register denops plugins
+	which is not discovered by |denops#plugin#discover()|.
+	When a {script} is omitted, a "denops/{plugin}/main.ts" file is
+	searched from |runtimepath| like discover.
+	The following attributes are available on {options}.
+
+	"reload"	|v:true| to reload a {plugin} plugin if it is already
 			registered.
-			DEPRECATED: Use "duplicated" option instead.
+			DEPRECATED: Use "mode" option instead.
 
 	"mode"		|String| to regulate the behavior of registration when
-			a {name} plugin is already registered.
+			a {plugin} plugin is already registered.
 
 			"reload"	Reload the plugin. (Default)
 			"skip"		Skip plugin registration.
 			"error"		Throw an error.
 
-	It invokes |User| |DenopsPluginPre|:{name} just before denops execute
-	a "main" function of the plugin and |User| |DenopsPluginPost|:{name}
-	just after denops execute a "main" function of the plugin.
+	It invokes |User| |DenopsPluginPre|:{plugin} just before denops
+	execute a "main" function of the plugin and |User|
+	|DenopsPluginPost|:{plugin} just after denops execute a "main"
+	function of the plugin.
 
 						*denops#plugin#discover()*
 denops#plugin#discover([{options}])
@@ -222,11 +249,11 @@ DenopsReady						*DenopsReady*
 	Invoked when a denops become ready. Note that it is not mean that all
 	of denops plugins are ready.
 
-DenopsPluginPre:{name}					*DenopsPluginPre*
-	Invoked just before denops call a "main" function of a plugin {name}.
+DenopsPluginPre:{plugin}				*DenopsPluginPre*
+	Invoked just before denops call a "main" function of a plugin {plugin}.
 
-DenopsPluginPost:{name}					*DenopsPluginPost*
-	Invoked just after denops called a "main" function of a plugin {name}.
+DenopsPluginPost:{plugin}				*DenopsPluginPost*
+	Invoked just after denops called a "main" function of a plugin {plugin}.
 
 DenopsStarted						*DenopsStarted*
 	Invoked when a denops server is started.
