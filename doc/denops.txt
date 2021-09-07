@@ -179,7 +179,7 @@ denops#plugin#register({plugin}[, {script}[, {options}]])
 
 	"reload"	|v:true| to reload a {plugin} plugin if it is already
 			registered.
-			DEPRECATED: Use "duplicated" option instead.
+			DEPRECATED: Use "mode" option instead.
 
 	"mode"		|String| to regulate the behavior of registration when
 			a {plugin} plugin is already registered.
