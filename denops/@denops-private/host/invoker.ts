@@ -49,7 +49,11 @@ export class Invoker {
       })
       .catch(async (e) => {
         try {
-          await this.#service.call("denops#callback#call", failure, e);
+          await this.#service.call(
+            "denops#callback#call",
+            failure,
+            toErrorObject(e),
+          );
         } catch (e) {
           console.error(`${e.stack ?? e.toString()}`);
         }
@@ -60,4 +64,21 @@ export class Invoker {
 
 export function isInvokerMethod(value: string): value is keyof Invoker {
   return value in Invoker.prototype;
+}
+
+// https://github.com/vim-denops/denops.vim/issues/112
+function toErrorObject(
+  err: unknown,
+): { name: string; message: string; stack?: string } {
+  if (err instanceof Error) {
+    return {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+    };
+  }
+  return {
+    name: typeof err,
+    message: `${err}`,
+  };
 }
