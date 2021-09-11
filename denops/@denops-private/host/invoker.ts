@@ -40,10 +40,19 @@ export class Invoker {
     failure: string, // Callback ID
   ): Promise<void> {
     this.#service.dispatch(name, fn, args)
-      .then((r) => this.#service.call("denops#callback#call", success, r))
-      .catch((e) => this.#service.call("denops#callback#call", failure, e))
-      .catch((e) => {
-        console.error(`${e.stack ?? e.toString()}`);
+      .then(async (r) => {
+        try {
+          await this.#service.call("denops#callback#call", success, r);
+        } catch (e) {
+          console.error(`${e.stack ?? e.toString()}`);
+        }
+      })
+      .catch(async (e) => {
+        try {
+          await this.#service.call("denops#callback#call", failure, e);
+        } catch (e) {
+          console.error(`${e.stack ?? e.toString()}`);
+        }
       });
     return Promise.resolve();
   }
