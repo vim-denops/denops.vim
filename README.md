@@ -64,6 +64,15 @@ To learn how to write Vim/Neovim plugins by denops, see
 [Denops Documentation](https://vim-denops.github.io/denops-documentation/) or
 [denops.vim Wiki](https://github.com/vim-denops/denops.vim/wiki).
 
+## Versioning
+
+Before v1.10.0, we defined that the version of denops.vim indicates that code
+versions of the entire repository. However, we changed this assumption from
+version v1.10.0. Now we defined the version of denops.vim indicates the version
+of the code in the `denops/@denops` directory that is published to deno.land as
+`denops_core`. That's why we won't bump versions when there are no changes on
+code in that directory.
+
 ## Developpers
 
 Denops is mainly developped by members of [vim-jp][vim-jp].
