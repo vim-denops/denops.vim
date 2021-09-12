@@ -28,7 +28,7 @@ function! denops#plugin#wait_async(plugin, callback) abort
   endif
   let callbacks = get(s:load_callbacks, a:plugin, [])
   call add(callbacks, a:callback)
-  let s:load_callbacks = callbacks
+  let s:load_callbacks[a:plugin] = callbacks
 endfunction
 
 function! denops#plugin#register(plugin, ...) abort
