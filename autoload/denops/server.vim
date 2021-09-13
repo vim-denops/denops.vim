@@ -66,14 +66,14 @@ function! denops#server#notify(method, params) abort
   if denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
-  return s:notify(s:chan, a:method, a:params)
+  return denops#chan#notify(s:chan, a:method, a:params)
 endfunction
 
 function! denops#server#request(method, params) abort
   if denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
-  return s:request(s:chan, a:method, a:params)
+  return denops#chan#request(s:chan, a:method, a:params)
 endfunction
 
 function! s:on_stdout(data) abort
@@ -86,7 +86,7 @@ function! s:on_stdout(data) abort
   let addr = substitute(a:data, '\r\?\n$', '', 'g')
   call denops#util#debug(printf('Connecting to `%s`', addr))
   try
-    let s:chan = s:connect(addr)
+    let s:chan = denops#chan#connect(addr)
   catch
     call denops#util#error(printf('Failed to connect denops server: %s', v:exception))
     call denops#server#stop()
@@ -118,51 +118,6 @@ function! s:on_exit(status, ...) abort dict
         \))
   call denops#server#start()
 endfunction
-
-if has('nvim')
-  function! s:connect(address) abort
-    let chan = sockconnect('tcp', a:address, {
-          \ 'rpc': v:true,
-          \})
-    if chan is# 0
-      throw printf('Failed to connect `%s`', a:address)
-    endif
-    return chan
-  endfunction
-
-  function! s:notify(chan, method, params) abort
-    return call('rpcnotify', [a:chan, a:method] + a:params)
-  endfunction
-
-  function! s:request(chan, method, params) abort
-    return call('rpcrequest', [a:chan, a:method] + a:params)
-  endfunction
-else
-  function! s:connect(address) abort
-    let chan = ch_open(a:address, {
-          \ 'mode': 'json',
-          \ 'drop': 'auto',
-          \ 'noblock': 1,
-          \ 'timeout': 60 * 60 * 24 * 7,
-          \})
-    if ch_status(chan) !=# 'open'
-      throw printf('Failed to connect `%s`', a:address)
-    endif
-    return chan
-  endfunction
-
-  function! s:notify(chan, method, params) abort
-    return ch_sendraw(a:chan, json_encode([0, [a:method] + a:params]) . "\n")
-  endfunction
-
-  function! s:request(chan, method, params) abort
-    let [ok, err] = ch_evalexpr(a:chan, [a:method] + a:params)
-    if err isnot# v:null
-      throw err
-    endif
-    return ok
-  endfunction
-endif
 
 augroup denops_server_internal
   autocmd!
