@@ -14,6 +14,12 @@ import { Meta } from "../@denops/denops.ts";
 
 const workerScript = "./worker/script.ts";
 
+export type ServiceDispatcher = {
+  call(fn: unknown, ...args: unknown[]): Promise<unknown>;
+  batch(...calls: unknown[]): Promise<unknown>;
+  dispatch(name: unknown, fn: unknown, ...args: unknown[]): Promise<unknown>;
+};
+
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
@@ -64,7 +70,7 @@ export class Service {
     worker.postMessage({ name, script, meta });
     const reader = new WorkerReader(worker);
     const writer = new WorkerWriter(worker);
-    const session = new Session(reader, writer, {
+    const dispatcher: ServiceDispatcher = {
       call: async (fn, ...args) => {
         ensureString(fn);
         ensureArray(args);
@@ -84,7 +90,8 @@ export class Service {
         ensureArray(args);
         return await this.dispatch(name, fn, args);
       },
-    }, {
+    };
+    const session = new Session(reader, writer, dispatcher, {
       responseTimeout,
     });
     this.#plugins.set(name, {
