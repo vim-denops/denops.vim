@@ -55,21 +55,25 @@ function! denops#server#restart() abort
 endfunction
 
 function! denops#server#status() abort
-  return s:status
+  return s:is_invalid() ? s:STATUS_STOPPED : s:status
 endfunction
 
 function! denops#server#notify(method, params) abort
-  if s:job is# v:null || s:chan is# v:null
+  if s:is_invalid()
     throw printf('The server is not ready yet')
   endif
   return s:notify(s:chan, a:method, a:params)
 endfunction
 
 function! denops#server#request(method, params) abort
-  if s:job is# v:null || s:chan is# v:null
+  if s:is_invalid()
     throw printf('The server is not ready yet')
   endif
   return s:request(s:chan, a:method, a:params)
+endfunction
+
+function! s:is_invalid() abort
+  return s:job is# v:null || s:chan is# v:null
 endfunction
 
 function! s:on_stdout(data) abort
