@@ -145,7 +145,8 @@ denops#server#status()
 
 	Status		Description~
 	"stopped"	Server is stopped.
-	"running"	Server is running.
+	"starting"	Server is starting.
+	"running"	Server is running (ready).
 
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({plugin})

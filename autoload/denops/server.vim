@@ -5,11 +5,12 @@ let s:stopped_by_user = 0
 let s:job = v:null
 let s:chan = v:null
 let s:STATUS_STOPPED = 'stopped'
+let s:STATUS_STARTING = 'starting'
 let s:STATUS_RUNNING = 'running'
 
 function! denops#server#start() abort
-  if denops#server#status() is# s:STATUS_RUNNING
-    call denops#util#debug('Server is already running. Skip')
+  if denops#server#status() isnot# s:STATUS_STOPPED
+    call denops#util#debug('Server is already starting or running. Skip')
     return
   endif
   let args = [g:denops#server#deno, 'run']
@@ -52,8 +53,10 @@ function! denops#server#restart() abort
 endfunction
 
 function! denops#server#status() abort
-  if s:job isnot# v:null || s:chan isnot# v:null
+  if s:job isnot# v:null && s:chan isnot# v:null
     return s:STATUS_RUNNING
+  elseif s:job isnot# v:null
+    return s:STATUS_STARTING
   else
     return s:STATUS_STOPPED
   endif
