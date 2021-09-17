@@ -6,14 +6,12 @@ let s:job = v:null
 let s:chan = v:null
 let s:STATUS_STOPPED = 'stopped'
 let s:STATUS_RUNNING = 'running'
-let s:status = s:STATUS_STOPPED
 
 function! denops#server#start() abort
-  if s:status is# s:STATUS_RUNNING
+  if denops#server#status() is# s:STATUS_RUNNING
     call denops#util#debug('Server is already running. Skip')
     return
   endif
-  let s:status = s:STATUS_RUNNING
   let args = [g:denops#server#deno, 'run']
   let args += g:denops#server#deno_args
   let args += [
@@ -45,7 +43,6 @@ function! denops#server#stop() abort
   if s:job isnot# v:null
     let s:stopped_by_user = 1
     call denops#job#stop(s:job)
-    let s:status = s:STATUS_STOPPED
   endif
 endfunction
 
@@ -55,18 +52,22 @@ function! denops#server#restart() abort
 endfunction
 
 function! denops#server#status() abort
-  return s:status
+  if s:job isnot# v:null || s:chan isnot# v:null
+    return s:STATUS_RUNNING
+  else
+    return s:STATUS_STOPPED
+  endif
 endfunction
 
 function! denops#server#notify(method, params) abort
-  if s:job is# v:null || s:chan is# v:null
+  if denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
   return s:notify(s:chan, a:method, a:params)
 endfunction
 
 function! denops#server#request(method, params) abort
-  if s:job is# v:null || s:chan is# v:null
+  if denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
   return s:request(s:chan, a:method, a:params)
