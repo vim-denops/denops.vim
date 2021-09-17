@@ -28,7 +28,7 @@ function! denops#server#start() abort
         \ : { 'mode': 'nl' }
   let s:stopped_by_user = 0
   let s:chan = v:null
-  let s:job = denops#util#jobstart(args, {
+  let s:job = denops#job#start(args, {
         \ 'env': {
         \   'NO_COLOR': 1,
         \ },
@@ -44,7 +44,7 @@ endfunction
 function! denops#server#stop() abort
   if s:job isnot# v:null
     let s:stopped_by_user = 1
-    call denops#util#jobstop(s:job)
+    call denops#job#stop(s:job)
     let s:status = s:STATUS_STOPPED
   endif
 endfunction
