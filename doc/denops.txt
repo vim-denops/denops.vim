@@ -136,6 +136,8 @@ denops#server#start()
 	added to |runtimepath| after Vim startup.
 	It will invoke |User| |DenopsReady| autocmd to discover denops plugins.
 	See |denops#plugin#discover()| for detail.
+	Note that the server is automatically restarted when the process is
+	stopped unexpectedly.
 
 						*denops#server#stop()*
 denops#server#stop()
@@ -151,7 +153,8 @@ denops#server#status()
 
 	Status		Description~
 	"stopped"	Server is stopped.
-	"running"	Server is running.
+	"starting"	Server is starting.
+	"running"	Server is running (ready).
 
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({plugin})

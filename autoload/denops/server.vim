@@ -1,19 +1,18 @@
 let s:script = denops#util#script_path('@denops-private', 'cli.ts')
 let s:engine = has('nvim') ? 'nvim' : 'vim'
 let s:vim_exiting = 0
-let s:stopped_by_user = 0
+let s:stopped_on_purpose = 0
 let s:job = v:null
 let s:chan = v:null
 let s:STATUS_STOPPED = 'stopped'
+let s:STATUS_STARTING = 'starting'
 let s:STATUS_RUNNING = 'running'
-let s:status = s:STATUS_STOPPED
 
 function! denops#server#start() abort
-  if s:status is# s:STATUS_RUNNING
-    call denops#util#debug('Server is already running. Skip')
+  if denops#server#status() isnot# s:STATUS_STOPPED
+    call denops#util#debug('Server is already starting or running. Skip')
     return
   endif
-  let s:status = s:STATUS_RUNNING
   let args = [g:denops#server#deno, 'run']
   let args += g:denops#server#deno_args
   let args += [
@@ -26,9 +25,9 @@ function! denops#server#start() abort
   let raw_options = has('nvim')
         \ ? {}
         \ : { 'mode': 'nl' }
-  let s:stopped_by_user = 0
+  let s:stopped_on_purpose = 0
   let s:chan = v:null
-  let s:job = denops#util#jobstart(args, {
+  let s:job = denops#job#start(args, {
         \ 'env': {
         \   'NO_COLOR': 1,
         \ },
@@ -37,15 +36,14 @@ function! denops#server#start() abort
         \ 'on_exit': funcref('s:on_exit'),
         \ 'raw_options': raw_options,
         \})
-  call denops#util#debug(printf('server started: %s', args))
+  call denops#util#debug(printf('Server spawned: %s', args))
   doautocmd <nomodeline> User DenopsStarted
 endfunction
 
 function! denops#server#stop() abort
   if s:job isnot# v:null
-    let s:stopped_by_user = 1
-    call denops#util#jobstop(s:job)
-    let s:status = s:STATUS_STOPPED
+    let s:stopped_on_purpose = 1
+    call denops#job#stop(s:job)
   endif
 endfunction
 
@@ -55,40 +53,53 @@ function! denops#server#restart() abort
 endfunction
 
 function! denops#server#status() abort
-  return s:status
+  if s:job isnot# v:null && s:chan isnot# v:null
+    return s:STATUS_RUNNING
+  elseif s:job isnot# v:null
+    return s:STATUS_STARTING
+  else
+    return s:STATUS_STOPPED
+  endif
 endfunction
 
 function! denops#server#notify(method, params) abort
-  if s:job is# v:null || s:chan is# v:null
+  if denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
   return s:notify(s:chan, a:method, a:params)
 endfunction
 
 function! denops#server#request(method, params) abort
-  if s:job is# v:null || s:chan is# v:null
+  if denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
   return s:request(s:chan, a:method, a:params)
 endfunction
 
 function! s:on_stdout(data) abort
-  if s:chan is# v:null
-    let addr = substitute(a:data, '\r\?\n$', '', 'g')
-    call denops#util#debug(printf('connect to `%s`', addr))
-    let s:chan = s:connect(addr)
-    doautocmd <nomodeline> User DenopsReady
+  if s:chan isnot# v:null
+    for line in split(a:data, '\n')
+      echomsg printf('[denops] %s', substitute(line, '\t', '    ', 'g'))
+    endfor
     return
   endif
-  for line in split(a:data, '\n')
-    echomsg printf('[denops] %s', line)
-  endfor
+  let addr = substitute(a:data, '\r\?\n$', '', 'g')
+  call denops#util#debug(printf('Connecting to `%s`', addr))
+  try
+    let s:chan = s:connect(addr)
+  catch
+    call denops#util#error(printf('Failed to connect denops server: %s', v:exception))
+    call denops#server#stop()
+    call s:on_stderr(a:data)
+    return
+  endtry
+  doautocmd <nomodeline> User DenopsReady
 endfunction
 
 function! s:on_stderr(data) abort
   echohl ErrorMsg
   for line in split(a:data, '\n')
-    echomsg printf('[denops] %s', line)
+    echomsg printf('[denops] %s', substitute(line, '\t', '    ', 'g'))
   endfor
   echohl None
 endfunction
@@ -96,15 +107,16 @@ endfunction
 function! s:on_exit(status, ...) abort dict
   let s:job = v:null
   let s:chan = v:null
-  call denops#util#debug(printf('server stopped: %s', a:status))
+  call denops#util#debug(printf('Server stopped: %s', a:status))
   doautocmd <nomodeline> User DenopsStopped
-  if s:stopped_by_user || v:dying || s:vim_exiting || a:status is# 143
+  if s:stopped_on_purpose || v:dying || s:vim_exiting
     return
   endif
-  call denops#util#error(printf(
-        \ 'server terminated unexpectedly: %d',
+  call denops#util#warn(printf(
+        \ 'Server stopped (%d). Restarting...',
         \ a:status,
         \))
+  call denops#server#start()
 endfunction
 
 if has('nvim')
