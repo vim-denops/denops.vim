@@ -7,6 +7,11 @@ const DEFAULT_TIMEOUT = 1000;
 
 const DENOPS_PATH = Deno.env.get("DENOPS_PATH");
 
+// To support OS signals API changes on Deno 1.14
+// https://deno.com/blog/v1.14#changes-to-os-signals-apis
+// deno-lint-ignore no-explicit-any
+const SIGTERM = (Deno as any).Signal?.SIGTERM ?? "SIGTERM";
+
 type WithDenopsOptions = {
   pluginName?: string;
   timeout?: number;
@@ -71,7 +76,7 @@ async function withDenops(
     );
   } finally {
     proc.stdin?.close();
-    proc.kill(Deno.Signal.SIGTERM);
+    proc.kill(SIGTERM);
     await proc.status();
     proc.close();
     conn.close();
