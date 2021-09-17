@@ -9,7 +9,7 @@ help:
 
 tools: FORCE	## Install development tools
 	@mkdir -p ${TOOLS}
-	@deno install -A -f -n udd --root ${TOOLS} https://deno.land/x/udd@0.4.0/main.ts
+	@deno install -A -f -n udd --root ${TOOLS} https://deno.land/x/udd@0.5.0/main.ts
 
 fmt: FORCE	## Format code
 	@deno fmt --ignore=.deno
