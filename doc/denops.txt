@@ -46,16 +46,22 @@ VARIABLE						*denops-variable*
 	features become enabled.
 
 	- Additional debug messages of denops itself
-	- Type checks of Deno modules become enabled
 
-	Note that the debug mode would affect the performance so disable it
-	unless you are debugging denops plugins.
+	Use |g:denops#type_check| to enable Deno's type check feature.
 
 	Default: 0
 
 *g:denops#trace*
 	Set 1 to enable trace mode. In trace mode, all raw RPC messages
 	between Vim/Neovim and denops are echoed.
+
+	Default: 0
+
+*g:denops#type_check*
+	Set 1 to enable Deno's type check feature.
+
+	Note that the type check would affect the performance so disable it
+	unless you are debugging denops plugins.
 
 	Default: 0
 
