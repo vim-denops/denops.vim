@@ -76,7 +76,7 @@ async function withDenops(
     );
   } finally {
     proc.stdin?.close();
-    proc.kill(SIGTERM);
+    await killProcess(proc);
     await proc.status();
     proc.close();
     conn.close();
@@ -175,5 +175,21 @@ function testInternal(t: TestDefinition): void {
         });
       },
     });
+  }
+}
+
+async function killProcess(proc: Deno.Process): Promise<void> {
+  if (Deno.build.os !== "windows") {
+    proc.kill(SIGTERM);
+  } else {
+    const pid = proc.pid;
+    const p = Deno.run({
+      cmd: ["taskkill", "/pid", pid.toString(), "/F"],
+      stdin: "null",
+      stdout: "null",
+      stderr: "null",
+    });
+    await p.status();
+    p.close();
   }
 }
