@@ -1,7 +1,7 @@
 let s:script = denops#util#script_path('@denops-private', 'cli.ts')
 let s:engine = has('nvim') ? 'nvim' : 'vim'
 let s:vim_exiting = 0
-let s:stopped_by_user = 0
+let s:stopped_on_purpose = 0
 let s:job = v:null
 let s:chan = v:null
 let s:STATUS_STOPPED = 'stopped'
@@ -25,7 +25,7 @@ function! denops#server#start() abort
   let raw_options = has('nvim')
         \ ? {}
         \ : { 'mode': 'nl' }
-  let s:stopped_by_user = 0
+  let s:stopped_on_purpose = 0
   let s:chan = v:null
   let s:job = denops#job#start(args, {
         \ 'env': {
@@ -42,7 +42,7 @@ endfunction
 
 function! denops#server#stop() abort
   if s:job isnot# v:null
-    let s:stopped_by_user = 1
+    let s:stopped_on_purpose = 1
     call denops#job#stop(s:job)
   endif
 endfunction
@@ -85,7 +85,14 @@ function! s:on_stdout(data) abort
   endif
   let addr = substitute(a:data, '\r\?\n$', '', 'g')
   call denops#util#debug(printf('Connecting to `%s`', addr))
-  let s:chan = s:connect(addr)
+  try
+    let s:chan = s:connect(addr)
+  catch
+    call denops#util#error(printf('Failed to connect denops server: %s', v:exception))
+    call denops#server#stop()
+    call s:on_stderr(a:data)
+    return
+  endtry
   doautocmd <nomodeline> User DenopsReady
 endfunction
 
@@ -102,7 +109,7 @@ function! s:on_exit(status, ...) abort dict
   let s:chan = v:null
   call denops#util#debug(printf('Server stopped: %s', a:status))
   doautocmd <nomodeline> User DenopsStopped
-  if s:stopped_by_user || v:dying || s:vim_exiting
+  if s:stopped_on_purpose || v:dying || s:vim_exiting
     return
   endif
   call denops#util#warn(printf(
