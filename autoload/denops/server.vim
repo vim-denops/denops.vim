@@ -79,7 +79,7 @@ endfunction
 function! s:on_stdout(data) abort
   if s:chan isnot# v:null
     for line in split(a:data, '\n')
-      echomsg printf('[denops] %s', line)
+      echomsg printf('[denops] %s', substitute(line, '\t', '    ', 'g'))
     endfor
     return
   endif
@@ -92,7 +92,7 @@ endfunction
 function! s:on_stderr(data) abort
   echohl ErrorMsg
   for line in split(a:data, '\n')
-    echomsg printf('[denops] %s', line)
+    echomsg printf('[denops] %s', substitute(line, '\t', '    ', 'g'))
   endfor
   echohl None
 endfunction
