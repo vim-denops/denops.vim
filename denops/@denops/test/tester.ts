@@ -1,16 +1,11 @@
 import { path, Session, using } from "../deps.ts";
-import { deadline } from "../deps_test.ts";
+import { compareVersions, deadline } from "../deps_test.ts";
 import { Denops, DenopsImpl, Meta } from "../denops.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
 
 const DEFAULT_TIMEOUT = 1000;
 
 const DENOPS_PATH = Deno.env.get("DENOPS_PATH");
-
-// To support OS signals API changes on Deno 1.14
-// https://deno.com/blog/v1.14#changes-to-os-signals-apis
-// deno-lint-ignore no-explicit-any
-const SIGTERM = (Deno as any).Signal?.SIGTERM ?? "SIGTERM";
 
 type WithDenopsOptions = {
   pluginName?: string;
@@ -179,17 +174,23 @@ function testInternal(t: TestDefinition): void {
 }
 
 async function killProcess(proc: Deno.Process): Promise<void> {
-  if (Deno.build.os !== "windows") {
-    proc.kill(SIGTERM);
-  } else {
-    const pid = proc.pid;
+  if (compareVersions(Deno.version.deno, "1.14.0") < 0) {
+    // Prior to v1.14.0, `Deno.Signal.SIGTERM` worked on Windows as well
+    // deno-lint-ignore no-explicit-any
+    proc.kill((Deno as any).Signal.SIGTERM);
+  } else if (Deno.build.os === "windows") {
+    // Signal API in Deno v1.14.0 on Windows
+    // does not work so use `taskkill` for now
     const p = Deno.run({
-      cmd: ["taskkill", "/pid", pid.toString(), "/F"],
+      cmd: ["taskkill", "/pid", proc.pid.toString(), "/F"],
       stdin: "null",
       stdout: "null",
       stderr: "null",
     });
     await p.status();
     p.close();
+  } else {
+    // deno-lint-ignore no-explicit-any
+    proc.kill("SIGTERM" as any);
   }
 }
