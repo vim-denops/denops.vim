@@ -77,16 +77,16 @@ function! denops#server#request(method, params) abort
 endfunction
 
 function! s:on_stdout(data) abort
-  if s:chan is# v:null
-    let addr = substitute(a:data, '\r\?\n$', '', 'g')
-    call denops#util#debug(printf('connect to `%s`', addr))
-    let s:chan = s:connect(addr)
-    doautocmd <nomodeline> User DenopsReady
+  if s:chan isnot# v:null
+    for line in split(a:data, '\n')
+      echomsg printf('[denops] %s', line)
+    endfor
     return
   endif
-  for line in split(a:data, '\n')
-    echomsg printf('[denops] %s', line)
-  endfor
+  let addr = substitute(a:data, '\r\?\n$', '', 'g')
+  call denops#util#debug(printf('connect to `%s`', addr))
+  let s:chan = s:connect(addr)
+  doautocmd <nomodeline> User DenopsReady
 endfunction
 
 function! s:on_stderr(data) abort
