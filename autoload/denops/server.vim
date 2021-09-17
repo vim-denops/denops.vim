@@ -193,7 +193,7 @@ endif
 let g:denops#server#deno = get(g:, 'denops#server#deno', g:denops#deno)
 let g:denops#server#deno_args = get(g:, 'denops#server#deno_args', filter([
       \ '-q',
-      \ g:denops#debug ? '' : '--no-check',
+      \ g:denops#type_check ? '' : '--no-check',
       \ '--unstable',
       \ '-A',
       \], { _, v -> !empty(v) }))
