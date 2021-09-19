@@ -270,17 +270,5 @@ DenopsStarted						*DenopsStarted*
 DenopsStopped						*DenopsStopped*
 	Invoked when a denops server is stopped.
 
-DenopsChannelStarted					*DenopsChannelStarted*
-	DEPRECATED: Use |DenopsStarted| instead.
-
-DenopsChannelStopped					*DenopsChannelStopped*
-	DEPRECATED: Use |DenopsStopped| instead.
-
-DenopsServiceStarted					*DenopsServiceStarted*
-	DEPRECATED: Use |DenopsStarted| instead.
-
-DenopsServiceStopped					*DenopsServiceStopped*
-	DEPRECATED: Use |DenopsStopped| instead.
-
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

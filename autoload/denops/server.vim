@@ -172,18 +172,6 @@ augroup denops_server_internal
   autocmd VimLeave * let s:vim_exiting = 1
 augroup END
 
-augroup denops_server_internal_deprecated
-  autocmd!
-  autocmd User DenopsStarted ++nested doautocmd <nomodeline> User DenopsChannelStarted
-  autocmd User DenopsStarted ++nested doautocmd <nomodeline> User DenopsServiceStarted
-  autocmd User DenopsStopped ++nested doautocmd <nomodeline> User DenopsChannelStopped
-  autocmd User DenopsStopped ++nested doautocmd <nomodeline> User DenopsServiceStopped
-  autocmd User DenopsChannelStarted :
-  autocmd User DenopsServiceStarted :
-  autocmd User DenopsChannelStopped :
-  autocmd User DenopsServiceStopped :
-augroup END
-
 let g:denops#server#deno = get(g:, 'denops#server#deno', g:denops#deno)
 let g:denops#server#deno_args = get(g:, 'denops#server#deno_args', filter([
       \ '-q',
