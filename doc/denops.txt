@@ -73,12 +73,6 @@ VARIABLE						*denops-variable*
 	Program arguments of Deno for starting a server.
 	Default: ['-q', '--no-check', '--unstable', '-A']
 
-*g:denops#server#service#deno*
-	DEPRECATED: Use |g:denops#server#deno| instead.
-
-*g:denops#server#service#deno_args*
-	DEPRECATED: Use |g:denops#server#deno_args| instead.
-
 *g:denops#plugin#wait_interval*
 	Interval in milliseconds for |denops#plugin#wait()|.
 	Default: 10
