@@ -212,8 +212,30 @@ denops#plugin#discover([{options}])
 	It uses same {options} as |denops#plugin#register()| except that the
 	default value of "mode" is "skip".
 
+						*denops#callback#register()*
+denops#callback#register({callback}[, {options}])
+	Register {callback} to internal callback map as an anonymous function
+	and return an unique {id} to call the {callback} later.
+	The following attributes are available on {options}.
+
+	"once"		|v:true| to register the callback as a one-time
+			anonymous function which will be removed when the 
+			callback has called. 
+			Default: |v:false|
+>
+	" Persistent callback
+	let id = denops#call#register({ a, b -> a + b })
+	let ret1 = denops#callback#call(id, 1, 2)
+	let ret2 = denops#callback#call(id, 2, 3)
+
+	" One-time callback
+	let id = denops#call#register({ a, b -> a + b }, { 'once': v:true })
+	let ret1 = denops#callback#call(id, 1, 2)
+<
 						*denops#callback#add()*
 denops#callback#add({callback}[, {options}])
+	DEPRECATED: Use |denops#callback#register()| instead.
+
 	Add {callback} to internal callback map as an anonymous function and
 	return an unique {id} to call the {callback} later.
 	The following attributes are available on {options}.
@@ -233,10 +255,17 @@ denops#callback#add({callback}[, {options}])
 	let ret1 = denops#callback#call(id, 1, 2)
 	let ret2 = denops#callback#call(id, 2, 3)
 <
+						*denops#callback#unregister()*
+denops#callback#unregister({id})
+	Unregister a callback of {id} from internal callback map. It does
+	nothing when no {id} callback exists.
 						*denops#callback#remove()*
 denops#callback#remove({id})
+	DEPRECATED: Use |denops#callback#unregister()| instead.
+
 	Remove a callback of {id} from internal callback map. It does nothing
 	when no {id} callback exists.
+
 
 						*denops#callback#call()*
 denops#callback#call({id}[, {args}...])
