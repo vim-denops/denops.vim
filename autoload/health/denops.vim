@@ -1,6 +1,6 @@
 let s:deno_version = '1.14.0'
 let s:vim_version = '8.2.0662'
-let s:neovim_version = '0.4.4'
+let s:neovim_version = '0.5.0'
 
 function! s:compare_version(v1, v2) abort
   let v1 = map(split(a:v1, '\.'), { _, v -> v + 0 })

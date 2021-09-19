@@ -5,7 +5,7 @@
 
 [![Deno 1.14.0 or above](https://img.shields.io/badge/Deno-Support%201.14.0-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v1.14.0)
 [![Vim 8.2.0662 or above](https://img.shields.io/badge/Vim-Support%208.2.0662-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v8.2.0662)
-[![Neovim 0.4.4 or above](https://img.shields.io/badge/Neovim-Support%200.4.4-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.4.4)
+[![Neovim 0.5.0 or above](https://img.shields.io/badge/Neovim-Support%200.5.0-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.5.0)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![deno land](http://img.shields.io/badge/available%20on-deno.land/x/denops__core-lightgrey.svg?logo=deno)](https://deno.land/x/denops_core)
