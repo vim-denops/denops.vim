@@ -1,8 +1,22 @@
 let s:registry = {}
 
 function! denops#callback#add(callback, ...) abort
+  call denops#util#warn('denops#callback#add is deprecated. Use denops#callback#register instead.')
   let options = extend({
         \ 'once': v:true,
+        \}, a:0 ? a:1 : {},
+        \)
+  return denops#callback#register(a:callback, options)
+endfunction
+
+function! denops#callback#remove(id) abort
+  call denops#util#warn('denops#callback#remove is deprecated. Use denops#callback#unregister instead.')
+  call denops#callback#unregister(a:id)
+endfunction
+
+function! denops#callback#register(callback, ...) abort
+  let options = extend({
+        \ 'once': v:false,
         \}, a:0 ? a:1 : {},
         \)
   let id = sha256(string(get(a:callback, 'func')))
@@ -13,7 +27,7 @@ function! denops#callback#add(callback, ...) abort
   return id
 endfunction
 
-function! denops#callback#remove(id) abort
+function! denops#callback#unregister(id) abort
   if !has_key(s:registry, a:id)
     return
   endif
