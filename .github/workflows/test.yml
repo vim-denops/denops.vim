@@ -70,7 +70,7 @@ jobs:
           - "1.14.0"
           - "1.x"
         host_version:
-          - vim: "v8.2.0662"
+          - vim: "v8.2.3081"
             nvim: "v0.5.0"
           - vim: "v8.2.3081"
             nvim: "v0.5.0"
