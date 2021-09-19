@@ -194,14 +194,6 @@ if exists('g:denops#server#service#deno_args')
   let g:denops#server#deno_args = g:denops#server#service#deno_args
 endif
 
-" Obsoleted
-if exists('g:denops#server#channel#deno')
-  call denops#util#warn('g:denops#server#channel#deno is obsoleted')
-endif
-if exists('g:denops#server#channel#deno_args')
-  call denops#util#warn('g:denops#server#channel#deno_args is obsoleted')
-endif
-
 let g:denops#server#deno = get(g:, 'denops#server#deno', g:denops#deno)
 let g:denops#server#deno_args = get(g:, 'denops#server#deno_args', filter([
       \ '-q',

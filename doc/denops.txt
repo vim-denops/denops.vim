@@ -73,12 +73,6 @@ VARIABLE						*denops-variable*
 	Program arguments of Deno for starting a server.
 	Default: ['-q', '--no-check', '--unstable', '-A']
 
-*g:denops#server#channel#deno*
-	OBSOLETED: A channel server is removed.
-
-*g:denops#server#channel#deno_args*
-	OBSOLETED: A channel server is removed.
-
 *g:denops#server#service#deno*
 	DEPRECATED: Use |g:denops#server#deno| instead.
 
