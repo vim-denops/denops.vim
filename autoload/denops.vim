@@ -25,7 +25,6 @@ call s:define('denops#deno', 'deno')
 call s:define('denops#debug', 0)
 call s:define('denops#trace', 0)
 call s:define('denops#type_check', 0)
-call s:define('denops#enable_workaround_vim_before_8_2_3081', 0)
 
 " Internal configuration
 call s:define('denops#_test', 0)
