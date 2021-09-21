@@ -41,7 +41,7 @@ function! denops#callback#call(id, ...) abort
   let entry = s:registry[a:id]
   let ret = call(entry.callback, a:000)
   if entry.options.once
-    call denops#callback#remove(a:id)
+    call denops#callback#unregister(a:id)
   endif
   return ret
 endfunction
