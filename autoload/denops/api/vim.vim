@@ -14,7 +14,7 @@ function! denops#api#vim#call(fn, args) abort
   try
     return [call(a:fn, a:args), '']
   catch
-    return [v:null, v:throwpoint . ': ' . v:exception]
+    return [v:null, v:exception . "\n" . v:throwpoint]
   finally
     call s:debounce_redraw()
   endtry
@@ -50,7 +50,7 @@ function! denops#api#vim#batch(calls) abort
     endfor
     return [results, '']
   catch
-    return [results, v:throwpoint . ': ' . v:exception]
+    return [results, v:exception . "\n" . v:throwpoint]
   finally
     call s:debounce_redraw()
   endtry
