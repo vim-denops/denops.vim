@@ -1,7 +1,7 @@
-export * as flags from "https://deno.land/std@0.107.0/flags/mod.ts";
-export * as path from "https://deno.land/std@0.107.0/path/mod.ts";
+export * as flags from "https://deno.land/std@0.108.0/flags/mod.ts";
+export * as path from "https://deno.land/std@0.108.0/path/mod.ts";
 
-export * from "https://deno.land/x/unknownutil@v0.1.1/mod.ts#^";
+export * from "https://deno.land/x/unknownutil@v1.1.2/mod.ts#^";
 
 export {
   WorkerReader,
@@ -17,7 +17,7 @@ export type {
   Message as VimMessage,
 } from "https://deno.land/x/vim_channel_command@v0.7.1/mod.ts#^";
 
-export { using } from "https://deno.land/x/disposable@v0.2.0/mod.ts#^";
-export type { Disposable } from "https://deno.land/x/disposable@v0.2.0/mod.ts#^";
+export { using } from "https://deno.land/x/disposable@v1.0.0/mod.ts#^";
+export type { Disposable } from "https://deno.land/x/disposable@v1.0.0/mod.ts#^";
 
 export { Lock } from "https://deno.land/x/async@v1.1.3/mod.ts#^";
