@@ -172,36 +172,6 @@ augroup denops_server_internal
   autocmd VimLeave * let s:vim_exiting = 1
 augroup END
 
-augroup denops_server_internal_deprecated
-  autocmd!
-  autocmd User DenopsStarted ++nested doautocmd <nomodeline> User DenopsChannelStarted
-  autocmd User DenopsStarted ++nested doautocmd <nomodeline> User DenopsServiceStarted
-  autocmd User DenopsStopped ++nested doautocmd <nomodeline> User DenopsChannelStopped
-  autocmd User DenopsStopped ++nested doautocmd <nomodeline> User DenopsServiceStopped
-  autocmd User DenopsChannelStarted :
-  autocmd User DenopsServiceStarted :
-  autocmd User DenopsChannelStopped :
-  autocmd User DenopsServiceStopped :
-augroup END
-
-" Deprecated
-if exists('g:denops#server#service#deno')
-  call denops#util#warn('g:denops#server#service#deno is deprecated. Use g:denops#server#deno instead')
-  let g:denops#server#deno = g:denops#server#service#deno
-endif
-if exists('g:denops#server#service#deno_args')
-  call denops#util#warn('g:denops#server#service#deno_args is deprecated. Use g:denops#server#deno_args instead')
-  let g:denops#server#deno_args = g:denops#server#service#deno_args
-endif
-
-" Obsoleted
-if exists('g:denops#server#channel#deno')
-  call denops#util#warn('g:denops#server#channel#deno is obsoleted')
-endif
-if exists('g:denops#server#channel#deno_args')
-  call denops#util#warn('g:denops#server#channel#deno_args is obsoleted')
-endif
-
 let g:denops#server#deno = get(g:, 'denops#server#deno', g:denops#deno)
 let g:denops#server#deno_args = get(g:, 'denops#server#deno_args', filter([
       \ '-q',

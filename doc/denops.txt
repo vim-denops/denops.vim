@@ -65,19 +65,6 @@ VARIABLE						*denops-variable*
 
 	Default: 0
 
-*g:denops#enable_workaround_vim_before_8_2_3081*
-	Set 1 to enable workaround implementation for operations in Vim before
-	8.2.3081. Without this workaround, any errors occurred in operations
-	are ignored thus denops and denops plugins cannot detect errors.
-	However, with this workaround, interactive features (such as |input()|)
-	would always returns |v:null| so break plugins which relies on it.
-	Note that if you are using Vim 8.2.3081 or later, this option does
-	nothing.
-	https://github.com/vim/vim/pull/8477
-	https://github.com/vim-denops/denops.vim/issues/93
-
-	Default: 0
-
 *g:denops#server#deno*
 	Executable program of Deno for starting a server.
 	Default: |g:denops#deno|
@@ -85,18 +72,6 @@ VARIABLE						*denops-variable*
 *g:denops#server#deno_args*
 	Program arguments of Deno for starting a server.
 	Default: ['-q', '--no-check', '--unstable', '-A']
-
-*g:denops#server#channel#deno*
-	OBSOLETED: A channel server is removed.
-
-*g:denops#server#channel#deno_args*
-	OBSOLETED: A channel server is removed.
-
-*g:denops#server#service#deno*
-	DEPRECATED: Use |g:denops#server#deno| instead.
-
-*g:denops#server#service#deno_args*
-	DEPRECATED: Use |g:denops#server#deno_args| instead.
 
 *g:denops#plugin#wait_interval*
 	Interval in milliseconds for |denops#plugin#wait()|.
@@ -186,10 +161,6 @@ denops#plugin#register({plugin}[, {script}[, {options}]])
 	searched from |runtimepath| like discover.
 	The following attributes are available on {options}.
 
-	"reload"	|v:true| to reload a {plugin} plugin if it is already
-			registered.
-			DEPRECATED: Use "mode" option instead.
-
 	"mode"		|String| to regulate the behavior of registration when
 			a {plugin} plugin is already registered.
 
@@ -232,40 +203,10 @@ denops#callback#register({callback}[, {options}])
 	let id = denops#call#register({ a, b -> a + b }, { 'once': v:true })
 	let ret1 = denops#callback#call(id, 1, 2)
 <
-						*denops#callback#add()*
-denops#callback#add({callback}[, {options}])
-	DEPRECATED: Use |denops#callback#register()| instead.
-
-	Add {callback} to internal callback map as an anonymous function and
-	return an unique {id} to call the {callback} later.
-	The following attributes are available on {options}.
-
-	"once"		|v:true| to add the callback as a one-time anonymous
-			function which will be removed when the callback has
-			called. It is a default behavior due to backward
-			compatibility. Use |v:false| to make the callback
-			persistent.
->
-	" One-time callback
-	let id = denops#call#add({ a, b -> a + b })
-	let ret = denops#callback#call(id, 1, 2)
-
-	" Persistent callback
-	let id = denops#call#add({ a, b -> a + b }, { 'once': v:false })
-	let ret1 = denops#callback#call(id, 1, 2)
-	let ret2 = denops#callback#call(id, 2, 3)
-<
 						*denops#callback#unregister()*
 denops#callback#unregister({id})
 	Unregister a callback of {id} from internal callback map. It does
 	nothing when no {id} callback exists.
-						*denops#callback#remove()*
-denops#callback#remove({id})
-	DEPRECATED: Use |denops#callback#unregister()| instead.
-
-	Remove a callback of {id} from internal callback map. It does nothing
-	when no {id} callback exists.
-
 
 						*denops#callback#call()*
 denops#callback#call({id}[, {args}...])
@@ -298,18 +239,6 @@ DenopsStarted						*DenopsStarted*
 
 DenopsStopped						*DenopsStopped*
 	Invoked when a denops server is stopped.
-
-DenopsChannelStarted					*DenopsChannelStarted*
-	DEPRECATED: Use |DenopsStarted| instead.
-
-DenopsChannelStopped					*DenopsChannelStopped*
-	DEPRECATED: Use |DenopsStopped| instead.
-
-DenopsServiceStarted					*DenopsServiceStarted*
-	DEPRECATED: Use |DenopsStarted| instead.
-
-DenopsServiceStopped					*DenopsServiceStopped*
-	DEPRECATED: Use |DenopsStopped| instead.
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

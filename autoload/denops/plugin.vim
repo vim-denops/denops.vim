@@ -73,10 +73,6 @@ endfunction
 
 function! s:options(base, default) abort
   let options = extend(a:default, a:base)
-  if has_key(options, 'reload')
-    call denops#util#warn('The "reload" option is deprecated. Use "mode" option instead.')
-    let options.mode = 'reload'
-  endif
   if options.mode !~# '^\(reload\|skip\|error\)$'
     throw printf('Unknown mode "%s" is specified', options.mode)
   endif
