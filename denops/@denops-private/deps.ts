@@ -6,9 +6,9 @@ export * from "https://deno.land/x/unknownutil@v0.1.1/mod.ts#^";
 export {
   WorkerReader,
   WorkerWriter,
-} from "https://deno.land/x/workerio@v1.4.0/mod.ts#^";
+} from "https://deno.land/x/workerio@v1.4.1/mod.ts#^";
 
-export { Session } from "https://deno.land/x/msgpack_rpc@v3.1.0/mod.ts#^";
+export { Session } from "https://deno.land/x/msgpack_rpc@v3.1.1/mod.ts#^";
 
 export {
   Session as VimSession,
@@ -20,4 +20,4 @@ export type {
 export { using } from "https://deno.land/x/disposable@v0.2.0/mod.ts#^";
 export type { Disposable } from "https://deno.land/x/disposable@v0.2.0/mod.ts#^";
 
-export { Lock } from "https://deno.land/x/async@v1.1.2/mod.ts#^";
+export { Lock } from "https://deno.land/x/async@v1.1.3/mod.ts#^";
