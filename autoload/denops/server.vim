@@ -116,6 +116,7 @@ function! s:on_exit(status, ...) abort dict
         \ a:status,
         \))
   call denops#server#start()
+  call denops#util#info('Server is restarted.')
 endfunction
 
 if has('nvim')
