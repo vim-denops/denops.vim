@@ -1,5 +1,6 @@
 let s:script = denops#util#script_path('@denops-private', 'cli.ts')
 let s:engine = has('nvim') ? 'nvim' : 'vim'
+let s:vim_exiting = 0
 let s:stopped_on_purpose = 0
 let s:job = v:null
 let s:chan = v:null
@@ -108,7 +109,7 @@ function! s:on_exit(status, ...) abort dict
   let s:chan = v:null
   call denops#util#debug(printf('Server stopped: %s', a:status))
   doautocmd <nomodeline> User DenopsStopped
-  if s:stopped_on_purpose || v:dying || v:exiting
+  if s:stopped_on_purpose || v:dying || s:vim_exiting
     return
   endif
   " Restart asynchronously to avoid #136
@@ -174,6 +175,7 @@ augroup denops_server_internal
   autocmd User DenopsStarted :
   autocmd User DenopsStopped :
   autocmd User DenopsReady :
+  autocmd VimLeave * let s:vim_exiting = 1
 augroup END
 
 let g:denops#server#deno = get(g:, 'denops#server#deno', g:denops#deno)
