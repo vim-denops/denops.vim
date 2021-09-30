@@ -109,7 +109,7 @@ function! s:on_exit(status, ...) abort dict
   let s:chan = v:null
   call denops#util#debug(printf('Server stopped: %s', a:status))
   doautocmd <nomodeline> User DenopsStopped
-  if s:stopped_on_purpose || v:dying || s:vim_exiting
+  if s:stopped_on_purpose || v:dying || v:exiting || s:vim_exiting
     return
   endif
   " Restart asynchronously to avoid #136
