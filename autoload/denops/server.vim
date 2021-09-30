@@ -111,6 +111,11 @@ function! s:on_exit(status, ...) abort dict
   if s:stopped_on_purpose || v:dying || v:exiting
     return
   endif
+  " Restart asynchronously to avoid #136
+  call timer_start(0, { -> s:restart(a:status) })
+endfunction
+
+function! s:restart(status) abort
   call denops#util#warn(printf(
         \ 'Server stopped (%d). Restarting...',
         \ a:status,
