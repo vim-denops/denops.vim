@@ -43,13 +43,12 @@ Plug 'vim-denops/denops.vim'
 Plug 'vim-denops/denops-helloworld.vim'
 ```
 
-Then you can confirm if denops is working properly by executing `HelloDenops`
+Then you can confirm if denops is working properly by executing `DenopsHello`
 command like:
 
 ```vim
-:HelloDenops
-Your name: John
-Hello Denops. Your name is John. This is nvim
+:DenopsHello
+Hello
 ```
 
 Once you've confirmed that denops is working, you can remove
