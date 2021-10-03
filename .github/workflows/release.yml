@@ -1,0 +1,27 @@
+name: release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # NOTE:
+        # The token must have `Write` privilege of the repositories below
+        repo:
+          - vim-denops/denops-dockerfile
+    steps:
+      - uses: benc-uk/workflow-dispatch@v1.1
+        with:
+          workflow: Build
+          repo: ${{ matrix.repo }}
+          ref: refs/heads/main
+          token: ${{ secrets.PA_TOKEN }}
+          inputs: |
+            {
+              "denops_version": ${{ toJSON(github.sha) }}
+            }
