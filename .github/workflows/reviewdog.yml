@@ -5,11 +5,11 @@ on:
     branches:
       - main
     paths:
-      - "**/*.vim"
+      - "**.vim"
       - ".github/workflows/reviewdog.yml"
   pull_request:
     paths:
-      - "**/*.vim"
+      - "**.vim"
       - ".github/workflows/reviewdog.yml"
 
 jobs:
