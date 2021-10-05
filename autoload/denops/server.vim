@@ -113,7 +113,7 @@ function! s:on_exit(status, ...) abort dict
     return
   endif
   " Restart asynchronously to avoid #136
-  call timer_start(0, { -> s:restart(a:status) })
+  call timer_start(g:denops#server#restart_delay, { -> s:restart(a:status) })
 endfunction
 
 function! s:restart(status) abort
@@ -185,3 +185,4 @@ let g:denops#server#deno_args = get(g:, 'denops#server#deno_args', filter([
       \ '--unstable',
       \ '-A',
       \], { _, v -> !empty(v) }))
+let g:denops#server#restart_delay = get(g:, 'denops#server#restart_delay', 100)
