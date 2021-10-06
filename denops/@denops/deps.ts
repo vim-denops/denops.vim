@@ -1,5 +1,5 @@
-export * as path from "https://deno.land/std@0.109.0/path/mod.ts";
-export { copy } from "https://deno.land/std@0.109.0/io/util.ts";
+export * as path from "https://deno.land/std@0.110.0/path/mod.ts";
+export { copy } from "https://deno.land/std@0.110.0/io/util.ts";
 
 export type { Dispatcher } from "https://deno.land/x/msgpack_rpc@v3.1.3/mod.ts#^";
 export { Session } from "https://deno.land/x/msgpack_rpc@v3.1.3/mod.ts#^";
