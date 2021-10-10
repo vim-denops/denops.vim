@@ -1,8 +1,9 @@
-name: udd
+name: Update
 
 on:
   schedule:
     - cron: "0 0 * * *"
+  workflow_dispatch:
 
 jobs:
   udd:
@@ -12,17 +13,40 @@ jobs:
       - uses: denoland/setup-deno@v1
         with:
           deno-version: "1.x"
-      - run: |
+      - name: Update dependencies
+        run: |
           make tools
-          make update
+          make update > ../output.txt
+        env:
+          NO_COLOR: 1
+      - name: Read ../output.txt
+        id: log
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: ../output.txt
+      - name: Commit changes
+        run: |
+          git config user.name '${{ github.actor }}'
+          git config user.email '${{ github.actor }}@users.noreply.github.com'
+          git commit -a -F- <<EOM
+          :package: Update Deno dependencies
+
+          Update dependencies by udd:
+
+          ${{ steps.log.outputs.content }}
+
+          EOM
       - uses: peter-evans/create-pull-request@v3
         with:
-          commit-message: ":package: Update deno dependencies"
-          title: ":package: Update deno dependencies"
+          title: ":package: Update Deno dependencies"
           body: |
-            Automated updates by [deno-udd](https://github.com/hayd/deno-udd)
-            and [create-pull-request](https://github.com/peter-evans/create-pull-request)
-            GitHub action
-          branch: update-deno-dependencies
-          author: GitHub <noreply@github.com>
+            The output of `make update` is
+
+            ```
+            ${{ steps.log.outputs.content }}
+            ```
+          labels: automation
+          branch: automation/update-dependencies
+          branch-suffix: timestamp
           delete-branch: true
+          token: "${{ secrets.PA_TOKEN }}"
