@@ -41,7 +41,7 @@ function! denops#plugin#register(plugin, ...) abort
   endif
   let meta = denops#util#meta()
   let options = s:options(options, {
-        \ 'mode': 'error',
+        \ 'mode': 'reload',
         \})
   return s:register(a:plugin, script, meta, options)
 endfunction
