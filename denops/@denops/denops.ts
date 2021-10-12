@@ -36,6 +36,23 @@ export class BatchError extends Error {
 }
 
 /**
+ * Asynchronous storage interface
+ */
+export interface AsyncStorage {
+  readonly length: Promise<number>;
+
+  clear(): Promise<void>;
+
+  getItem(key: string): Promise<string | null>;
+
+  key(index: number): Promise<string | null>;
+
+  removeItem(key: string): Promise<void>;
+
+  setItem(key: string, value: string): Promise<void>;
+}
+
+/**
  * Denpos is a facade instance visible from each denops plugins.
  */
 export interface Denops {
@@ -48,6 +65,16 @@ export interface Denops {
    * Environment meta information.
    */
   readonly meta: Meta;
+
+  /**
+   * Local storage of denops main thread
+   */
+  readonly localStorage: AsyncStorage;
+
+  /**
+   * Session storage of denops main thread
+   */
+  readonly sessionStorage: AsyncStorage;
 
   /**
    * User defined API name and method map which is used to dispatch API request
@@ -118,6 +145,9 @@ function normArgs(args: unknown[]): unknown[] {
 export class DenopsImpl implements Denops {
   readonly name: string;
   readonly meta: Meta;
+  readonly localStorage: AsyncStorage;
+  readonly sessionStorage: AsyncStorage;
+
   #session: Session;
 
   constructor(
@@ -127,6 +157,8 @@ export class DenopsImpl implements Denops {
   ) {
     this.name = name;
     this.meta = meta;
+    this.localStorage = new AsyncStorageImpl("local", session);
+    this.sessionStorage = new AsyncStorageImpl("session", session);
     this.#session = session;
   }
 
@@ -173,5 +205,45 @@ export class DenopsImpl implements Denops {
     ...args: unknown[]
   ): Promise<unknown> {
     return await this.#session.call("dispatch", name, fn, ...args);
+  }
+}
+
+class AsyncStorageImpl implements AsyncStorage {
+  #name: "local" | "session";
+  #session: Session;
+
+  constructor(name: "local" | "session", session: Session) {
+    this.#name = name;
+    this.#session = session;
+  }
+
+  get length() {
+    return this.#session.call(`${this.#name}Storage:length`) as Promise<number>;
+  }
+
+  async clear() {
+    await this.#session.call(`${this.#name}Storage:clear`);
+  }
+
+  async getItem(key: string) {
+    return await this.#session.call(
+      `${this.#name}Storage:getItem`,
+      key,
+    ) as Promise<string>;
+  }
+
+  async key(index: number) {
+    return await this.#session.call(
+      `${this.#name}Storage:key`,
+      index,
+    ) as Promise<string>;
+  }
+
+  async removeItem(key: string) {
+    await this.#session.call(`${this.#name}Storage:removeItem`, key);
+  }
+
+  async setItem(key: string, value: string) {
+    await this.#session.call(`${this.#name}Storage:setItem`, key, value);
   }
 }

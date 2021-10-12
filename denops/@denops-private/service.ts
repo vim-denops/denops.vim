@@ -1,5 +1,6 @@
 import {
   ensureArray,
+  ensureNumber,
   ensureString,
   isArray,
   isString,
@@ -83,6 +84,60 @@ export class Service {
         ensureString(fn);
         ensureArray(args);
         return await this.dispatch(name, fn, args);
+      },
+
+      "localStorage:length": () => {
+        return Promise.resolve(localStorage.length);
+      },
+      "localStorage:clear": () => {
+        localStorage.clear();
+        return Promise.resolve();
+      },
+      "localStorage:getItem": (key) => {
+        ensureString(key);
+        return Promise.resolve(localStorage.getItem(key));
+      },
+      "localStorage:key": (index) => {
+        ensureNumber(index);
+        return Promise.resolve(localStorage.key(index));
+      },
+      "localStorage:removeItem": (key) => {
+        ensureString(key);
+        localStorage.removeItem(key);
+        return Promise.resolve();
+      },
+      "localStorage:setItem": (key, value) => {
+        ensureString(key);
+        ensureString(value);
+        localStorage.setItem(key, value);
+        return Promise.resolve();
+      },
+
+      "sessionStorage:length": () => {
+        return Promise.resolve(sessionStorage.length);
+      },
+      "sessionStorage:clear": () => {
+        sessionStorage.clear();
+        return Promise.resolve();
+      },
+      "sessionStorage:getItem": (key) => {
+        ensureString(key);
+        return Promise.resolve(sessionStorage.getItem(key));
+      },
+      "sessionStorage:key": (index) => {
+        ensureNumber(index);
+        return Promise.resolve(sessionStorage.key(index));
+      },
+      "sessionStorage:removeItem": (key) => {
+        ensureString(key);
+        sessionStorage.removeItem(key);
+        return Promise.resolve();
+      },
+      "sessionStorage:setItem": (key, value) => {
+        ensureString(key);
+        ensureString(value);
+        sessionStorage.setItem(key, value);
+        return Promise.resolve();
       },
     }, {
       responseTimeout,
