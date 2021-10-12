@@ -169,9 +169,9 @@ denops#plugin#register({plugin}[, {script}[, {options}]])
 	"mode"		|String| to regulate the behavior of registration when
 			a {plugin} plugin is already registered.
 
-			"reload"	Reload the plugin. (Default)
+			"error"		Throw an error. (Default)
 			"skip"		Skip plugin registration.
-			"error"		Throw an error.
+			"reload"	Reload the plugin.
 
 	It invokes |User| |DenopsPluginPre|:{plugin} just before denops
 	execute a "main" function of the plugin and |User|
