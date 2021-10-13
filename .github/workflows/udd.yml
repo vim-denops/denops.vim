@@ -47,6 +47,5 @@ jobs:
             ```
           labels: automation
           branch: automation/update-dependencies
-          branch-suffix: timestamp
           delete-branch: true
           token: "${{ secrets.PA_TOKEN }}"
