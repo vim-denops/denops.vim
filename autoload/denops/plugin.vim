@@ -59,15 +59,12 @@ function! denops#plugin#discover(...) abort
 endfunction
 
 function! s:gather_plugins(plugins) abort
-  for runtimepath in split(&runtimepath, ',')
-    let expr = denops#util#join_path(expand(runtimepath), 'denops', '*', 'main.ts')
-    for script in glob(expr, 1, 1, 1)
-      let plugin = fnamemodify(script, ':h:t')
-      if plugin[:0] ==# '@' || has_key(a:plugins, plugin)
-        continue
-      endif
-      call extend(a:plugins, { plugin : script })
-    endfor
+  for script in globpath(&runtimepath, denops#util#join_path('denops', '*', 'main.ts'), 1, 1, 1)
+    let plugin = fnamemodify(script, ':h:t')
+    if plugin[:0] ==# '@' || has_key(a:plugins, plugin)
+      continue
+    endif
+    call extend(a:plugins, { plugin : script })
   endfor
 endfunction
 
