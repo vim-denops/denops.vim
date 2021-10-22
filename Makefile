@@ -27,10 +27,8 @@ test: FORCE	## Test
 	@deno test --unstable -A --no-check --jobs
 
 build: FORCE	## Build
-	@deno bundle --unstable ./denops/@denops-private/cli.ts \
-		| npx esbuild --minify > ./denops/@denops-private/cli.bundle.js
-	@deno bundle --unstable ./denops/@denops-private/worker/script.ts \
-		| npx esbuild --minify > ./denops/@denops-private/worker/script.bundle.js
+	@deno bundle --unstable ./denops/@denops-private/cli.ts ./denops/@denops-private/cli.bundle.js
+	@deno bundle --unstable ./denops/@denops-private/worker/script.ts ./denops/@denops-private/worker/script.bundle.js
 
 update: FORCE	## Update dependencies
 	@${TOOLS}/bin/udd $$(find . -name '*.ts' -not -name '.deno')

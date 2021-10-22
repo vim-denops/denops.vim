@@ -1,3 +1,6966 @@
-class DenoStdInternalError extends Error{constructor(e){super(e);this.name="DenoStdInternalError"}}function assert(t,e=""){if(!t)throw new DenoStdInternalError(e)}const{hasOwn}=Object;function get(t,e){if(hasOwn(t,e))return t[e]}function getForce(t,e){const r=get(t,e);return assert(r!=null),r}function isNumber(t){return typeof t=="number"||/^0x[0-9a-f]+$/i.test(String(t))?!0:/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(e[-+]?\d+)?$/.test(String(t))}function hasKey(t,e){let r=t;return e.slice(0,-1).forEach(s=>{r=get(r,s)??{}}),e[e.length-1]in r}function parse(t,{"--":e=!1,alias:r={},boolean:i=!1,default:s={},stopEarly:n=!1,string:o=[],unknown:a=h=>h}={}){const h={bools:{},strings:{},unknownFn:a,allBools:!1};if(i!==void 0)if(typeof i=="boolean")h.allBools=!!i;else{const d=typeof i=="string"?[i]:i;for(const w of d.filter(Boolean))h.bools[w]=!0}const l={};if(r!==void 0)for(const d in r){const w=getForce(r,d);typeof w=="string"?l[d]=[w]:l[d]=w;for(const y of getForce(l,d))l[y]=[d].concat(l[d].filter(E=>y!==E))}if(o!==void 0){const d=typeof o=="string"?[o]:o;for(const w of d.filter(Boolean)){h.strings[w]=!0;const y=get(l,w);if(y)for(const E of y)h.strings[E]=!0}}const c={_:[]};function f(d,w){return h.allBools&&/^--[^=]+$/.test(w)||get(h.bools,d)||!!get(h.strings,d)||!!get(l,d)}function u(d,w,y){let E=d;w.slice(0,-1).forEach(function(T){get(E,T)===void 0&&(E[T]={}),E=get(E,T)});const L=w[w.length-1];get(E,L)===void 0||get(h.bools,L)||typeof get(E,L)=="boolean"?E[L]=y:Array.isArray(get(E,L))?E[L].push(y):E[L]=[get(E,L),y]}function A(d,w,y=void 0){if(y&&h.unknownFn&&!f(d,y)&&h.unknownFn(y,d,w)===!1)return;const E=!get(h.strings,d)&&isNumber(w)?Number(w):w;u(c,d.split("."),E);const L=get(l,d);if(L)for(const T of L)u(c,T.split("."),E)}function _(d){return getForce(l,d).some(w=>typeof get(h.bools,w)=="boolean")}for(const d of Object.keys(h.bools))A(d,s[d]===void 0?!1:s[d]);let b=[];t.includes("--")&&(b=t.slice(t.indexOf("--")+1),t=t.slice(0,t.indexOf("--")));for(let d=0;d<t.length;d++){const w=t[d];if(/^--.+=/.test(w)){const y=w.match(/^--([^=]+)=(.*)$/s);assert(y!=null);const[,E,L]=y;h.bools[E]?A(E,L!=="false",w):A(E,L,w)}else if(/^--no-.+/.test(w)){const y=w.match(/^--no-(.+)/);assert(y!=null),A(y[1],!1,w)}else if(/^--.+/.test(w)){const y=w.match(/^--(.+)/);assert(y!=null);const[,E]=y,L=t[d+1];L!==void 0&&!/^-/.test(L)&&!get(h.bools,E)&&!h.allBools&&(get(l,E)?!_(E):!0)?(A(E,L,w),d++):/^(true|false)$/.test(L)?(A(E,L==="true",w),d++):A(E,get(h.strings,E)?"":!0,w)}else if(/^-[^-]+/.test(w)){const y=w.slice(1,-1).split("");let E=!1;for(let T=0;T<y.length;T++){const g=w.slice(T+2);if(g==="-"){A(y[T],g,w);continue}if(/[A-Za-z]/.test(y[T])&&/=/.test(g)){A(y[T],g.split(/=(.+)/)[1],w),E=!0;break}if(/[A-Za-z]/.test(y[T])&&/-?\d+(\.\d*)?(e-?\d+)?$/.test(g)){A(y[T],g,w),E=!0;break}if(y[T+1]&&y[T+1].match(/\W/)){A(y[T],w.slice(T+2),w),E=!0;break}else A(y[T],get(h.strings,y[T])?"":!0,w)}const[L]=w.slice(-1);!E&&L!=="-"&&(t[d+1]&&!/^(-|--)[^-]/.test(t[d+1])&&!get(h.bools,L)&&(get(l,L)?!_(L):!0)?(A(L,t[d+1],w),d++):t[d+1]&&/^(true|false)$/.test(t[d+1])?(A(L,t[d+1]==="true",w),d++):A(L,get(h.strings,L)?"":!0,w))}else if((!h.unknownFn||h.unknownFn(w)!==!1)&&c._.push(h.strings._??!isNumber(w)?w:Number(w)),n){c._.push(...t.slice(d+1));break}}for(const d of Object.keys(s))if(!hasKey(c,d.split("."))&&(u(c,d.split("."),s[d]),l[d]))for(const w of l[d])u(c,w.split("."),s[d]);if(e){c["--"]=[];for(const d of b)c["--"].push(d)}else for(const d of b)c._.push(d);return c}const mod={parse},osType=(()=>{const{Deno:t}=globalThis;if(typeof t?.build?.os=="string")return t.build.os;const{navigator:e}=globalThis;return e?.appVersion?.includes?.("Win")??!1?"windows":"linux"})(),isWindows=osType==="windows",CHAR_FORWARD_SLASH=47;function assertPath(t){if(typeof t!="string")throw new TypeError(`Path must be a string. Received ${JSON.stringify(t)}`)}function isPosixPathSeparator(t){return t===47}function isPathSeparator(t){return isPosixPathSeparator(t)||t===92}function isWindowsDeviceRoot(t){return t>=97&&t<=122||t>=65&&t<=90}function normalizeString(t,e,r,i){let s="",n=0,o=-1,a=0,h;for(let l=0,c=t.length;l<=c;++l){if(l<c)h=t.charCodeAt(l);else{if(i(h))break;h=CHAR_FORWARD_SLASH}if(i(h)){if(!(o===l-1||a===1))if(o!==l-1&&a===2){if(s.length<2||n!==2||s.charCodeAt(s.length-1)!==46||s.charCodeAt(s.length-2)!==46){if(s.length>2){const f=s.lastIndexOf(r);f===-1?(s="",n=0):(s=s.slice(0,f),n=s.length-1-s.lastIndexOf(r)),o=l,a=0;continue}else if(s.length===2||s.length===1){s="",n=0,o=l,a=0;continue}}e&&(s.length>0?s+=`${r}..`:s="..",n=2)}else s.length>0?s+=r+t.slice(o+1,l):s=t.slice(o+1,l),n=l-o-1;o=l,a=0}else h===46&&a!==-1?++a:a=-1}return s}function _format(t,e){const r=e.dir||e.root,i=e.base||(e.name||"")+(e.ext||"");return r?r===e.root?r+i:r+t+i:i}const WHITESPACE_ENCODINGS={"	":"%09","\n":"%0A","\v":"%0B","\f":"%0C","\r":"%0D"," ":"%20"};function encodeWhitespace(t){return t.replaceAll(/[\s]/g,e=>WHITESPACE_ENCODINGS[e]??e)}const sep="\\",delimiter=";";function resolve(...t){let e="",r="",i=!1;for(let s=t.length-1;s>=-1;s--){let n;const{Deno:o}=globalThis;if(s>=0)n=t[s];else if(e){if(typeof o?.env?.get!="function"||typeof o?.cwd!="function")throw new TypeError("Resolved a relative path without a CWD.");n=o.cwd(),(n===void 0||n.slice(0,3).toLowerCase()!==`${e.toLowerCase()}\\`)&&(n=`${e}\\`)}else{if(typeof o?.cwd!="function")throw new TypeError("Resolved a drive-letter-less path without a CWD.");n=o.cwd()}assertPath(n);const a=n.length;if(a===0)continue;let h=0,l="",c=!1;const f=n.charCodeAt(0);if(a>1)if(isPathSeparator(f))if(c=!0,isPathSeparator(n.charCodeAt(1))){let u=2,A=u;for(;u<a&&!isPathSeparator(n.charCodeAt(u));++u);if(u<a&&u!==A){const _=n.slice(A,u);for(A=u;u<a&&isPathSeparator(n.charCodeAt(u));++u);if(u<a&&u!==A){for(A=u;u<a&&!isPathSeparator(n.charCodeAt(u));++u);u===a?(l=`\\\\${_}\\${n.slice(A)}`,h=u):u!==A&&(l=`\\\\${_}\\${n.slice(A,u)}`,h=u)}}}else h=1;else isWindowsDeviceRoot(f)&&n.charCodeAt(1)===58&&(l=n.slice(0,2),h=2,a>2&&isPathSeparator(n.charCodeAt(2))&&(c=!0,h=3));else isPathSeparator(f)&&(h=1,c=!0);if(!(l.length>0&&e.length>0&&l.toLowerCase()!==e.toLowerCase())&&(e.length===0&&l.length>0&&(e=l),i||(r=`${n.slice(h)}\\${r}`,i=c),i&&e.length>0))break}return r=normalizeString(r,!i,"\\",isPathSeparator),e+(i?"\\":"")+r||"."}function normalize(t){assertPath(t);const e=t.length;if(e===0)return".";let r=0,i,s=!1;const n=t.charCodeAt(0);if(e>1)if(isPathSeparator(n))if(s=!0,isPathSeparator(t.charCodeAt(1))){let a=2,h=a;for(;a<e&&!isPathSeparator(t.charCodeAt(a));++a);if(a<e&&a!==h){const l=t.slice(h,a);for(h=a;a<e&&isPathSeparator(t.charCodeAt(a));++a);if(a<e&&a!==h){for(h=a;a<e&&!isPathSeparator(t.charCodeAt(a));++a);if(a===e)return`\\\\${l}\\${t.slice(h)}\\`;a!==h&&(i=`\\\\${l}\\${t.slice(h,a)}`,r=a)}}}else r=1;else isWindowsDeviceRoot(n)&&t.charCodeAt(1)===58&&(i=t.slice(0,2),r=2,e>2&&isPathSeparator(t.charCodeAt(2))&&(s=!0,r=3));else if(isPathSeparator(n))return"\\";let o;return r<e?o=normalizeString(t.slice(r),!s,"\\",isPathSeparator):o="",o.length===0&&!s&&(o="."),o.length>0&&isPathSeparator(t.charCodeAt(e-1))&&(o+="\\"),i===void 0?s?o.length>0?`\\${o}`:"\\":o.length>0?o:"":s?o.length>0?`${i}\\${o}`:`${i}\\`:o.length>0?i+o:i}function isAbsolute(t){assertPath(t);const e=t.length;if(e===0)return!1;const r=t.charCodeAt(0);return isPathSeparator(r)?!0:!!(isWindowsDeviceRoot(r)&&e>2&&t.charCodeAt(1)===58&&isPathSeparator(t.charCodeAt(2)))}function join(...t){const e=t.length;if(e===0)return".";let r,i=null;for(let o=0;o<e;++o){const a=t[o];assertPath(a),a.length>0&&(r===void 0?r=i=a:r+=`\\${a}`)}if(r===void 0)return".";let s=!0,n=0;if(assert(i!=null),isPathSeparator(i.charCodeAt(0))){++n;const o=i.length;o>1&&isPathSeparator(i.charCodeAt(1))&&(++n,o>2&&(isPathSeparator(i.charCodeAt(2))?++n:s=!1))}if(s){for(;n<r.length&&isPathSeparator(r.charCodeAt(n));++n);n>=2&&(r=`\\${r.slice(n)}`)}return normalize(r)}function relative(t,e){if(assertPath(t),assertPath(e),t===e)return"";const r=resolve(t),i=resolve(e);if(r===i||(t=r.toLowerCase(),e=i.toLowerCase(),t===e))return"";let s=0,n=t.length;for(;s<n&&t.charCodeAt(s)===92;++s);for(;n-1>s&&t.charCodeAt(n-1)===92;--n);const o=n-s;let a=0,h=e.length;for(;a<h&&e.charCodeAt(a)===92;++a);for(;h-1>a&&e.charCodeAt(h-1)===92;--h);const l=h-a,c=o<l?o:l;let f=-1,u=0;for(;u<=c;++u){if(u===c){if(l>c){if(e.charCodeAt(a+u)===92)return i.slice(a+u+1);if(u===2)return i.slice(a+u)}o>c&&(t.charCodeAt(s+u)===92?f=u:u===2&&(f=3));break}const _=t.charCodeAt(s+u),b=e.charCodeAt(a+u);if(_!==b)break;_===92&&(f=u)}if(u!==c&&f===-1)return i;let A="";for(f===-1&&(f=0),u=s+f+1;u<=n;++u)(u===n||t.charCodeAt(u)===92)&&(A.length===0?A+="..":A+="\\..");return A.length>0?A+i.slice(a+f,h):(a+=f,i.charCodeAt(a)===92&&++a,i.slice(a,h))}function toNamespacedPath(t){if(typeof t!="string")return t;if(t.length===0)return"";const e=resolve(t);if(e.length>=3){if(e.charCodeAt(0)===92){if(e.charCodeAt(1)===92){const r=e.charCodeAt(2);if(r!==63&&r!==46)return`\\\\?\\UNC\\${e.slice(2)}`}}else if(isWindowsDeviceRoot(e.charCodeAt(0))&&e.charCodeAt(1)===58&&e.charCodeAt(2)===92)return`\\\\?\\${e}`}return t}function dirname(t){assertPath(t);const e=t.length;if(e===0)return".";let r=-1,i=-1,s=!0,n=0;const o=t.charCodeAt(0);if(e>1)if(isPathSeparator(o)){if(r=n=1,isPathSeparator(t.charCodeAt(1))){let a=2,h=a;for(;a<e&&!isPathSeparator(t.charCodeAt(a));++a);if(a<e&&a!==h){for(h=a;a<e&&isPathSeparator(t.charCodeAt(a));++a);if(a<e&&a!==h){for(h=a;a<e&&!isPathSeparator(t.charCodeAt(a));++a);if(a===e)return t;a!==h&&(r=n=a+1)}}}}else isWindowsDeviceRoot(o)&&t.charCodeAt(1)===58&&(r=n=2,e>2&&isPathSeparator(t.charCodeAt(2))&&(r=n=3));else if(isPathSeparator(o))return t;for(let a=e-1;a>=n;--a)if(isPathSeparator(t.charCodeAt(a))){if(!s){i=a;break}}else s=!1;if(i===-1){if(r===-1)return".";i=r}return t.slice(0,i)}function basename(t,e=""){if(e!==void 0&&typeof e!="string")throw new TypeError('"ext" argument must be a string');assertPath(t);let r=0,i=-1,s=!0,n;if(t.length>=2){const o=t.charCodeAt(0);isWindowsDeviceRoot(o)&&t.charCodeAt(1)===58&&(r=2)}if(e!==void 0&&e.length>0&&e.length<=t.length){if(e.length===t.length&&e===t)return"";let o=e.length-1,a=-1;for(n=t.length-1;n>=r;--n){const h=t.charCodeAt(n);if(isPathSeparator(h)){if(!s){r=n+1;break}}else a===-1&&(s=!1,a=n+1),o>=0&&(h===e.charCodeAt(o)?--o==-1&&(i=n):(o=-1,i=a))}return r===i?i=a:i===-1&&(i=t.length),t.slice(r,i)}else{for(n=t.length-1;n>=r;--n)if(isPathSeparator(t.charCodeAt(n))){if(!s){r=n+1;break}}else i===-1&&(s=!1,i=n+1);return i===-1?"":t.slice(r,i)}}function extname(t){assertPath(t);let e=0,r=-1,i=0,s=-1,n=!0,o=0;t.length>=2&&t.charCodeAt(1)===58&&isWindowsDeviceRoot(t.charCodeAt(0))&&(e=i=2);for(let a=t.length-1;a>=e;--a){const h=t.charCodeAt(a);if(isPathSeparator(h)){if(!n){i=a+1;break}continue}s===-1&&(n=!1,s=a+1),h===46?r===-1?r=a:o!==1&&(o=1):r!==-1&&(o=-1)}return r===-1||s===-1||o===0||o===1&&r===s-1&&r===i+1?"":t.slice(r,s)}function format(t){if(t===null||typeof t!="object")throw new TypeError(`The "pathObject" argument must be of type Object. Received type ${typeof t}`);return _format("\\",t)}function parse1(t){assertPath(t);const e={root:"",dir:"",base:"",ext:"",name:""},r=t.length;if(r===0)return e;let i=0,s=t.charCodeAt(0);if(r>1){if(isPathSeparator(s)){if(i=1,isPathSeparator(t.charCodeAt(1))){let f=2,u=f;for(;f<r&&!isPathSeparator(t.charCodeAt(f));++f);if(f<r&&f!==u){for(u=f;f<r&&isPathSeparator(t.charCodeAt(f));++f);if(f<r&&f!==u){for(u=f;f<r&&!isPathSeparator(t.charCodeAt(f));++f);f===r?i=f:f!==u&&(i=f+1)}}}}else if(isWindowsDeviceRoot(s)&&t.charCodeAt(1)===58)if(i=2,r>2){if(isPathSeparator(t.charCodeAt(2))){if(r===3)return e.root=e.dir=t,e;i=3}}else return e.root=e.dir=t,e}else if(isPathSeparator(s))return e.root=e.dir=t,e;i>0&&(e.root=t.slice(0,i));let n=-1,o=i,a=-1,h=!0,l=t.length-1,c=0;for(;l>=i;--l){if(s=t.charCodeAt(l),isPathSeparator(s)){if(!h){o=l+1;break}continue}a===-1&&(h=!1,a=l+1),s===46?n===-1?n=l:c!==1&&(c=1):n!==-1&&(c=-1)}return n===-1||a===-1||c===0||c===1&&n===a-1&&n===o+1?a!==-1&&(e.base=e.name=t.slice(o,a)):(e.name=t.slice(o,n),e.base=t.slice(o,a),e.ext=t.slice(n,a)),o>0&&o!==i?e.dir=t.slice(0,o-1):e.dir=e.root,e}function fromFileUrl(t){if(t=t instanceof URL?t:new URL(t),t.protocol!="file:")throw new TypeError("Must be a file URL.");let e=decodeURIComponent(t.pathname.replace(/\//g,"\\").replace(/%(?![0-9A-Fa-f]{2})/g,"%25")).replace(/^\\*([A-Za-z]:)(\\|$)/,"$1\\");return t.hostname!=""&&(e=`\\\\${t.hostname}${e}`),e}function toFileUrl(t){if(!isAbsolute(t))throw new TypeError("Must be an absolute path.");const[,e,r]=t.match(/^(?:[/\\]{2}([^/\\]+)(?=[/\\](?:[^/\\]|$)))?(.*)/),i=new URL("file:///");if(i.pathname=encodeWhitespace(r.replace(/%/g,"%25")),e!=null&&e!="localhost"&&(i.hostname=e,!i.hostname))throw new TypeError("Invalid hostname.");return i}const mod1={sep,delimiter,resolve,normalize,isAbsolute,join,relative,toNamespacedPath,dirname,basename,extname,format,parse:parse1,fromFileUrl,toFileUrl},sep1="/",delimiter1=":";function resolve1(...t){let e="",r=!1;for(let i=t.length-1;i>=-1&&!r;i--){let s;if(i>=0)s=t[i];else{const{Deno:n}=globalThis;if(typeof n?.cwd!="function")throw new TypeError("Resolved a relative path without a CWD.");s=n.cwd()}assertPath(s),s.length!==0&&(e=`${s}/${e}`,r=s.charCodeAt(0)===CHAR_FORWARD_SLASH)}return e=normalizeString(e,!r,"/",isPosixPathSeparator),r?e.length>0?`/${e}`:"/":e.length>0?e:"."}function normalize1(t){if(assertPath(t),t.length===0)return".";const e=t.charCodeAt(0)===47,r=t.charCodeAt(t.length-1)===47;return t=normalizeString(t,!e,"/",isPosixPathSeparator),t.length===0&&!e&&(t="."),t.length>0&&r&&(t+="/"),e?`/${t}`:t}function isAbsolute1(t){return assertPath(t),t.length>0&&t.charCodeAt(0)===47}function join1(...t){if(t.length===0)return".";let e;for(let r=0,i=t.length;r<i;++r){const s=t[r];assertPath(s),s.length>0&&(e?e+=`/${s}`:e=s)}return e?normalize1(e):"."}function relative1(t,e){if(assertPath(t),assertPath(e),t===e||(t=resolve1(t),e=resolve1(e),t===e))return"";let r=1;const i=t.length;for(;r<i&&t.charCodeAt(r)===47;++r);const s=i-r;let n=1;const o=e.length;for(;n<o&&e.charCodeAt(n)===47;++n);const a=o-n,h=s<a?s:a;let l=-1,c=0;for(;c<=h;++c){if(c===h){if(a>h){if(e.charCodeAt(n+c)===47)return e.slice(n+c+1);if(c===0)return e.slice(n+c)}else s>h&&(t.charCodeAt(r+c)===47?l=c:c===0&&(l=0));break}const u=t.charCodeAt(r+c),A=e.charCodeAt(n+c);if(u!==A)break;u===47&&(l=c)}let f="";for(c=r+l+1;c<=i;++c)(c===i||t.charCodeAt(c)===47)&&(f.length===0?f+="..":f+="/..");return f.length>0?f+e.slice(n+l):(n+=l,e.charCodeAt(n)===47&&++n,e.slice(n))}function toNamespacedPath1(t){return t}function dirname1(t){if(assertPath(t),t.length===0)return".";const e=t.charCodeAt(0)===47;let r=-1,i=!0;for(let s=t.length-1;s>=1;--s)if(t.charCodeAt(s)===47){if(!i){r=s;break}}else i=!1;return r===-1?e?"/":".":e&&r===1?"//":t.slice(0,r)}function basename1(t,e=""){if(e!==void 0&&typeof e!="string")throw new TypeError('"ext" argument must be a string');assertPath(t);let r=0,i=-1,s=!0,n;if(e!==void 0&&e.length>0&&e.length<=t.length){if(e.length===t.length&&e===t)return"";let o=e.length-1,a=-1;for(n=t.length-1;n>=0;--n){const h=t.charCodeAt(n);if(h===47){if(!s){r=n+1;break}}else a===-1&&(s=!1,a=n+1),o>=0&&(h===e.charCodeAt(o)?--o==-1&&(i=n):(o=-1,i=a))}return r===i?i=a:i===-1&&(i=t.length),t.slice(r,i)}else{for(n=t.length-1;n>=0;--n)if(t.charCodeAt(n)===47){if(!s){r=n+1;break}}else i===-1&&(s=!1,i=n+1);return i===-1?"":t.slice(r,i)}}function extname1(t){assertPath(t);let e=-1,r=0,i=-1,s=!0,n=0;for(let o=t.length-1;o>=0;--o){const a=t.charCodeAt(o);if(a===47){if(!s){r=o+1;break}continue}i===-1&&(s=!1,i=o+1),a===46?e===-1?e=o:n!==1&&(n=1):e!==-1&&(n=-1)}return e===-1||i===-1||n===0||n===1&&e===i-1&&e===r+1?"":t.slice(e,i)}function format1(t){if(t===null||typeof t!="object")throw new TypeError(`The "pathObject" argument must be of type Object. Received type ${typeof t}`);return _format("/",t)}function parse2(t){assertPath(t);const e={root:"",dir:"",base:"",ext:"",name:""};if(t.length===0)return e;const r=t.charCodeAt(0)===47;let i;r?(e.root="/",i=1):i=0;let s=-1,n=0,o=-1,a=!0,h=t.length-1,l=0;for(;h>=i;--h){const c=t.charCodeAt(h);if(c===47){if(!a){n=h+1;break}continue}o===-1&&(a=!1,o=h+1),c===46?s===-1?s=h:l!==1&&(l=1):s!==-1&&(l=-1)}return s===-1||o===-1||l===0||l===1&&s===o-1&&s===n+1?o!==-1&&(n===0&&r?e.base=e.name=t.slice(1,o):e.base=e.name=t.slice(n,o)):(n===0&&r?(e.name=t.slice(1,s),e.base=t.slice(1,o)):(e.name=t.slice(n,s),e.base=t.slice(n,o)),e.ext=t.slice(s,o)),n>0?e.dir=t.slice(0,n-1):r&&(e.dir="/"),e}function fromFileUrl1(t){if(t=t instanceof URL?t:new URL(t),t.protocol!="file:")throw new TypeError("Must be a file URL.");return decodeURIComponent(t.pathname.replace(/%(?![0-9A-Fa-f]{2})/g,"%25"))}function toFileUrl1(t){if(!isAbsolute1(t))throw new TypeError("Must be an absolute path.");const e=new URL("file:///");return e.pathname=encodeWhitespace(t.replace(/%/g,"%25").replace(/\\/g,"%5C")),e}const mod2={sep:sep1,delimiter:delimiter1,resolve:resolve1,normalize:normalize1,isAbsolute:isAbsolute1,join:join1,relative:relative1,toNamespacedPath:toNamespacedPath1,dirname:dirname1,basename:basename1,extname:extname1,format:format1,parse:parse2,fromFileUrl:fromFileUrl1,toFileUrl:toFileUrl1},path=isWindows?mod1:mod2,{join:join2,normalize:normalize2}=path,path1=isWindows?mod1:mod2,{basename:basename2,delimiter:delimiter2,dirname:dirname2,extname:extname2,format:format2,fromFileUrl:fromFileUrl2,isAbsolute:isAbsolute2,join:join3,normalize:normalize3,parse:parse3,relative:relative2,resolve:resolve2,sep:sep2,toFileUrl:toFileUrl2,toNamespacedPath:toNamespacedPath2}=path1;function isString(t){return typeof t=="string"}function isArray(t,e){return Array.isArray(t)&&(!e||t.every(e))}class EnsureError extends Error{constructor(e){super(e);Error.captureStackTrace&&Error.captureStackTrace(this,EnsureError),this.name="EnsureError"}}function ensure(t,e,r="The value is not expected type"){if(!e(t))throw new EnsureError(r)}function ensureString(t){return ensure(t,isString,"The value must be string")}function ensureArray(t,e){return ensure(t,i=>isArray(i,e),"The value must be array")}function deferred(){let t;const e=new Promise((r,i)=>{t={resolve:r,reject:i}});return Object.assign(e,t)}class Lock{#e;constructor(){this.#e=[]}async with(e){await this.acquire();try{await(e()??Promise.resolve())}finally{this.release()}}async acquire(){const e=[...this.#e];return this.#e.push(deferred()),e.length&&await Promise.all(e),!0}release(){const e=this.#e.shift();if(e)e.resolve();else throw new Error("The lock is not locked")}locked(){return!!this.#e.length}}class Event{#e;constructor(){this.#e=deferred()}async wait(){return this.#e&&await this.#e,!0}set(){this.#e&&(this.#e.resolve(),this.#e=null)}clear(){this.#e||(this.#e=deferred())}is_set(){return!this.#e}}class Condition{#e;#t;constructor(e){this.#e=e??new Lock,this.#t=[]}async with(e){await this.acquire();try{await(e()??Promise.resolve())}finally{this.release()}}async acquire(){return await this.#e.acquire(),!0}release(){this.#e.release()}locked(){return this.#e.locked()}notify(e=1){if(!this.locked())throw new Error("The lock is not acquired");for(const r of Array(e)){const i=this.#t.shift();if(!i)break;i.set()}}notify_all(){this.notify(this.#t.length)}async wait(){if(!this.locked())throw new Error("The lock is not acquired");const e=new Event;return this.#t.push(e),this.release(),await e.wait(),await this.acquire(),!0}async wait_for(e){for(;!e();)await this.wait()}}class QueueEmpty extends Error{}class QueueFull extends Error{}class Queue{#e;#t;#i;#r;constructor(e=0){this.#e=[],this.#t=e<=0?0:e,this.#i=new Condition,this.#r=new Condition}empty(){return!this.#e.length}full(){return!!this.#t&&this.#e.length===this.#t}async get(){const e=this.#e.shift();return e?(await this.#i.with(()=>{this.#i.notify()}),e):new Promise(r=>{this.#r.with(async()=>{await this.#r.wait_for(()=>!!this.#e.length),r(await this.get())})})}get_nowait(){const e=this.#e.shift();if(!e)throw new QueueEmpty("Queue empty");return this.#i.with(()=>{this.#i.notify()}),e}async put(e){if(this.#t&&this.#e.length>=this.#t){await this.#i.with(async()=>{await this.#i.wait_for(()=>this.#e.length<this.#t),await this.put(e)});return}await this.#r.with(()=>{this.#r.notify()}),this.#e.push(e)}put_nowait(e){if(this.#t&&this.#e.length>=this.#t)throw new QueueFull("Queue full");this.#r.with(()=>{this.#r.notify()}),this.#e.push(e)}qsize(){return this.#e.length}}function deferred1(){let t,e="pending";const r=new Promise((i,s)=>{t={async resolve(n){await n,e="fulfilled",i(n)},reject(n){e="rejected",s(n)}}});return Object.defineProperty(r,"state",{get:()=>e}),Object.assign(r,t)}const semver=/^v?(?:\d+)(\.(?:[x*]|\d+)(\.(?:[x*]|\d+)(\.(?:[x*]|\d+))?(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?)?)?$/i,indexOrEnd=(t,e)=>t.indexOf(e)===-1?t.length:t.indexOf(e),split=t=>{const e=t.replace(/^v/,"").replace(/\+.*$/,""),r=indexOrEnd(e,"-"),i=e.substring(0,r).split(".");return i.push(e.substring(r+1)),i},tryParse=t=>isNaN(Number(t))?t:Number(t),validate=t=>{if(typeof t!="string")throw new TypeError("Invalid argument expected string");if(!semver.test(t))throw new Error("Invalid argument not valid semver ('"+t+"' received)")},compareVersions=(t,e)=>{[t,e].forEach(validate);const r=split(t),i=split(e);for(let o=0;o<Math.max(r.length-1,i.length-1);o++){const a=parseInt(r[o]||"0",10),h=parseInt(i[o]||"0",10);if(a>h)return 1;if(h>a)return-1}const s=r[r.length-1],n=i[i.length-1];if(s&&n){const o=s.split(".").map(tryParse),a=n.split(".").map(tryParse);for(let h=0;h<Math.max(o.length,a.length);h++){if(o[h]===void 0||typeof a[h]=="string"&&typeof o[h]=="number")return-1;if(a[h]===void 0||typeof o[h]=="string"&&typeof a[h]=="number"||o[h]>a[h])return 1;if(a[h]>o[h])return-1}}else if(s||n)return s?-1:1;return 0},allowedOperators=[">",">=","=","<","<="],operatorResMap={">":[1],">=":[0,1],"=":[0],"<=":[-1,0],"<":[-1]},validateOperator=t=>{if(typeof t!="string")throw new TypeError("Invalid operator type, expected string but got "+typeof t);if(allowedOperators.indexOf(t)===-1)throw new TypeError("Invalid operator, expected one of "+allowedOperators.join("|"))};compareVersions.validate=t=>typeof t=="string"&&semver.test(t),compareVersions.compare=(t,e,r)=>{validateOperator(r);const i=compareVersions(t,e);return operatorResMap[r].indexOf(i)>-1};class WorkerReader{#e;#t;#i;#r;#n;constructor(e){this.#e=new Queue,this.#t=new Uint8Array,this.#i=!1,this.#r=deferred1(),this.#n=e,this.#n.onmessage=r=>{this.#e&&!this.#i&&this.#e.put_nowait(r.data)}}async read(e){if(this.#t.length)return this.readFromRemain(e);if(!this.#e||this.#i&&this.#e.empty())return this.#e=void 0,null;if(!this.#e?.empty())return this.#t=this.#e.get_nowait(),this.readFromRemain(e);const r=await Promise.race([this.#e.get(),this.#r]);return r==null?await this.read(e):(this.#t=r,this.readFromRemain(e))}readFromRemain(e){const r=e.byteLength,i=this.#t.subarray(0,r);return this.#t=this.#t.subarray(r),e.set(i),i.byteLength}close(){this.#i=!0,this.#r.resolve()}}const supportTransfer=compareVersions(Deno.version.deno,"1.14.0")>=0;class WorkerWriter{#e;constructor(e){this.#e=e}write(e){if(supportTransfer){const r=new Uint8Array(e);this.#e.postMessage(r,[r.buffer])}else this.#e.postMessage(e);return Promise.resolve(e.length)}}function utf8Count(t){const e=t.length;let r=0,i=0;for(;i<e;){let s=t.charCodeAt(i++);if((s&4294967168)==0){r++;continue}else if((s&4294965248)==0)r+=2;else{if(s>=55296&&s<=56319&&i<e){const n=t.charCodeAt(i);(n&64512)==56320&&(++i,s=((s&1023)<<10)+(n&1023)+65536)}(s&4294901760)==0?r+=3:r+=4}}return r}function utf8EncodeJs(t,e,r){const i=t.length;let s=r,n=0;for(;n<i;){let o=t.charCodeAt(n++);if((o&4294967168)==0){e[s++]=o;continue}else if((o&4294965248)==0)e[s++]=o>>6&31|192;else{if(o>=55296&&o<=56319&&n<i){const a=t.charCodeAt(n);(a&64512)==56320&&(++n,o=((o&1023)<<10)+(a&1023)+65536)}(o&4294901760)==0?(e[s++]=o>>12&15|224,e[s++]=o>>6&63|128):(e[s++]=o>>18&7|240,e[s++]=o>>12&63|128,e[s++]=o>>6&63|128)}e[s++]=o&63|128}}const sharedTextEncoder=new TextEncoder;function utf8EncodeTEencodeInto(t,e,r){sharedTextEncoder.encodeInto(t,e.subarray(r))}const utf8EncodeTE=utf8EncodeTEencodeInto;function utf8DecodeJs(t,e,r){let i=e;const s=i+r,n=[];let o="";for(;i<s;){const a=t[i++];if((a&128)==0)n.push(a);else if((a&224)==192){const h=t[i++]&63;n.push((a&31)<<6|h)}else if((a&240)==224){const h=t[i++]&63,l=t[i++]&63;n.push((a&31)<<12|h<<6|l)}else if((a&248)==240){const h=t[i++]&63,l=t[i++]&63,c=t[i++]&63;let f=(a&7)<<18|h<<12|l<<6|c;f>65535&&(f-=65536,n.push(f>>>10&1023|55296),f=56320|f&1023),n.push(f)}else n.push(a);n.length>=4096&&(o+=String.fromCharCode(...n),n.length=0)}return n.length>0&&(o+=String.fromCharCode(...n)),o}const sharedTextDecoder=new TextDecoder;function utf8DecodeTD(t,e,r){const i=t.subarray(e,e+r);return sharedTextDecoder.decode(i)}class ExtData{type;data;constructor(e,r){this.type=e,this.data=r}}function setUint64(t,e,r){const i=r/4294967296,s=r;t.setUint32(e,i),t.setUint32(e+4,s)}function setInt64(t,e,r){const i=Math.floor(r/4294967296),s=r;t.setUint32(e,i),t.setUint32(e+4,s)}function getInt64(t,e){const r=t.getInt32(e),i=t.getUint32(e+4);return r*4294967296+i}function getUint64(t,e){const r=t.getUint32(e),i=t.getUint32(e+4);return r*4294967296+i}const EXT_TIMESTAMP=-1,TIMESTAMP32_MAX_SEC=4294967296-1,TIMESTAMP64_MAX_SEC=17179869184-1;function encodeTimeSpecToTimestamp({sec:t,nsec:e}){if(t>=0&&e>=0&&t<=TIMESTAMP64_MAX_SEC)if(e===0&&t<=TIMESTAMP32_MAX_SEC){const r=new Uint8Array(4);return new DataView(r.buffer).setUint32(0,t),r}else{const r=t/4294967296,i=t&4294967295,s=new Uint8Array(8),n=new DataView(s.buffer);return n.setUint32(0,e<<2|r&3),n.setUint32(4,i),s}else{const r=new Uint8Array(12),i=new DataView(r.buffer);return i.setUint32(0,e),setInt64(i,4,t),r}}function encodeDateToTimeSpec(t){const e=t.getTime(),r=Math.floor(e/1e3),i=(e-r*1e3)*1e6,s=Math.floor(i/1e9);return{sec:r+s,nsec:i-s*1e9}}function encodeTimestampExtension(t){if(t instanceof Date){const e=encodeDateToTimeSpec(t);return encodeTimeSpecToTimestamp(e)}else return null}function decodeTimestampToTimeSpec(t){const e=new DataView(t.buffer,t.byteOffset,t.byteLength);switch(t.byteLength){case 4:return{sec:e.getUint32(0),nsec:0};case 8:{const r=e.getUint32(0),i=e.getUint32(4),s=(r&3)*4294967296+i,n=r>>>2;return{sec:s,nsec:n}}case 12:{const r=getInt64(e,4),i=e.getUint32(0);return{sec:r,nsec:i}}default:throw new Error(`Unrecognized data size for timestamp: ${t.length}`)}}function decodeTimestampExtension(t){const e=decodeTimestampToTimeSpec(t);return new Date(e.sec*1e3+e.nsec/1e6)}const timestampExtension={type:EXT_TIMESTAMP,encode:encodeTimestampExtension,decode:decodeTimestampExtension};class ExtensionCodec{static defaultCodec=new ExtensionCodec;__brand;builtInEncoders=[];builtInDecoders=[];encoders=[];decoders=[];constructor(){this.register(timestampExtension)}register({type:e,encode:r,decode:i}){if(e>=0)this.encoders[e]=r,this.decoders[e]=i;else{const s=1+e;this.builtInEncoders[s]=r,this.builtInDecoders[s]=i}}tryToEncode(e,r){for(let i=0;i<this.builtInEncoders.length;i++){const s=this.builtInEncoders[i];if(s!=null){const n=s(e,r);if(n!=null){const o=-1-i;return new ExtData(o,n)}}}for(let i=0;i<this.encoders.length;i++){const s=this.encoders[i];if(s!=null){const n=s(e,r);if(n!=null){const o=i;return new ExtData(o,n)}}}return e instanceof ExtData?e:null}decode(e,r,i){const s=r<0?this.builtInDecoders[-1-r]:this.decoders[r];return s?s(e,r,i):new ExtData(r,e)}}function ensureUint8Array(t){return t instanceof Uint8Array?t:ArrayBuffer.isView(t)?new Uint8Array(t.buffer,t.byteOffset,t.byteLength):t instanceof ArrayBuffer?new Uint8Array(t):Uint8Array.from(t)}function createDataView(t){if(t instanceof ArrayBuffer)return new DataView(t);const e=ensureUint8Array(t);return new DataView(e.buffer,e.byteOffset,e.byteLength)}class Encoder{extensionCodec;context;maxDepth;initialBufferSize;sortKeys;forceFloat32;ignoreUndefined;pos=0;view;bytes;constructor(e=ExtensionCodec.defaultCodec,r=void 0,i=100,s=2048,n=!1,o=!1,a=!1){this.extensionCodec=e,this.context=r,this.maxDepth=i,this.initialBufferSize=s,this.sortKeys=n,this.forceFloat32=o,this.ignoreUndefined=a,this.view=new DataView(new ArrayBuffer(this.initialBufferSize)),this.bytes=new Uint8Array(this.view.buffer)}getUint8Array(){return this.bytes.subarray(0,this.pos)}reinitializeState(){this.pos=0}encode(e){return this.reinitializeState(),this.doEncode(e,1),this.getUint8Array()}doEncode(e,r){if(r>this.maxDepth)throw new Error(`Too deep objects in depth ${r}`);e==null?this.encodeNil():typeof e=="boolean"?this.encodeBoolean(e):typeof e=="number"?this.encodeNumber(e):typeof e=="string"?this.encodeString(e):this.encodeObject(e,r)}ensureBufferSizeToWrite(e){const r=this.pos+e;this.view.byteLength<r&&this.resizeBuffer(r*2)}resizeBuffer(e){const r=new ArrayBuffer(e),i=new Uint8Array(r),s=new DataView(r);i.set(this.bytes),this.view=s,this.bytes=i}encodeNil(){this.writeU8(192)}encodeBoolean(e){e===!1?this.writeU8(194):this.writeU8(195)}encodeNumber(e){Number.isSafeInteger(e)?e>=0?e<128?this.writeU8(e):e<256?(this.writeU8(204),this.writeU8(e)):e<65536?(this.writeU8(205),this.writeU16(e)):e<4294967296?(this.writeU8(206),this.writeU32(e)):(this.writeU8(207),this.writeU64(e)):e>=-32?this.writeU8(224|e+32):e>=-128?(this.writeU8(208),this.writeI8(e)):e>=-32768?(this.writeU8(209),this.writeI16(e)):e>=-2147483648?(this.writeU8(210),this.writeI32(e)):(this.writeU8(211),this.writeI64(e)):this.forceFloat32?(this.writeU8(202),this.writeF32(e)):(this.writeU8(203),this.writeF64(e))}writeStringHeader(e){if(e<32)this.writeU8(160+e);else if(e<256)this.writeU8(217),this.writeU8(e);else if(e<65536)this.writeU8(218),this.writeU16(e);else if(e<4294967296)this.writeU8(219),this.writeU32(e);else throw new Error(`Too long string: ${e} bytes in UTF-8`)}encodeString(e){const r=1+4;if(e.length>200){const s=utf8Count(e);this.ensureBufferSizeToWrite(r+s),this.writeStringHeader(s),utf8EncodeTE(e,this.bytes,this.pos),this.pos+=s}else{const s=utf8Count(e);this.ensureBufferSizeToWrite(r+s),this.writeStringHeader(s),utf8EncodeJs(e,this.bytes,this.pos),this.pos+=s}}encodeObject(e,r){const i=this.extensionCodec.tryToEncode(e,this.context);if(i!=null)this.encodeExtension(i);else if(Array.isArray(e))this.encodeArray(e,r);else if(ArrayBuffer.isView(e))this.encodeBinary(e);else if(typeof e=="object")this.encodeMap(e,r);else throw new Error(`Unrecognized object: ${Object.prototype.toString.apply(e)}`)}encodeBinary(e){const r=e.byteLength;if(r<256)this.writeU8(196),this.writeU8(r);else if(r<65536)this.writeU8(197),this.writeU16(r);else if(r<4294967296)this.writeU8(198),this.writeU32(r);else throw new Error(`Too large binary: ${r}`);const i=ensureUint8Array(e);this.writeU8a(i)}encodeArray(e,r){const i=e.length;if(i<16)this.writeU8(144+i);else if(i<65536)this.writeU8(220),this.writeU16(i);else if(i<4294967296)this.writeU8(221),this.writeU32(i);else throw new Error(`Too large array: ${i}`);for(const s of e)this.doEncode(s,r+1)}countWithoutUndefined(e,r){let i=0;for(const s of r)e[s]!==void 0&&i++;return i}encodeMap(e,r){const i=Object.keys(e);this.sortKeys&&i.sort();const s=this.ignoreUndefined?this.countWithoutUndefined(e,i):i.length;if(s<16)this.writeU8(128+s);else if(s<65536)this.writeU8(222),this.writeU16(s);else if(s<4294967296)this.writeU8(223),this.writeU32(s);else throw new Error(`Too large map object: ${s}`);for(const n of i){const o=e[n];this.ignoreUndefined&&o===void 0||(this.encodeString(n),this.doEncode(o,r+1))}}encodeExtension(e){const r=e.data.length;if(r===1)this.writeU8(212);else if(r===2)this.writeU8(213);else if(r===4)this.writeU8(214);else if(r===8)this.writeU8(215);else if(r===16)this.writeU8(216);else if(r<256)this.writeU8(199),this.writeU8(r);else if(r<65536)this.writeU8(200),this.writeU16(r);else if(r<4294967296)this.writeU8(201),this.writeU32(r);else throw new Error(`Too large extension object: ${r}`);this.writeI8(e.type),this.writeU8a(e.data)}writeU8(e){this.ensureBufferSizeToWrite(1),this.view.setUint8(this.pos,e),this.pos++}writeU8a(e){const r=e.length;this.ensureBufferSizeToWrite(r),this.bytes.set(e,this.pos),this.pos+=r}writeI8(e){this.ensureBufferSizeToWrite(1),this.view.setInt8(this.pos,e),this.pos++}writeU16(e){this.ensureBufferSizeToWrite(2),this.view.setUint16(this.pos,e),this.pos+=2}writeI16(e){this.ensureBufferSizeToWrite(2),this.view.setInt16(this.pos,e),this.pos+=2}writeU32(e){this.ensureBufferSizeToWrite(4),this.view.setUint32(this.pos,e),this.pos+=4}writeI32(e){this.ensureBufferSizeToWrite(4),this.view.setInt32(this.pos,e),this.pos+=4}writeF32(e){this.ensureBufferSizeToWrite(4),this.view.setFloat32(this.pos,e),this.pos+=4}writeF64(e){this.ensureBufferSizeToWrite(8),this.view.setFloat64(this.pos,e),this.pos+=8}writeU64(e){this.ensureBufferSizeToWrite(8),setUint64(this.view,this.pos,e),this.pos+=8}writeI64(e){this.ensureBufferSizeToWrite(8),setInt64(this.view,this.pos,e),this.pos+=8}}const defaultEncodeOptions={};function encode1(t,e=defaultEncodeOptions){return new Encoder(e.extensionCodec,e.context,e.maxDepth,e.initialBufferSize,e.sortKeys,e.forceFloat32,e.ignoreUndefined).encode(t)}function prettyByte(t){return`${t<0?"-":""}0x${Math.abs(t).toString(16).padStart(2,"0")}`}class CachedKeyDecoder{maxKeyLength;maxLengthPerKey;hit=0;miss=0;caches;constructor(e=16,r=16){this.maxKeyLength=e,this.maxLengthPerKey=r,this.caches=[];for(let i=0;i<this.maxKeyLength;i++)this.caches.push([])}canBeCached(e){return e>0&&e<=this.maxKeyLength}get(e,r,i){const s=this.caches[i-1],n=s.length;e:for(let o=0;o<n;o++){const a=s[o],h=a.bytes;for(let l=0;l<i;l++)if(h[l]!==e[r+l])continue e;return a.value}return null}store(e,r){const i=this.caches[e.length-1],s={bytes:e,value:r};i.length>=this.maxLengthPerKey?i[Math.random()*i.length|0]=s:i.push(s)}decode(e,r,i){const s=this.get(e,r,i);if(s!=null)return this.hit++,s;this.miss++;const n=utf8DecodeJs(e,r,i),o=Uint8Array.prototype.slice.call(e,r,r+i);return this.store(o,n),n}}var State;(function(t){t[t.ARRAY=0]="ARRAY",t[t.MAP_KEY=1]="MAP_KEY",t[t.MAP_VALUE=2]="MAP_VALUE"})(State||(State={}));const isValidMapKeyType=t=>{const e=typeof t;return e==="string"||e==="number"},HEAD_BYTE_REQUIRED=-1,EMPTY_VIEW=new DataView(new ArrayBuffer(0)),EMPTY_BYTES=new Uint8Array(EMPTY_VIEW.buffer),DataViewIndexOutOfBoundsError=(()=>{try{EMPTY_VIEW.getInt8(0)}catch(t){return t.constructor}throw new Error("never reached")})(),MORE_DATA=new DataViewIndexOutOfBoundsError("Insufficient data"),sharedCachedKeyDecoder=new CachedKeyDecoder;class Decoder{extensionCodec;context;maxStrLength;maxBinLength;maxArrayLength;maxMapLength;maxExtLength;keyDecoder;totalPos=0;pos=0;view=EMPTY_VIEW;bytes=EMPTY_BYTES;headByte=HEAD_BYTE_REQUIRED;stack=[];constructor(e=ExtensionCodec.defaultCodec,r=void 0,i=4294967295,s=4294967295,n=4294967295,o=4294967295,a=4294967295,h=sharedCachedKeyDecoder){this.extensionCodec=e,this.context=r,this.maxStrLength=i,this.maxBinLength=s,this.maxArrayLength=n,this.maxMapLength=o,this.maxExtLength=a,this.keyDecoder=h}reinitializeState(){this.totalPos=0,this.headByte=HEAD_BYTE_REQUIRED}setBuffer(e){this.bytes=ensureUint8Array(e),this.view=createDataView(this.bytes),this.pos=0}appendBuffer(e){if(e=ensureUint8Array(e).slice(),this.headByte===HEAD_BYTE_REQUIRED&&!this.hasRemaining())this.setBuffer(e);else{const r=this.bytes.subarray(this.pos),i=ensureUint8Array(e),s=new Uint8Array(r.length+i.length);s.set(r),s.set(i,r.length),this.setBuffer(s)}}hasRemaining(e=1){return this.view.byteLength-this.pos>=e}createNoExtraBytesError(e){const{view:r,pos:i}=this;return new RangeError(`Extra ${r.byteLength-i} of ${r.byteLength} byte(s) found at buffer[${e}]`)}decode(e){return this.reinitializeState(),this.setBuffer(e),this.doDecodeSingleSync()}doDecodeSingleSync(){const e=this.doDecodeSync();if(this.hasRemaining())throw this.createNoExtraBytesError(this.pos);return e}async decodeAsync(e){let r=!1,i;for await(const a of e){if(r)throw this.createNoExtraBytesError(this.totalPos);this.appendBuffer(a);try{i=this.doDecodeSync(),r=!0}catch(h){if(!(h instanceof DataViewIndexOutOfBoundsError))throw h}this.totalPos+=this.pos}if(r){if(this.hasRemaining())throw this.createNoExtraBytesError(this.totalPos);return i}const{headByte:s,pos:n,totalPos:o}=this;throw new RangeError(`Insufficient data in parcing ${prettyByte(s)} at ${o} (${n} in the current buffer)`)}decodeArrayStream(e){return this.decodeMultiAsync(e,!0)}decodeStream(e){return this.decodeMultiAsync(e,!1)}async*decodeMultiAsync(e,r){let i=r,s=-1;for await(const n of e){if(r&&s===0)throw this.createNoExtraBytesError(this.totalPos);this.appendBuffer(n),i&&(s=this.readArraySize(),i=!1,this.complete());try{for(;yield this.doDecodeSync(),--s!=0;);}catch(o){if(!(o instanceof DataViewIndexOutOfBoundsError))throw o}this.totalPos+=this.pos}}doDecodeSync(){e:for(;;){const e=this.readHeadByte();let r;if(e>=224)r=e-256;else if(e<192)if(e<128)r=e;else if(e<144){const s=e-128;if(s!==0){this.pushMapState(s),this.complete();continue e}else r={}}else if(e<160){const s=e-144;if(s!==0){this.pushArrayState(s),this.complete();continue e}else r=[]}else{const s=e-160;r=this.decodeUtf8String(s,0)}else if(e===192)r=null;else if(e===194)r=!1;else if(e===195)r=!0;else if(e===202)r=this.readF32();else if(e===203)r=this.readF64();else if(e===204)r=this.readU8();else if(e===205)r=this.readU16();else if(e===206)r=this.readU32();else if(e===207)r=this.readU64();else if(e===208)r=this.readI8();else if(e===209)r=this.readI16();else if(e===210)r=this.readI32();else if(e===211)r=this.readI64();else if(e===217){const s=this.lookU8();r=this.decodeUtf8String(s,1)}else if(e===218){const s=this.lookU16();r=this.decodeUtf8String(s,2)}else if(e===219){const s=this.lookU32();r=this.decodeUtf8String(s,4)}else if(e===220){const s=this.readU16();if(s!==0){this.pushArrayState(s),this.complete();continue e}else r=[]}else if(e===221){const s=this.readU32();if(s!==0){this.pushArrayState(s),this.complete();continue e}else r=[]}else if(e===222){const s=this.readU16();if(s!==0){this.pushMapState(s),this.complete();continue e}else r={}}else if(e===223){const s=this.readU32();if(s!==0){this.pushMapState(s),this.complete();continue e}else r={}}else if(e===196){const s=this.lookU8();r=this.decodeBinary(s,1)}else if(e===197){const s=this.lookU16();r=this.decodeBinary(s,2)}else if(e===198){const s=this.lookU32();r=this.decodeBinary(s,4)}else if(e===212)r=this.decodeExtension(1,0);else if(e===213)r=this.decodeExtension(2,0);else if(e===214)r=this.decodeExtension(4,0);else if(e===215)r=this.decodeExtension(8,0);else if(e===216)r=this.decodeExtension(16,0);else if(e===199){const s=this.lookU8();r=this.decodeExtension(s,1)}else if(e===200){const s=this.lookU16();r=this.decodeExtension(s,2)}else if(e===201){const s=this.lookU32();r=this.decodeExtension(s,4)}else throw new Error(`Unrecognized type byte: ${prettyByte(e)}`);this.complete();const i=this.stack;for(;i.length>0;){const s=i[i.length-1];if(s.type===State.ARRAY)if(s.array[s.position]=r,s.position++,s.position===s.size)i.pop(),r=s.array;else continue e;else if(s.type===State.MAP_KEY){if(!isValidMapKeyType(r))throw new Error("The type of key must be string or number but "+typeof r);s.key=r,s.type=State.MAP_VALUE;continue e}else if(s.map[s.key]=r,s.readCount++,s.readCount===s.size)i.pop(),r=s.map;else{s.key=null,s.type=State.MAP_KEY;continue e}}return r}}readHeadByte(){return this.headByte===HEAD_BYTE_REQUIRED&&(this.headByte=this.readU8()),this.headByte}complete(){this.headByte=HEAD_BYTE_REQUIRED}readArraySize(){const e=this.readHeadByte();switch(e){case 220:return this.readU16();case 221:return this.readU32();default:{if(e<160)return e-144;throw new Error(`Unrecognized array type byte: ${prettyByte(e)}`)}}}pushMapState(e){if(e>this.maxMapLength)throw new Error(`Max length exceeded: map length (${e}) > maxMapLengthLength (${this.maxMapLength})`);this.stack.push({type:State.MAP_KEY,size:e,key:null,readCount:0,map:{}})}pushArrayState(e){if(e>this.maxArrayLength)throw new Error(`Max length exceeded: array length (${e}) > maxArrayLength (${this.maxArrayLength})`);this.stack.push({type:State.ARRAY,size:e,array:new Array(e),position:0})}decodeUtf8String(e,r){if(e>this.maxStrLength)throw new Error(`Max length exceeded: UTF-8 byte length (${e}) > maxStrLength (${this.maxStrLength})`);if(this.bytes.byteLength<this.pos+r+e)throw MORE_DATA;const i=this.pos+r;let s;return this.stateIsMapKey()&&this.keyDecoder?.canBeCached(e)?s=this.keyDecoder.decode(this.bytes,i,e):e>200?s=utf8DecodeTD(this.bytes,i,e):s=utf8DecodeJs(this.bytes,i,e),this.pos+=r+e,s}stateIsMapKey(){return this.stack.length>0?this.stack[this.stack.length-1].type===State.MAP_KEY:!1}decodeBinary(e,r){if(e>this.maxBinLength)throw new Error(`Max length exceeded: bin length (${e}) > maxBinLength (${this.maxBinLength})`);if(!this.hasRemaining(e+r))throw MORE_DATA;const i=this.pos+r,s=this.bytes.subarray(i,i+e);return this.pos+=r+e,s}decodeExtension(e,r){if(e>this.maxExtLength)throw new Error(`Max length exceeded: ext length (${e}) > maxExtLength (${this.maxExtLength})`);const i=this.view.getInt8(this.pos+r),s=this.decodeBinary(e,r+1);return this.extensionCodec.decode(s,i,this.context)}lookU8(){return this.view.getUint8(this.pos)}lookU16(){return this.view.getUint16(this.pos)}lookU32(){return this.view.getUint32(this.pos)}readU8(){const e=this.view.getUint8(this.pos);return this.pos++,e}readI8(){const e=this.view.getInt8(this.pos);return this.pos++,e}readU16(){const e=this.view.getUint16(this.pos);return this.pos+=2,e}readI16(){const e=this.view.getInt16(this.pos);return this.pos+=2,e}readU32(){const e=this.view.getUint32(this.pos);return this.pos+=4,e}readI32(){const e=this.view.getInt32(this.pos);return this.pos+=4,e}readU64(){const e=getUint64(this.view,this.pos);return this.pos+=8,e}readI64(){const e=getInt64(this.view,this.pos);return this.pos+=8,e}readF32(){const e=this.view.getFloat32(this.pos);return this.pos+=4,e}readF64(){const e=this.view.getFloat64(this.pos);return this.pos+=8,e}}const defaultDecodeOptions={};function isAsyncIterable(t){return t[Symbol.asyncIterator]!=null}function assertNonNull(t){if(t==null)throw new Error("Assertion Failure: value must not be null nor undefined")}async function*asyncIterableFromStream(t){const e=t.getReader();try{for(;;){const{done:r,value:i}=await e.read();if(r)return;assertNonNull(i),yield i}}finally{e.releaseLock()}}function ensureAsyncIterabe(t){return isAsyncIterable(t)?t:asyncIterableFromStream(t)}function decodeStream(t,e=defaultDecodeOptions){const r=ensureAsyncIterabe(t);return new Decoder(e.extensionCodec,e.context,e.maxStrLength,e.maxBinLength,e.maxArrayLength,e.maxMapLength,e.maxExtLength).decodeStream(r)}function deferred2(){let t,e="pending";const r=new Promise((i,s)=>{t={async resolve(n){await n,e="fulfilled",i(n)},reject(n){e="rejected",s(n)}}});return Object.defineProperty(r,"state",{get:()=>e}),Object.assign(r,t)}class DenoStdInternalError1 extends Error{constructor(e){super(e);this.name="DenoStdInternalError"}}function assert1(t,e=""){if(!t)throw new DenoStdInternalError1(e)}function concat(...t){let e=0;for(const s of t)e+=s.length;const r=new Uint8Array(e);let i=0;for(const s of t)r.set(s,i),i+=s.length;return r}function copy(t,e,r=0){r=Math.max(0,Math.min(r,e.byteLength));const i=e.byteLength-r;return t.byteLength>i&&(t=t.subarray(0,i)),e.set(t,r),t.byteLength}const MIN_READ=32*1024,MAX_SIZE=2**32-2;class Buffer{#e;#t=0;constructor(e){this.#e=e===void 0?new Uint8Array(0):new Uint8Array(e)}bytes(e={copy:!0}){return e.copy===!1?this.#e.subarray(this.#t):this.#e.slice(this.#t)}empty(){return this.#e.byteLength<=this.#t}get length(){return this.#e.byteLength-this.#t}get capacity(){return this.#e.buffer.byteLength}truncate(e){if(e===0){this.reset();return}if(e<0||e>this.length)throw Error("bytes.Buffer: truncation out of range");this.#r(this.#t+e)}reset(){this.#r(0),this.#t=0}#i(e){const r=this.#e.byteLength;return e<=this.capacity-r?(this.#r(r+e),r):-1}#r(e){assert1(e<=this.#e.buffer.byteLength),this.#e=new Uint8Array(this.#e.buffer,0,e)}readSync(e){if(this.empty())return this.reset(),e.byteLength===0?0:null;const r=copy(this.#e.subarray(this.#t),e);return this.#t+=r,r}read(e){const r=this.readSync(e);return Promise.resolve(r)}writeSync(e){const r=this.#n(e.byteLength);return copy(e,this.#e,r)}write(e){const r=this.writeSync(e);return Promise.resolve(r)}#n(e){const r=this.length;r===0&&this.#t!==0&&this.reset();const i=this.#i(e);if(i>=0)return i;const s=this.capacity;if(e<=Math.floor(s/2)-r)copy(this.#e.subarray(this.#t),this.#e);else{if(s+e>MAX_SIZE)throw new Error("The buffer cannot be grown beyond the maximum size.");{const n=new Uint8Array(Math.min(2*s+e,MAX_SIZE));copy(this.#e.subarray(this.#t),n),this.#e=n}}return this.#t=0,this.#r(Math.min(r+e,MAX_SIZE)),r}grow(e){if(e<0)throw Error("Buffer.grow: negative count");const r=this.#n(e);this.#r(r)}async readFrom(e){let r=0;const i=new Uint8Array(MIN_READ);for(;;){const s=this.capacity-this.length<MIN_READ,n=s?i:new Uint8Array(this.#e.buffer,this.length),o=await e.read(n);if(o===null)return r;s?this.writeSync(n.subarray(0,o)):this.#r(this.length+o),r+=o}}readFromSync(e){let r=0;const i=new Uint8Array(MIN_READ);for(;;){const s=this.capacity-this.length<MIN_READ,n=s?i:new Uint8Array(this.#e.buffer,this.length),o=e.readSync(n);if(o===null)return r;s?this.writeSync(n.subarray(0,o)):this.#r(this.length+o),r+=o}}}class BytesList{len=0;chunks=[];constructor(){}size(){return this.len}add(e,r=0,i=e.byteLength){e.byteLength===0||i-r==0||(checkRange(r,i,e.byteLength),this.chunks.push({value:e,end:i,start:r,offset:this.len}),this.len+=i-r)}shift(e){if(e===0)return;if(this.len<=e){this.chunks=[],this.len=0;return}const r=this.getChunkIndex(e);this.chunks.splice(0,r);const[i]=this.chunks;if(i){const n=e-i.offset;i.start+=n}let s=0;for(const n of this.chunks)n.offset=s,s+=n.end-n.start;this.len=s}getChunkIndex(e){let r=this.chunks.length,i=0;for(;;){const s=i+Math.floor((r-i)/2);if(s<0||this.chunks.length<=s)return-1;const{offset:n,start:o,end:a}=this.chunks[s],h=a-o;if(n<=e&&e<n+h)return s;n+h<=e?i=s+1:r=s-1}}get(e){if(e<0||this.len<=e)throw new Error("out of range");const r=this.getChunkIndex(e),{value:i,offset:s,start:n}=this.chunks[r];return i[n+e-s]}*iterator(e=0){const r=this.getChunkIndex(e);if(r<0)return;const i=this.chunks[r];let s=e-i.offset;for(let n=r;n<this.chunks.length;n++){const o=this.chunks[n];for(let a=o.start+s;a<o.end;a++)yield o.value[a];s=0}}slice(e,r=this.len){if(r===e)return new Uint8Array;checkRange(e,r,this.len);const i=new Uint8Array(r-e),s=this.getChunkIndex(e),n=this.getChunkIndex(r-1);let o=0;for(let l=s;l<n;l++){const c=this.chunks[l],f=c.end-c.start;i.set(c.value.subarray(c.start,c.end),o),o+=f}const a=this.chunks[n],h=r-e-o;return i.set(a.value.subarray(a.start,a.start+h),o),i}concat(){const e=new Uint8Array(this.len);let r=0;for(const{value:i,start:s,end:n}of this.chunks)e.set(i.subarray(s,n),r),r+=n-s;return e}}function checkRange(t,e,r){if(t<0||r<t||e<0||r<e||e<t)throw new Error("invalid range")}const{Deno:Deno1}=globalThis;typeof Deno1?.noColor=="boolean"&&Deno1.noColor,new RegExp(["[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)","(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))"].join("|"),"g");var DiffType;(function(t){t.removed="removed",t.common="common",t.added="added"})(DiffType||(DiffType={}));class AssertionError extends Error{name="AssertionError";constructor(e){super(e)}}function assert2(t,e=""){if(!t)throw new AssertionError(e)}const DEFAULT_BUFFER_SIZE=32*1024;async function readAll(t){const e=new Buffer;return await e.readFrom(t),e.bytes()}function readAllSync(t){const e=new Buffer;return e.readFromSync(t),e.bytes()}async function readRange(t,e){let r=e.end-e.start+1;assert2(r>0,"Invalid byte range was passed."),await t.seek(e.start,Deno.SeekMode.Start);const i=new Uint8Array(r);let s=0;for(;r;){const n=new Uint8Array(Math.min(r,DEFAULT_BUFFER_SIZE)),o=await t.read(n);assert2(o!==null,"Unexpected EOF reach while reading a range."),assert2(o>0,"Unexpected read of 0 bytes while reading a range."),copy(n,i,s),s+=o,r-=o,assert2(r>=0,"Unexpected length remaining after reading range.")}return i}function readRangeSync(t,e){let r=e.end-e.start+1;assert2(r>0,"Invalid byte range was passed."),t.seekSync(e.start,Deno.SeekMode.Start);const i=new Uint8Array(r);let s=0;for(;r;){const n=new Uint8Array(Math.min(r,DEFAULT_BUFFER_SIZE)),o=t.readSync(n);assert2(o!==null,"Unexpected EOF reach while reading a range."),assert2(o>0,"Unexpected read of 0 bytes while reading a range."),copy(n,i,s),s+=o,r-=o,assert2(r>=0,"Unexpected length remaining after reading range.")}return i}async function writeAll(t,e){let r=0;for(;r<e.length;)r+=await t.write(e.subarray(r))}function writeAllSync(t,e){let r=0;for(;r<e.length;)r+=t.writeSync(e.subarray(r))}async function*iter(t,e){const r=e?.bufSize??DEFAULT_BUFFER_SIZE,i=new Uint8Array(r);for(;;){const s=await t.read(i);if(s===null)break;yield i.subarray(0,s)}}function*iterSync(t,e){const r=e?.bufSize??DEFAULT_BUFFER_SIZE,i=new Uint8Array(r);for(;;){const s=t.readSync(i);if(s===null)break;yield i.subarray(0,s)}}async function copy1(t,e,r){let i=0;const s=r?.bufSize??DEFAULT_BUFFER_SIZE,n=new Uint8Array(s);let o=!1;for(;o===!1;){const a=await t.read(n);if(a===null)o=!0;else{let h=0;for(;h<a;)h+=await e.write(n.subarray(h,a));i+=h}}return i}const DEFAULT_BUF_SIZE=4096,MIN_BUF_SIZE=16,CR="\r".charCodeAt(0),LF=`
-`.charCodeAt(0);class BufferFullError extends Error{partial;name="BufferFullError";constructor(e){super("Buffer full");this.partial=e}}class PartialReadError extends Error{name="PartialReadError";partial;constructor(){super("Encountered UnexpectedEof, data only partially read")}}class BufReader{buf;rd;r=0;w=0;eof=!1;static create(e,r=4096){return e instanceof BufReader?e:new BufReader(e,r)}constructor(e,r=4096){r<16&&(r=MIN_BUF_SIZE),this._reset(new Uint8Array(r),e)}size(){return this.buf.byteLength}buffered(){return this.w-this.r}async _fill(){if(this.r>0&&(this.buf.copyWithin(0,this.r,this.w),this.w-=this.r,this.r=0),this.w>=this.buf.byteLength)throw Error("bufio: tried to fill full buffer");for(let e=100;e>0;e--){const r=await this.rd.read(this.buf.subarray(this.w));if(r===null){this.eof=!0;return}if(assert1(r>=0,"negative read"),this.w+=r,r>0)return}throw new Error(`No progress after ${100} read() calls`)}reset(e){this._reset(this.buf,e)}_reset(e,r){this.buf=e,this.rd=r,this.eof=!1}async read(e){let r=e.byteLength;if(e.byteLength===0)return r;if(this.r===this.w){if(e.byteLength>=this.buf.byteLength){const s=await this.rd.read(e);return assert1((s??0)>=0,"negative read"),s}if(this.r=0,this.w=0,r=await this.rd.read(this.buf),r===0||r===null)return r;assert1(r>=0,"negative read"),this.w+=r}const i=copy(this.buf.subarray(this.r,this.w),e,0);return this.r+=i,i}async readFull(e){let r=0;for(;r<e.length;)try{const i=await this.read(e.subarray(r));if(i===null){if(r===0)return null;throw new PartialReadError}r+=i}catch(i){if(i instanceof PartialReadError)i.partial=e.subarray(0,r);else if(i instanceof Error){const s=new PartialReadError;throw s.partial=e.subarray(0,r),s.stack=i.stack,s.message=i.message,s.cause=i.cause,i}throw i}return e}async readByte(){for(;this.r===this.w;){if(this.eof)return null;await this._fill()}const e=this.buf[this.r];return this.r++,e}async readString(e){if(e.length!==1)throw new Error("Delimiter should be a single character");const r=await this.readSlice(e.charCodeAt(0));return r===null?null:new TextDecoder().decode(r)}async readLine(){let e=null;try{e=await this.readSlice(LF)}catch(r){if(r instanceof Deno.errors.BadResource)throw r;let i;if(r instanceof PartialReadError&&(i=r.partial,assert1(i instanceof Uint8Array,"bufio: caught error from `readSlice()` without `partial` property")),!(r instanceof BufferFullError))throw r;if(!this.eof&&i&&i.byteLength>0&&i[i.byteLength-1]===CR&&(assert1(this.r>0,"bufio: tried to rewind past start of buffer"),this.r--,i=i.subarray(0,i.byteLength-1)),i)return{line:i,more:!this.eof}}if(e===null)return null;if(e.byteLength===0)return{line:e,more:!1};if(e[e.byteLength-1]==LF){let r=1;e.byteLength>1&&e[e.byteLength-2]===CR&&(r=2),e=e.subarray(0,e.byteLength-r)}return{line:e,more:!1}}async readSlice(e){let r=0,i;for(;;){let s=this.buf.subarray(this.r+r,this.w).indexOf(e);if(s>=0){s+=r,i=this.buf.subarray(this.r,this.r+s+1),this.r+=s+1;break}if(this.eof){if(this.r===this.w)return null;i=this.buf.subarray(this.r,this.w),this.r=this.w;break}if(this.buffered()>=this.buf.byteLength){this.r=this.w;const n=this.buf,o=this.buf.slice(0);throw this.buf=o,new BufferFullError(n)}r=this.w-this.r;try{await this._fill()}catch(n){if(n instanceof PartialReadError)n.partial=i;else if(n instanceof Error){const o=new PartialReadError;throw o.partial=i,o.stack=n.stack,o.message=n.message,o.cause=n.cause,n}throw n}}return i}async peek(e){if(e<0)throw Error("negative count");let r=this.w-this.r;for(;r<e&&r<this.buf.byteLength&&!this.eof;){try{await this._fill()}catch(i){if(i instanceof PartialReadError)i.partial=this.buf.subarray(this.r,this.w);else if(i instanceof Error){const s=new PartialReadError;throw s.partial=this.buf.subarray(this.r,this.w),s.stack=i.stack,s.message=i.message,s.cause=i.cause,i}throw i}r=this.w-this.r}if(r===0&&this.eof)return null;if(r<e&&this.eof)return this.buf.subarray(this.r,this.r+r);if(r<e)throw new BufferFullError(this.buf.subarray(this.r,this.w));return this.buf.subarray(this.r,this.r+e)}}class AbstractBufBase{buf;usedBufferBytes=0;err=null;size(){return this.buf.byteLength}available(){return this.buf.byteLength-this.usedBufferBytes}buffered(){return this.usedBufferBytes}}class BufWriter extends AbstractBufBase{writer;static create(e,r=4096){return e instanceof BufWriter?e:new BufWriter(e,r)}constructor(e,r=4096){super();this.writer=e,r<=0&&(r=DEFAULT_BUF_SIZE),this.buf=new Uint8Array(r)}reset(e){this.err=null,this.usedBufferBytes=0,this.writer=e}async flush(){if(this.err!==null)throw this.err;if(this.usedBufferBytes!==0){try{await writeAll(this.writer,this.buf.subarray(0,this.usedBufferBytes))}catch(e){throw e instanceof Error&&(this.err=e),e}this.buf=new Uint8Array(this.buf.length),this.usedBufferBytes=0}}async write(e){if(this.err!==null)throw this.err;if(e.length===0)return 0;let r=0,i=0;for(;e.byteLength>this.available();){if(this.buffered()===0)try{i=await this.writer.write(e)}catch(s){throw s instanceof Error&&(this.err=s),s}else i=copy(e,this.buf,this.usedBufferBytes),this.usedBufferBytes+=i,await this.flush();r+=i,e=e.subarray(i)}return i=copy(e,this.buf,this.usedBufferBytes),this.usedBufferBytes+=i,r+=i,r}}class BufWriterSync extends AbstractBufBase{writer;static create(e,r=4096){return e instanceof BufWriterSync?e:new BufWriterSync(e,r)}constructor(e,r=4096){super();this.writer=e,r<=0&&(r=DEFAULT_BUF_SIZE),this.buf=new Uint8Array(r)}reset(e){this.err=null,this.usedBufferBytes=0,this.writer=e}flush(){if(this.err!==null)throw this.err;if(this.usedBufferBytes!==0){try{writeAllSync(this.writer,this.buf.subarray(0,this.usedBufferBytes))}catch(e){throw e instanceof Error&&(this.err=e),e}this.buf=new Uint8Array(this.buf.length),this.usedBufferBytes=0}}writeSync(e){if(this.err!==null)throw this.err;if(e.length===0)return 0;let r=0,i=0;for(;e.byteLength>this.available();){if(this.buffered()===0)try{i=this.writer.writeSync(e)}catch(s){throw s instanceof Error&&(this.err=s),s}else i=copy(e,this.buf,this.usedBufferBytes),this.usedBufferBytes+=i,this.flush();r+=i,e=e.subarray(i)}return i=copy(e,this.buf,this.usedBufferBytes),this.usedBufferBytes+=i,r+=i,r}}function createLPS(t){const e=new Uint8Array(t.length);e[0]=0;let r=0,i=1;for(;i<e.length;)t[i]==t[r]?(r++,e[i]=r,i++):r===0?(e[i]=0,i++):r=e[r-1];return e}async function*readDelim(t,e){const r=e.length,i=createLPS(e),s=new BytesList,n=Math.max(1024,r+1);let o=0,a=0;for(;;){const h=new Uint8Array(n),l=await t.read(h);if(l===null){yield s.concat();return}else if(l<0)return;s.add(h,0,l);let c=0;for(;o<s.size();)if(h[c]===e[a]){if(o++,c++,a++,a===r){const f=o-r;yield s.slice(0,f),s.shift(o),o=0,a=0}}else a===0?(o++,c++):a=i[a-1]}}async function*readStringDelim(t,e,r){const i=new TextEncoder,s=new TextDecoder(r?.encoding,r);for await(const n of readDelim(t,i.encode(e)))yield s.decode(n)}async function*readLines(t,e){const r=new BufReader(t);let i=[];const s=new TextDecoder(e?.encoding,e);for(;;){const n=await r.readLine();if(!n){i.length>0&&(yield s.decode(concat(...i)));break}i.push(n.line),n.more||(yield s.decode(concat(...i)),i=[])}}const DEFAULT_BUFFER_SIZE1=32*1024;async function copyN(t,e,r){let i=0,s=new Uint8Array(DEFAULT_BUFFER_SIZE1);for(;i<r;){r-i<DEFAULT_BUFFER_SIZE1&&(s=new Uint8Array(r-i));const n=await t.read(s),o=n??0;if(i+=o,o>0){let a=0;for(;a<o;)a+=await e.write(s.slice(a,o));assert1(a===o,"could not write")}if(n===null)break}return i}async function readShort(t){const e=await t.readByte();if(e===null)return null;const r=await t.readByte();if(r===null)throw new Deno.errors.UnexpectedEof;return e<<8|r}async function readInt(t){const e=await readShort(t);if(e===null)return null;const r=await readShort(t);if(r===null)throw new Deno.errors.UnexpectedEof;return e<<16|r}const MAX_SAFE_INTEGER=BigInt(Number.MAX_SAFE_INTEGER);async function readLong(t){const e=await readInt(t);if(e===null)return null;const r=await readInt(t);if(r===null)throw new Deno.errors.UnexpectedEof;const i=BigInt(e)<<32n|BigInt(r);if(i>MAX_SAFE_INTEGER)throw new RangeError("Long value too big to be represented as a JavaScript number.");return Number(i)}function sliceLongToBytes(t,e=new Array(8)){let r=BigInt(t);for(let i=0;i<8;i++)e[7-i]=Number(r&255n),r>>=8n;return e}class StringReader extends Buffer{constructor(e){super(new TextEncoder().encode(e).buffer)}}class MultiReader{readers;currentIndex=0;constructor(...e){this.readers=e}async read(e){const r=this.readers[this.currentIndex];if(!r)return null;const i=await r.read(e);return i===null?(this.currentIndex++,0):i}}class LimitedReader{reader;limit;constructor(e,r){this.reader=e,this.limit=r}async read(e){if(this.limit<=0)return null;e.length>this.limit&&(e=e.subarray(0,this.limit));const r=await this.reader.read(e);return r==null?null:(this.limit-=r,r)}}function isCloser(t){return typeof t=="object"&&t!=null&&"close"in t&&typeof t.close=="function"}function readerFromIterable(t){const e=t[Symbol.asyncIterator]?.()??t[Symbol.iterator]?.(),r=new Buffer;return{async read(i){if(r.length==0){const s=await e.next();return s.done?null:s.value.byteLength<=i.byteLength?(i.set(s.value),s.value.byteLength):(i.set(s.value.subarray(0,i.byteLength)),await writeAll(r,s.value.subarray(i.byteLength)),i.byteLength)}else{const s=await r.read(i);return s??this.read(i)}}}}function writerFromStreamWriter(t){return{async write(e){return await t.ready,await t.write(e),e.length}}}function readerFromStreamReader(t){const e=new Buffer;return{async read(r){if(e.empty()){const i=await t.read();if(i.done)return null;await writeAll(e,i.value)}return e.read(r)}}}function writableStreamFromWriter(t,e={}){const{autoClose:r=!0}=e;return new WritableStream({async write(i,s){try{await writeAll(t,i)}catch(n){s.error(n),isCloser(t)&&r&&t.close()}},close(){isCloser(t)&&r&&t.close()},abort(){isCloser(t)&&r&&t.close()}})}function readableStreamFromIterable(t){const e=t[Symbol.asyncIterator]?.()??t[Symbol.iterator]?.();return new ReadableStream({async pull(r){const{value:i,done:s}=await e.next();s?r.close():r.enqueue(i)},async cancel(r){if(typeof e.throw=="function")try{await e.throw(r)}catch{}}})}function readableStreamFromReader(t,e={}){const{autoClose:r=!0,chunkSize:i=16640,strategy:s}=e;return new ReadableStream({async pull(n){const o=new Uint8Array(i);try{const a=await t.read(o);if(a===null){isCloser(t)&&r&&t.close(),n.close();return}n.enqueue(o.subarray(0,a))}catch(a){n.error(a),isCloser(t)&&t.close()}},cancel(){isCloser(t)&&r&&t.close()}},s)}const decoder2=new TextDecoder;class StringWriter{base;chunks=[];byteLength=0;cache;constructor(e=""){this.base=e;const r=new TextEncoder().encode(e);this.chunks.push(r),this.byteLength+=r.byteLength}write(e){return Promise.resolve(this.writeSync(e))}writeSync(e){return this.chunks.push(e),this.byteLength+=e.byteLength,this.cache=void 0,e.byteLength}toString(){if(this.cache)return this.cache;const e=new Uint8Array(this.byteLength);let r=0;for(const i of this.chunks)e.set(i,r),r+=i.byteLength;return this.cache=decoder2.decode(e),this.cache}}const mod3={Buffer,BufferFullError,PartialReadError,BufReader,BufWriter,BufWriterSync,readDelim,readStringDelim,readLines,readAll,readAllSync,readRange,readRangeSync,writeAll,writeAllSync,iter,iterSync,copy:copy1,copyN,readShort,readInt,readLong,sliceLongToBytes,StringReader,MultiReader,LimitedReader,readerFromIterable,writerFromStreamWriter,readerFromStreamReader,writableStreamFromWriter,readableStreamFromIterable,readableStreamFromReader,StringWriter};function isRequestMessage(t){return Array.isArray(t)&&t.length===4&&t[0]===0&&typeof t[1]=="number"&&typeof t[2]=="string"&&Array.isArray(t[3])}function isResponseMessage(t){return Array.isArray(t)&&t.length===4&&t[0]===1&&typeof t[1]=="number"&&typeof t[2]!="undefined"&&typeof t[3]!="undefined"}function isNotificationMessage(t){return Array.isArray(t)&&t.length===3&&t[0]===2&&typeof t[1]=="string"&&Array.isArray(t[2])}class Indexer{#e;#t;constructor(e){if(e!=null&&e<2)throw new Error(`The attribute 'max' must be greater than 1 but ${e} has specified`);this.#e=e??Number.MAX_SAFE_INTEGER,this.#t=-1}next(){return this.#t>=this.#e&&(this.#t=-1),this.#t+=1,this.#t}}class TimeoutError extends Error{constructor(){super("the process didn't complete in time");this.name="TimeoutError"}}class ResponseWaiter{#e;#t;constructor(e=1e4){this.#e=new Map,this.#t=e}get waiterCount(){return this.#e.size}wait(e,r){let i=this.#e.get(e)?.response;if(!i){i=deferred2();const s=setTimeout(()=>{const n=this.#e.get(e)?.response;!n||(n.reject(new TimeoutError),this.#e.delete(e))},r??this.#t);this.#e.set(e,{timer:s,response:i})}return i}provide(e){const[r,i,s,n]=e,o=this.#e.get(i);if(!o)return!1;this.#e.delete(i);const{timer:a,response:h}=o;return clearTimeout(a),h.resolve(e),!0}}const MSGID_THRESHOLD=2**32;class Session{#e;#t;#i;#r;#n;#o;#s;dispatcher;constructor(e,r,i={},s={}){this.dispatcher=i,this.#e=new Indexer(MSGID_THRESHOLD),this.#t=new ResponseWaiter(s.responseTimeout),this.#i=e,this.#r=r,this.#o=!1,this.#s=deferred2(),this.#n=this.listen().catch(n=>{s.errorCallback?s.errorCallback(n):console.error(`Unexpected error occured in session: ${n}`)})}async send(e){await mod3.writeAll(this.#r,e)}async dispatch(e,...r){if(!Object.prototype.hasOwnProperty.call(this.dispatcher,e)){const i=Object.getOwnPropertyNames(this.dispatcher);throw new Error(`No method '${e}' exists in ${JSON.stringify(i)}`)}return await this.dispatcher[e].apply(this,r)}async handleRequest(e){const[r,i,s,n]=e,[o,a]=await(async()=>{let l=null,c=null;try{l=await this.dispatch(s,...n)}catch(f){c=f.stack??f.toString()}return[l,c]})(),h=[1,i,a,o];await this.send(encode1(h))}handleResponse(e){this.#t.provide(e)||console.warn("Unexpected response message received",e)}async handleNotification(e){const[r,i,s]=e;try{await this.dispatch(i,...s)}catch(n){console.error(n)}}async listen(){const e=decodeStream(mod3.iter(this.#i));try{for(;!this.#o;){const{done:r,value:i}=await Promise.race([this.#s,e.next()]);if(r)return;if(isRequestMessage(i))this.handleRequest(i);else if(isResponseMessage(i))this.handleResponse(i);else if(isNotificationMessage(i))this.handleNotification(i);else{console.warn(`Unexpected data received: ${i}`);continue}}}catch(r){if(r instanceof SessionClosedError||r instanceof Deno.errors.BadResource)return;throw r}}dispose(){this.close()}close(){this.#o=!0,this.#s.reject(new SessionClosedError)}waitClosed(){return this.#n}async call(e,...r){if(this.#o)throw new SessionClosedError;const i=this.#e.next(),s=[0,i,e,r],[n,o]=await Promise.race([this.#s,Promise.all([this.send(encode1(s)),this.#t.wait(i)])]),[a,h]=o.slice(2);if(a){const l=JSON.stringify(r),c=typeof a=="string"?a:JSON.stringify(a);throw new Error(`Failed to call '${e}' with ${l}: ${c}`)}return h}async notify(e,...r){if(this.#o)throw new SessionClosedError;const i=[2,e,r];await Promise.race([this.#s,this.send(encode1(i))])}clearDispatcher(){this.dispatcher={}}extendDispatcher(e){this.dispatcher={...this.dispatcher,...e}}}class SessionClosedError extends Error{constructor(){super("The session is closed");this.name="SessionClosedError"}}class DenoStdInternalError2 extends Error{constructor(e){super(e);this.name="DenoStdInternalError"}}function assert3(t,e=""){if(!t)throw new DenoStdInternalError2(e)}function concat1(...t){let e=0;for(const s of t)e+=s.length;const r=new Uint8Array(e);let i=0;for(const s of t)r.set(s,i),i+=s.length;return r}function copy2(t,e,r=0){r=Math.max(0,Math.min(r,e.byteLength));const i=e.byteLength-r;return t.byteLength>i&&(t=t.subarray(0,i)),e.set(t,r),t.byteLength}const MIN_READ1=32*1024,MAX_SIZE1=2**32-2;class Buffer1{#e;#t=0;constructor(e){this.#e=e===void 0?new Uint8Array(0):new Uint8Array(e)}bytes(e={copy:!0}){return e.copy===!1?this.#e.subarray(this.#t):this.#e.slice(this.#t)}empty(){return this.#e.byteLength<=this.#t}get length(){return this.#e.byteLength-this.#t}get capacity(){return this.#e.buffer.byteLength}truncate(e){if(e===0){this.reset();return}if(e<0||e>this.length)throw Error("bytes.Buffer: truncation out of range");this.#r(this.#t+e)}reset(){this.#r(0),this.#t=0}#i(e){const r=this.#e.byteLength;return e<=this.capacity-r?(this.#r(r+e),r):-1}#r(e){assert3(e<=this.#e.buffer.byteLength),this.#e=new Uint8Array(this.#e.buffer,0,e)}readSync(e){if(this.empty())return this.reset(),e.byteLength===0?0:null;const r=copy2(this.#e.subarray(this.#t),e);return this.#t+=r,r}read(e){const r=this.readSync(e);return Promise.resolve(r)}writeSync(e){const r=this.#n(e.byteLength);return copy2(e,this.#e,r)}write(e){const r=this.writeSync(e);return Promise.resolve(r)}#n(e){const r=this.length;r===0&&this.#t!==0&&this.reset();const i=this.#i(e);if(i>=0)return i;const s=this.capacity;if(e<=Math.floor(s/2)-r)copy2(this.#e.subarray(this.#t),this.#e);else{if(s+e>MAX_SIZE1)throw new Error("The buffer cannot be grown beyond the maximum size.");{const n=new Uint8Array(Math.min(2*s+e,MAX_SIZE1));copy2(this.#e.subarray(this.#t),n),this.#e=n}}return this.#t=0,this.#r(Math.min(r+e,MAX_SIZE1)),r}grow(e){if(e<0)throw Error("Buffer.grow: negative count");const r=this.#n(e);this.#r(r)}async readFrom(e){let r=0;const i=new Uint8Array(MIN_READ1);for(;;){const s=this.capacity-this.length<MIN_READ1,n=s?i:new Uint8Array(this.#e.buffer,this.length),o=await e.read(n);if(o===null)return r;s?this.writeSync(n.subarray(0,o)):this.#r(this.length+o),r+=o}}readFromSync(e){let r=0;const i=new Uint8Array(MIN_READ1);for(;;){const s=this.capacity-this.length<MIN_READ1,n=s?i:new Uint8Array(this.#e.buffer,this.length),o=e.readSync(n);if(o===null)return r;s?this.writeSync(n.subarray(0,o)):this.#r(this.length+o),r+=o}}}class BytesList1{len=0;chunks=[];constructor(){}size(){return this.len}add(e,r=0,i=e.byteLength){e.byteLength===0||i-r==0||(checkRange1(r,i,e.byteLength),this.chunks.push({value:e,end:i,start:r,offset:this.len}),this.len+=i-r)}shift(e){if(e===0)return;if(this.len<=e){this.chunks=[],this.len=0;return}const r=this.getChunkIndex(e);this.chunks.splice(0,r);const[i]=this.chunks;if(i){const n=e-i.offset;i.start+=n}let s=0;for(const n of this.chunks)n.offset=s,s+=n.end-n.start;this.len=s}getChunkIndex(e){let r=this.chunks.length,i=0;for(;;){const s=i+Math.floor((r-i)/2);if(s<0||this.chunks.length<=s)return-1;const{offset:n,start:o,end:a}=this.chunks[s],h=a-o;if(n<=e&&e<n+h)return s;n+h<=e?i=s+1:r=s-1}}get(e){if(e<0||this.len<=e)throw new Error("out of range");const r=this.getChunkIndex(e),{value:i,offset:s,start:n}=this.chunks[r];return i[n+e-s]}*iterator(e=0){const r=this.getChunkIndex(e);if(r<0)return;const i=this.chunks[r];let s=e-i.offset;for(let n=r;n<this.chunks.length;n++){const o=this.chunks[n];for(let a=o.start+s;a<o.end;a++)yield o.value[a];s=0}}slice(e,r=this.len){if(r===e)return new Uint8Array;checkRange1(e,r,this.len);const i=new Uint8Array(r-e),s=this.getChunkIndex(e),n=this.getChunkIndex(r-1);let o=0;for(let l=s;l<n;l++){const c=this.chunks[l],f=c.end-c.start;i.set(c.value.subarray(c.start,c.end),o),o+=f}const a=this.chunks[n],h=r-e-o;return i.set(a.value.subarray(a.start,a.start+h),o),i}concat(){const e=new Uint8Array(this.len);let r=0;for(const{value:i,start:s,end:n}of this.chunks)e.set(i.subarray(s,n),r),r+=n-s;return e}}function checkRange1(t,e,r){if(t<0||r<t||e<0||r<e||e<t)throw new Error("invalid range")}const{Deno:Deno2}=globalThis;typeof Deno2?.noColor=="boolean"&&Deno2.noColor,new RegExp(["[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)","(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))"].join("|"),"g");var DiffType1;(function(t){t.removed="removed",t.common="common",t.added="added"})(DiffType1||(DiffType1={}));class AssertionError1 extends Error{constructor(e){super(e);this.name="AssertionError"}}function assert4(t,e=""){if(!t)throw new AssertionError1(e)}const DEFAULT_BUFFER_SIZE2=32*1024;async function readAll1(t){const e=new Buffer1;return await e.readFrom(t),e.bytes()}function readAllSync1(t){const e=new Buffer1;return e.readFromSync(t),e.bytes()}async function readRange1(t,e){let r=e.end-e.start+1;assert4(r>0,"Invalid byte range was passed."),await t.seek(e.start,Deno.SeekMode.Start);const i=new Uint8Array(r);let s=0;for(;r;){const n=new Uint8Array(Math.min(r,DEFAULT_BUFFER_SIZE2)),o=await t.read(n);assert4(o!==null,"Unexpected EOF reach while reading a range."),assert4(o>0,"Unexpected read of 0 bytes while reading a range."),copy2(n,i,s),s+=o,r-=o,assert4(r>=0,"Unexpected length remaining after reading range.")}return i}function readRangeSync1(t,e){let r=e.end-e.start+1;assert4(r>0,"Invalid byte range was passed."),t.seekSync(e.start,Deno.SeekMode.Start);const i=new Uint8Array(r);let s=0;for(;r;){const n=new Uint8Array(Math.min(r,DEFAULT_BUFFER_SIZE2)),o=t.readSync(n);assert4(o!==null,"Unexpected EOF reach while reading a range."),assert4(o>0,"Unexpected read of 0 bytes while reading a range."),copy2(n,i,s),s+=o,r-=o,assert4(r>=0,"Unexpected length remaining after reading range.")}return i}async function writeAll1(t,e){let r=0;for(;r<e.length;)r+=await t.write(e.subarray(r))}function writeAllSync1(t,e){let r=0;for(;r<e.length;)r+=t.writeSync(e.subarray(r))}async function*iter1(t,e){const r=e?.bufSize??DEFAULT_BUFFER_SIZE2,i=new Uint8Array(r);for(;;){const s=await t.read(i);if(s===null)break;yield i.subarray(0,s)}}function*iterSync1(t,e){const r=e?.bufSize??DEFAULT_BUFFER_SIZE2,i=new Uint8Array(r);for(;;){const s=t.readSync(i);if(s===null)break;yield i.subarray(0,s)}}async function copy3(t,e,r){let i=0;const s=r?.bufSize??DEFAULT_BUFFER_SIZE2,n=new Uint8Array(s);let o=!1;for(;o===!1;){const a=await t.read(n);if(a===null)o=!0;else{let h=0;for(;h<a;)h+=await e.write(n.subarray(h,a));i+=h}}return i}const DEFAULT_BUF_SIZE1=4096,MIN_BUF_SIZE1=16,CR1="\r".charCodeAt(0),LF1=`
-`.charCodeAt(0);class BufferFullError1 extends Error{partial;name="BufferFullError";constructor(e){super("Buffer full");this.partial=e}}class PartialReadError1 extends Error{name="PartialReadError";partial;constructor(){super("Encountered UnexpectedEof, data only partially read")}}class BufReader1{buf;rd;r=0;w=0;eof=!1;static create(e,r=4096){return e instanceof BufReader1?e:new BufReader1(e,r)}constructor(e,r=4096){r<16&&(r=MIN_BUF_SIZE1),this._reset(new Uint8Array(r),e)}size(){return this.buf.byteLength}buffered(){return this.w-this.r}async _fill(){if(this.r>0&&(this.buf.copyWithin(0,this.r,this.w),this.w-=this.r,this.r=0),this.w>=this.buf.byteLength)throw Error("bufio: tried to fill full buffer");for(let e=100;e>0;e--){const r=await this.rd.read(this.buf.subarray(this.w));if(r===null){this.eof=!0;return}if(assert3(r>=0,"negative read"),this.w+=r,r>0)return}throw new Error(`No progress after ${100} read() calls`)}reset(e){this._reset(this.buf,e)}_reset(e,r){this.buf=e,this.rd=r,this.eof=!1}async read(e){let r=e.byteLength;if(e.byteLength===0)return r;if(this.r===this.w){if(e.byteLength>=this.buf.byteLength){const s=await this.rd.read(e);return assert3((s??0)>=0,"negative read"),s}if(this.r=0,this.w=0,r=await this.rd.read(this.buf),r===0||r===null)return r;assert3(r>=0,"negative read"),this.w+=r}const i=copy2(this.buf.subarray(this.r,this.w),e,0);return this.r+=i,i}async readFull(e){let r=0;for(;r<e.length;)try{const i=await this.read(e.subarray(r));if(i===null){if(r===0)return null;throw new PartialReadError1}r+=i}catch(i){throw i.partial=e.subarray(0,r),i}return e}async readByte(){for(;this.r===this.w;){if(this.eof)return null;await this._fill()}const e=this.buf[this.r];return this.r++,e}async readString(e){if(e.length!==1)throw new Error("Delimiter should be a single character");const r=await this.readSlice(e.charCodeAt(0));return r===null?null:new TextDecoder().decode(r)}async readLine(){let e;try{e=await this.readSlice(LF1)}catch(r){if(r instanceof Deno.errors.BadResource)throw r;let{partial:i}=r;if(assert3(i instanceof Uint8Array,"bufio: caught error from `readSlice()` without `partial` property"),!(r instanceof BufferFullError1))throw r;return!this.eof&&i.byteLength>0&&i[i.byteLength-1]===CR1&&(assert3(this.r>0,"bufio: tried to rewind past start of buffer"),this.r--,i=i.subarray(0,i.byteLength-1)),{line:i,more:!this.eof}}if(e===null)return null;if(e.byteLength===0)return{line:e,more:!1};if(e[e.byteLength-1]==LF1){let r=1;e.byteLength>1&&e[e.byteLength-2]===CR1&&(r=2),e=e.subarray(0,e.byteLength-r)}return{line:e,more:!1}}async readSlice(e){let r=0,i;for(;;){let s=this.buf.subarray(this.r+r,this.w).indexOf(e);if(s>=0){s+=r,i=this.buf.subarray(this.r,this.r+s+1),this.r+=s+1;break}if(this.eof){if(this.r===this.w)return null;i=this.buf.subarray(this.r,this.w),this.r=this.w;break}if(this.buffered()>=this.buf.byteLength){this.r=this.w;const n=this.buf,o=this.buf.slice(0);throw this.buf=o,new BufferFullError1(n)}r=this.w-this.r;try{await this._fill()}catch(n){throw n.partial=i,n}}return i}async peek(e){if(e<0)throw Error("negative count");let r=this.w-this.r;for(;r<e&&r<this.buf.byteLength&&!this.eof;){try{await this._fill()}catch(i){throw i.partial=this.buf.subarray(this.r,this.w),i}r=this.w-this.r}if(r===0&&this.eof)return null;if(r<e&&this.eof)return this.buf.subarray(this.r,this.r+r);if(r<e)throw new BufferFullError1(this.buf.subarray(this.r,this.w));return this.buf.subarray(this.r,this.r+e)}}class AbstractBufBase1{buf;usedBufferBytes=0;err=null;size(){return this.buf.byteLength}available(){return this.buf.byteLength-this.usedBufferBytes}buffered(){return this.usedBufferBytes}}class BufWriter1 extends AbstractBufBase1{writer;static create(e,r=4096){return e instanceof BufWriter1?e:new BufWriter1(e,r)}constructor(e,r=4096){super();this.writer=e,r<=0&&(r=DEFAULT_BUF_SIZE1),this.buf=new Uint8Array(r)}reset(e){this.err=null,this.usedBufferBytes=0,this.writer=e}async flush(){if(this.err!==null)throw this.err;if(this.usedBufferBytes!==0){try{await writeAll1(this.writer,this.buf.subarray(0,this.usedBufferBytes))}catch(e){throw this.err=e,e}this.buf=new Uint8Array(this.buf.length),this.usedBufferBytes=0}}async write(e){if(this.err!==null)throw this.err;if(e.length===0)return 0;let r=0,i=0;for(;e.byteLength>this.available();){if(this.buffered()===0)try{i=await this.writer.write(e)}catch(s){throw this.err=s,s}else i=copy2(e,this.buf,this.usedBufferBytes),this.usedBufferBytes+=i,await this.flush();r+=i,e=e.subarray(i)}return i=copy2(e,this.buf,this.usedBufferBytes),this.usedBufferBytes+=i,r+=i,r}}class BufWriterSync1 extends AbstractBufBase1{writer;static create(e,r=4096){return e instanceof BufWriterSync1?e:new BufWriterSync1(e,r)}constructor(e,r=4096){super();this.writer=e,r<=0&&(r=DEFAULT_BUF_SIZE1),this.buf=new Uint8Array(r)}reset(e){this.err=null,this.usedBufferBytes=0,this.writer=e}flush(){if(this.err!==null)throw this.err;if(this.usedBufferBytes!==0){try{writeAllSync1(this.writer,this.buf.subarray(0,this.usedBufferBytes))}catch(e){throw this.err=e,e}this.buf=new Uint8Array(this.buf.length),this.usedBufferBytes=0}}writeSync(e){if(this.err!==null)throw this.err;if(e.length===0)return 0;let r=0,i=0;for(;e.byteLength>this.available();){if(this.buffered()===0)try{i=this.writer.writeSync(e)}catch(s){throw this.err=s,s}else i=copy2(e,this.buf,this.usedBufferBytes),this.usedBufferBytes+=i,this.flush();r+=i,e=e.subarray(i)}return i=copy2(e,this.buf,this.usedBufferBytes),this.usedBufferBytes+=i,r+=i,r}}function createLPS1(t){const e=new Uint8Array(t.length);e[0]=0;let r=0,i=1;for(;i<e.length;)t[i]==t[r]?(r++,e[i]=r,i++):r===0?(e[i]=0,i++):r=e[r-1];return e}async function*readDelim1(t,e){const r=e.length,i=createLPS1(e),s=new BytesList1,n=Math.max(1024,r+1);let o=0,a=0;for(;;){const h=new Uint8Array(n),l=await t.read(h);if(l===null){yield s.concat();return}else if(l<0)return;s.add(h,0,l);let c=0;for(;o<s.size();)if(h[c]===e[a]){if(o++,c++,a++,a===r){const f=o-r;yield s.slice(0,f),s.shift(o),o=0,a=0}}else a===0?(o++,c++):a=i[a-1]}}async function*readStringDelim1(t,e,r){const i=new TextEncoder,s=new TextDecoder(r?.encoding,r);for await(const n of readDelim1(t,i.encode(e)))yield s.decode(n)}async function*readLines1(t,e){const r=new BufReader1(t);let i=[];const s=new TextDecoder(e?.encoding,e);for(;;){const n=await r.readLine();if(!n){i.length>0&&(yield s.decode(concat1(...i)));break}i.push(n.line),n.more||(yield s.decode(concat1(...i)),i=[])}}const DEFAULT_BUFFER_SIZE3=32*1024;async function copyN1(t,e,r){let i=0,s=new Uint8Array(DEFAULT_BUFFER_SIZE3);for(;i<r;){r-i<DEFAULT_BUFFER_SIZE3&&(s=new Uint8Array(r-i));const n=await t.read(s),o=n??0;if(i+=o,o>0){let a=0;for(;a<o;)a+=await e.write(s.slice(a,o));assert3(a===o,"could not write")}if(n===null)break}return i}async function readShort1(t){const e=await t.readByte();if(e===null)return null;const r=await t.readByte();if(r===null)throw new Deno.errors.UnexpectedEof;return e<<8|r}async function readInt1(t){const e=await readShort1(t);if(e===null)return null;const r=await readShort1(t);if(r===null)throw new Deno.errors.UnexpectedEof;return e<<16|r}const MAX_SAFE_INTEGER1=BigInt(Number.MAX_SAFE_INTEGER);async function readLong1(t){const e=await readInt1(t);if(e===null)return null;const r=await readInt1(t);if(r===null)throw new Deno.errors.UnexpectedEof;const i=BigInt(e)<<32n|BigInt(r);if(i>MAX_SAFE_INTEGER1)throw new RangeError("Long value too big to be represented as a JavaScript number.");return Number(i)}function sliceLongToBytes1(t,e=new Array(8)){let r=BigInt(t);for(let i=0;i<8;i++)e[7-i]=Number(r&255n),r>>=8n;return e}class StringReader1 extends Buffer1{constructor(e){super(new TextEncoder().encode(e).buffer)}}class MultiReader1{readers;currentIndex=0;constructor(...e){this.readers=e}async read(e){const r=this.readers[this.currentIndex];if(!r)return null;const i=await r.read(e);return i===null?(this.currentIndex++,0):i}}class LimitedReader1{reader;limit;constructor(e,r){this.reader=e,this.limit=r}async read(e){if(this.limit<=0)return null;e.length>this.limit&&(e=e.subarray(0,this.limit));const r=await this.reader.read(e);return r==null?null:(this.limit-=r,r)}}function isCloser1(t){return typeof t=="object"&&t!=null&&"close"in t&&typeof t.close=="function"}function readerFromIterable1(t){const e=t[Symbol.asyncIterator]?.()??t[Symbol.iterator]?.(),r=new Buffer1;return{async read(i){if(r.length==0){const s=await e.next();return s.done?null:s.value.byteLength<=i.byteLength?(i.set(s.value),s.value.byteLength):(i.set(s.value.subarray(0,i.byteLength)),await writeAll1(r,s.value.subarray(i.byteLength)),i.byteLength)}else{const s=await r.read(i);return s??this.read(i)}}}}function writerFromStreamWriter1(t){return{async write(e){return await t.ready,await t.write(e),e.length}}}function readerFromStreamReader1(t){const e=new Buffer1;return{async read(r){if(e.empty()){const i=await t.read();if(i.done)return null;await writeAll1(e,i.value)}return e.read(r)}}}function writableStreamFromWriter1(t,e={}){const{autoClose:r=!0}=e;return new WritableStream({async write(i,s){try{await writeAll1(t,i)}catch(n){s.error(n),isCloser1(t)&&r&&t.close()}},close(){isCloser1(t)&&r&&t.close()},abort(){isCloser1(t)&&r&&t.close()}})}function readableStreamFromIterable1(t){const e=t[Symbol.asyncIterator]?.()??t[Symbol.iterator]?.();return new ReadableStream({async pull(r){const{value:i,done:s}=await e.next();s?r.close():r.enqueue(i)}})}function readableStreamFromReader1(t,e={}){const{autoClose:r=!0,chunkSize:i=16640,strategy:s}=e;return new ReadableStream({async pull(n){const o=new Uint8Array(i);try{const a=await t.read(o);if(a===null){isCloser1(t)&&r&&t.close(),n.close();return}n.enqueue(o.subarray(0,a))}catch(a){n.error(a),isCloser1(t)&&t.close()}},cancel(){isCloser1(t)&&r&&t.close()}},s)}const decoder1=new TextDecoder;class StringWriter1{base;chunks=[];byteLength=0;cache;constructor(e=""){this.base=e;const r=new TextEncoder().encode(e);this.chunks.push(r),this.byteLength+=r.byteLength}write(e){return Promise.resolve(this.writeSync(e))}writeSync(e){return this.chunks.push(e),this.byteLength+=e.byteLength,this.cache=void 0,e.byteLength}toString(){if(this.cache)return this.cache;const e=new Uint8Array(this.byteLength);let r=0;for(const i of this.chunks)e.set(i,r),r+=i.byteLength;return this.cache=decoder1.decode(e),this.cache}}const mod4={Buffer:Buffer1,BufferFullError:BufferFullError1,PartialReadError:PartialReadError1,BufReader:BufReader1,BufWriter:BufWriter1,BufWriterSync:BufWriterSync1,readDelim:readDelim1,readStringDelim:readStringDelim1,readLines:readLines1,readAll:readAll1,readAllSync:readAllSync1,readRange:readRange1,readRangeSync:readRangeSync1,writeAll:writeAll1,writeAllSync:writeAllSync1,iter:iter1,iterSync:iterSync1,copy:copy3,copyN:copyN1,readShort:readShort1,readInt:readInt1,readLong:readLong1,sliceLongToBytes:sliceLongToBytes1,StringReader:StringReader1,MultiReader:MultiReader1,LimitedReader:LimitedReader1,readerFromIterable:readerFromIterable1,writerFromStreamWriter:writerFromStreamWriter1,readerFromStreamReader:readerFromStreamReader1,writableStreamFromWriter:writableStreamFromWriter1,readableStreamFromIterable:readableStreamFromIterable1,readableStreamFromReader:readableStreamFromReader1,StringWriter:StringWriter1};function deferred3(){let t,e="pending";const r=new Promise((i,s)=>{t={async resolve(n){await n,e="fulfilled",i(n)},reject(n){e="rejected",s(n)}}});return Object.defineProperty(r,"state",{get:()=>e}),Object.assign(r,t)}var charset;(function(t){t[t.BACKSPACE=8]="BACKSPACE",t[t.FORM_FEED=12]="FORM_FEED",t[t.NEWLINE=10]="NEWLINE",t[t.CARRIAGE_RETURN=13]="CARRIAGE_RETURN",t[t.TAB=9]="TAB",t[t.SPACE=32]="SPACE",t[t.EXCLAMATION_MARK=33]="EXCLAMATION_MARK",t[t.QUOTATION_MARK=34]="QUOTATION_MARK",t[t.NUMBER_SIGN=35]="NUMBER_SIGN",t[t.DOLLAR_SIGN=36]="DOLLAR_SIGN",t[t.PERCENT_SIGN=37]="PERCENT_SIGN",t[t.AMPERSAND=38]="AMPERSAND",t[t.APOSTROPHE=39]="APOSTROPHE",t[t.LEFT_PARENTHESIS=40]="LEFT_PARENTHESIS",t[t.RIGHT_PARENTHESIS=41]="RIGHT_PARENTHESIS",t[t.ASTERISK=42]="ASTERISK",t[t.PLUS_SIGN=43]="PLUS_SIGN",t[t.COMMA=44]="COMMA",t[t.HYPHEN_MINUS=45]="HYPHEN_MINUS",t[t.FULL_STOP=46]="FULL_STOP",t[t.SOLIDUS=47]="SOLIDUS",t[t.DIGIT_ZERO=48]="DIGIT_ZERO",t[t.DIGIT_ONE=49]="DIGIT_ONE",t[t.DIGIT_TWO=50]="DIGIT_TWO",t[t.DIGIT_THREE=51]="DIGIT_THREE",t[t.DIGIT_FOUR=52]="DIGIT_FOUR",t[t.DIGIT_FIVE=53]="DIGIT_FIVE",t[t.DIGIT_SIX=54]="DIGIT_SIX",t[t.DIGIT_SEVEN=55]="DIGIT_SEVEN",t[t.DIGIT_EIGHT=56]="DIGIT_EIGHT",t[t.DIGIT_NINE=57]="DIGIT_NINE",t[t.COLON=58]="COLON",t[t.SEMICOLON=59]="SEMICOLON",t[t.LESS_THAN_SIGN=60]="LESS_THAN_SIGN",t[t.EQUALS_SIGN=61]="EQUALS_SIGN",t[t.GREATER_THAN_SIGN=62]="GREATER_THAN_SIGN",t[t.QUESTION_MARK=63]="QUESTION_MARK",t[t.COMMERCIAL_AT=64]="COMMERCIAL_AT",t[t.LATIN_CAPITAL_LETTER_A=65]="LATIN_CAPITAL_LETTER_A",t[t.LATIN_CAPITAL_LETTER_B=66]="LATIN_CAPITAL_LETTER_B",t[t.LATIN_CAPITAL_LETTER_C=67]="LATIN_CAPITAL_LETTER_C",t[t.LATIN_CAPITAL_LETTER_D=68]="LATIN_CAPITAL_LETTER_D",t[t.LATIN_CAPITAL_LETTER_E=69]="LATIN_CAPITAL_LETTER_E",t[t.LATIN_CAPITAL_LETTER_F=70]="LATIN_CAPITAL_LETTER_F",t[t.LATIN_CAPITAL_LETTER_G=71]="LATIN_CAPITAL_LETTER_G",t[t.LATIN_CAPITAL_LETTER_H=72]="LATIN_CAPITAL_LETTER_H",t[t.LATIN_CAPITAL_LETTER_I=73]="LATIN_CAPITAL_LETTER_I",t[t.LATIN_CAPITAL_LETTER_J=74]="LATIN_CAPITAL_LETTER_J",t[t.LATIN_CAPITAL_LETTER_K=75]="LATIN_CAPITAL_LETTER_K",t[t.LATIN_CAPITAL_LETTER_L=76]="LATIN_CAPITAL_LETTER_L",t[t.LATIN_CAPITAL_LETTER_M=77]="LATIN_CAPITAL_LETTER_M",t[t.LATIN_CAPITAL_LETTER_N=78]="LATIN_CAPITAL_LETTER_N",t[t.LATIN_CAPITAL_LETTER_O=79]="LATIN_CAPITAL_LETTER_O",t[t.LATIN_CAPITAL_LETTER_P=80]="LATIN_CAPITAL_LETTER_P",t[t.LATIN_CAPITAL_LETTER_Q=81]="LATIN_CAPITAL_LETTER_Q",t[t.LATIN_CAPITAL_LETTER_R=82]="LATIN_CAPITAL_LETTER_R",t[t.LATIN_CAPITAL_LETTER_S=83]="LATIN_CAPITAL_LETTER_S",t[t.LATIN_CAPITAL_LETTER_T=84]="LATIN_CAPITAL_LETTER_T",t[t.LATIN_CAPITAL_LETTER_U=85]="LATIN_CAPITAL_LETTER_U",t[t.LATIN_CAPITAL_LETTER_V=86]="LATIN_CAPITAL_LETTER_V",t[t.LATIN_CAPITAL_LETTER_W=87]="LATIN_CAPITAL_LETTER_W",t[t.LATIN_CAPITAL_LETTER_X=88]="LATIN_CAPITAL_LETTER_X",t[t.LATIN_CAPITAL_LETTER_Y=89]="LATIN_CAPITAL_LETTER_Y",t[t.LATIN_CAPITAL_LETTER_Z=90]="LATIN_CAPITAL_LETTER_Z",t[t.LEFT_SQUARE_BRACKET=91]="LEFT_SQUARE_BRACKET",t[t.REVERSE_SOLIDUS=92]="REVERSE_SOLIDUS",t[t.RIGHT_SQUARE_BRACKET=93]="RIGHT_SQUARE_BRACKET",t[t.CIRCUMFLEX_ACCENT=94]="CIRCUMFLEX_ACCENT",t[t.LOW_LINE=95]="LOW_LINE",t[t.GRAVE_ACCENT=96]="GRAVE_ACCENT",t[t.LATIN_SMALL_LETTER_A=97]="LATIN_SMALL_LETTER_A",t[t.LATIN_SMALL_LETTER_B=98]="LATIN_SMALL_LETTER_B",t[t.LATIN_SMALL_LETTER_C=99]="LATIN_SMALL_LETTER_C",t[t.LATIN_SMALL_LETTER_D=100]="LATIN_SMALL_LETTER_D",t[t.LATIN_SMALL_LETTER_E=101]="LATIN_SMALL_LETTER_E",t[t.LATIN_SMALL_LETTER_F=102]="LATIN_SMALL_LETTER_F",t[t.LATIN_SMALL_LETTER_G=103]="LATIN_SMALL_LETTER_G",t[t.LATIN_SMALL_LETTER_H=104]="LATIN_SMALL_LETTER_H",t[t.LATIN_SMALL_LETTER_I=105]="LATIN_SMALL_LETTER_I",t[t.LATIN_SMALL_LETTER_J=106]="LATIN_SMALL_LETTER_J",t[t.LATIN_SMALL_LETTER_K=107]="LATIN_SMALL_LETTER_K",t[t.LATIN_SMALL_LETTER_L=108]="LATIN_SMALL_LETTER_L",t[t.LATIN_SMALL_LETTER_M=109]="LATIN_SMALL_LETTER_M",t[t.LATIN_SMALL_LETTER_N=110]="LATIN_SMALL_LETTER_N",t[t.LATIN_SMALL_LETTER_O=111]="LATIN_SMALL_LETTER_O",t[t.LATIN_SMALL_LETTER_P=112]="LATIN_SMALL_LETTER_P",t[t.LATIN_SMALL_LETTER_Q=113]="LATIN_SMALL_LETTER_Q",t[t.LATIN_SMALL_LETTER_R=114]="LATIN_SMALL_LETTER_R",t[t.LATIN_SMALL_LETTER_S=115]="LATIN_SMALL_LETTER_S",t[t.LATIN_SMALL_LETTER_T=116]="LATIN_SMALL_LETTER_T",t[t.LATIN_SMALL_LETTER_U=117]="LATIN_SMALL_LETTER_U",t[t.LATIN_SMALL_LETTER_V=118]="LATIN_SMALL_LETTER_V",t[t.LATIN_SMALL_LETTER_W=119]="LATIN_SMALL_LETTER_W",t[t.LATIN_SMALL_LETTER_X=120]="LATIN_SMALL_LETTER_X",t[t.LATIN_SMALL_LETTER_Y=121]="LATIN_SMALL_LETTER_Y",t[t.LATIN_SMALL_LETTER_Z=122]="LATIN_SMALL_LETTER_Z",t[t.LEFT_CURLY_BRACKET=123]="LEFT_CURLY_BRACKET",t[t.VERTICAL_LINE=124]="VERTICAL_LINE",t[t.RIGHT_CURLY_BRACKET=125]="RIGHT_CURLY_BRACKET",t[t.TILDE=126]="TILDE"})(charset||(charset={}));const escapedSequences={[charset.QUOTATION_MARK]:charset.QUOTATION_MARK,[charset.REVERSE_SOLIDUS]:charset.REVERSE_SOLIDUS,[charset.SOLIDUS]:charset.SOLIDUS,[charset.LATIN_SMALL_LETTER_B]:charset.BACKSPACE,[charset.LATIN_SMALL_LETTER_F]:charset.FORM_FEED,[charset.LATIN_SMALL_LETTER_N]:charset.NEWLINE,[charset.LATIN_SMALL_LETTER_R]:charset.CARRIAGE_RETURN,[charset.LATIN_SMALL_LETTER_T]:charset.TAB};class NonBufferedString{decoder=new TextDecoder("utf-8");string="";byteLength=0;appendChar(e){this.string+=String.fromCharCode(e),this.byteLength+=1}appendBuf(e,r=0,i=e.length){this.string+=this.decoder.decode(e.subarray(r,i)),this.byteLength+=i-r}reset(){this.string="",this.byteLength=0}toString(){return this.string}}class BufferedString{decoder=new TextDecoder("utf-8");buffer;bufferOffset=0;string="";byteLength=0;constructor(e){this.buffer=new Uint8Array(e)}appendChar(e){this.bufferOffset>=this.buffer.length&&this.flushStringBuffer(),this.buffer[this.bufferOffset++]=e,this.byteLength+=1}appendBuf(e,r=0,i=e.length){const s=i-r;this.bufferOffset+s>this.buffer.length&&this.flushStringBuffer(),this.buffer.set(e.subarray(r,i),this.bufferOffset),this.bufferOffset+=s,this.byteLength+=s}flushStringBuffer(){this.string+=this.decoder.decode(this.buffer.subarray(0,this.bufferOffset)),this.bufferOffset=0}reset(){this.string="",this.bufferOffset=0,this.byteLength=0}toString(){return this.flushStringBuffer(),this.string}}var TokenType;(function(t){t[t.LEFT_BRACE=1]="LEFT_BRACE",t[t.RIGHT_BRACE=2]="RIGHT_BRACE",t[t.LEFT_BRACKET=3]="LEFT_BRACKET",t[t.RIGHT_BRACKET=4]="RIGHT_BRACKET",t[t.COLON=5]="COLON",t[t.COMMA=6]="COMMA",t[t.TRUE=7]="TRUE",t[t.FALSE=8]="FALSE",t[t.NULL=9]="NULL",t[t.STRING=10]="STRING",t[t.NUMBER=11]="NUMBER"})(TokenType||(TokenType={}));const{LEFT_BRACE,RIGHT_BRACE,LEFT_BRACKET,RIGHT_BRACKET,COLON,COMMA,TRUE,FALSE,NULL,STRING,NUMBER}=TokenType;var TokenizerStates;(function(t){t[t.START=0]="START",t[t.ENDED=1]="ENDED",t[t.ERROR=2]="ERROR",t[t.TRUE1=3]="TRUE1",t[t.TRUE2=4]="TRUE2",t[t.TRUE3=5]="TRUE3",t[t.FALSE1=6]="FALSE1",t[t.FALSE2=7]="FALSE2",t[t.FALSE3=8]="FALSE3",t[t.FALSE4=9]="FALSE4",t[t.NULL1=10]="NULL1",t[t.NULL2=11]="NULL2",t[t.NULL3=12]="NULL3",t[t.STRING_DEFAULT=13]="STRING_DEFAULT",t[t.STRING_AFTER_BACKSLASH=14]="STRING_AFTER_BACKSLASH",t[t.STRING_UNICODE_DIGIT_1=15]="STRING_UNICODE_DIGIT_1",t[t.STRING_UNICODE_DIGIT_2=16]="STRING_UNICODE_DIGIT_2",t[t.STRING_UNICODE_DIGIT_3=17]="STRING_UNICODE_DIGIT_3",t[t.STRING_UNICODE_DIGIT_4=18]="STRING_UNICODE_DIGIT_4",t[t.STRING_INCOMPLETE_CHAR=19]="STRING_INCOMPLETE_CHAR",t[t.NUMBER_AFTER_INITIAL_MINUS=20]="NUMBER_AFTER_INITIAL_MINUS",t[t.NUMBER_AFTER_INITIAL_ZERO=21]="NUMBER_AFTER_INITIAL_ZERO",t[t.NUMBER_AFTER_INITIAL_NON_ZERO=22]="NUMBER_AFTER_INITIAL_NON_ZERO",t[t.NUMBER_AFTER_FULL_STOP=23]="NUMBER_AFTER_FULL_STOP",t[t.NUMBER_AFTER_DECIMAL=24]="NUMBER_AFTER_DECIMAL",t[t.NUMBER_AFTER_E=25]="NUMBER_AFTER_E",t[t.NUMBER_AFTER_E_AND_SIGN=26]="NUMBER_AFTER_E_AND_SIGN",t[t.NUMBER_AFTER_E_AND_DIGIT=27]="NUMBER_AFTER_E_AND_DIGIT"})(TokenizerStates||(TokenizerStates={}));const defaultOpts={stringBufferSize:0,numberBufferSize:0};class TokenizerError extends Error{constructor(e){super(e);Object.setPrototypeOf(this,TokenizerError.prototype)}}class Tokenizer{state=TokenizerStates.START;bufferedString;bufferedNumber;unicode=void 0;highSurrogate=void 0;bytes_remaining=0;bytes_in_sequence=0;char_split_buffer=new Uint8Array(4);encoder=new TextEncoder;offset=-1;constructor(e){e={...defaultOpts,...e},this.bufferedString=e.stringBufferSize&&e.stringBufferSize>4?new BufferedString(e.stringBufferSize):new NonBufferedString,this.bufferedNumber=e.numberBufferSize&&e.numberBufferSize>0?new BufferedString(e.numberBufferSize):new NonBufferedString}write(e){let r;e instanceof Uint8Array?r=e:typeof e=="string"?r=this.encoder.encode(e):e.buffer||Array.isArray(e)?r=Uint8Array.from(e):this.error(new TypeError("Unexpected type. The `write` function only accepts TypeArrays and Strings."));for(var i=0;i<r.length;i+=1){const s=r[i];switch(this.state){case TokenizerStates.START:if(this.offset+=1,s===charset.SPACE||s===charset.NEWLINE||s===charset.CARRIAGE_RETURN||s===charset.TAB)continue;if(s===charset.LEFT_CURLY_BRACKET){this.onToken(LEFT_BRACE,"{",this.offset);continue}if(s===charset.RIGHT_CURLY_BRACKET){this.onToken(RIGHT_BRACE,"}",this.offset);continue}if(s===charset.LEFT_SQUARE_BRACKET){this.onToken(LEFT_BRACKET,"[",this.offset);continue}if(s===charset.RIGHT_SQUARE_BRACKET){this.onToken(RIGHT_BRACKET,"]",this.offset);continue}if(s===charset.COLON){this.onToken(COLON,":",this.offset);continue}if(s===charset.COMMA){this.onToken(COMMA,",",this.offset);continue}if(s===charset.LATIN_SMALL_LETTER_T){this.state=TokenizerStates.TRUE1;continue}if(s===charset.LATIN_SMALL_LETTER_F){this.state=TokenizerStates.FALSE1;continue}if(s===charset.LATIN_SMALL_LETTER_N){this.state=TokenizerStates.NULL1;continue}if(s===charset.QUOTATION_MARK){this.bufferedString.reset(),this.state=TokenizerStates.STRING_DEFAULT;continue}if(s>=charset.DIGIT_ONE&&s<=charset.DIGIT_NINE){this.bufferedNumber.reset(),this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_INITIAL_NON_ZERO;continue}if(s===charset.DIGIT_ZERO){this.bufferedNumber.reset(),this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_INITIAL_ZERO;continue}if(s===charset.HYPHEN_MINUS){this.bufferedNumber.reset(),this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_INITIAL_MINUS;continue}break;case TokenizerStates.STRING_DEFAULT:if(s===charset.QUOTATION_MARK){const o=this.bufferedString.toString();this.state=TokenizerStates.START,this.onToken(STRING,o,this.offset),this.offset+=this.bufferedString.byteLength+1;continue}if(s===charset.REVERSE_SOLIDUS){this.state=TokenizerStates.STRING_AFTER_BACKSLASH;continue}if(s>=128){if(s>=194&&s<=223?this.bytes_in_sequence=2:s<=239?this.bytes_in_sequence=3:this.bytes_in_sequence=4,this.bytes_in_sequence<=r.length-i){this.bufferedString.appendBuf(r,i,i+this.bytes_in_sequence),i+=this.bytes_in_sequence-1;continue}this.bytes_remaining=i+this.bytes_in_sequence-r.length,this.char_split_buffer.set(r.subarray(i)),i=r.length-1,this.state=TokenizerStates.STRING_INCOMPLETE_CHAR;continue}if(s>=charset.SPACE){this.bufferedString.appendChar(s);continue}break;case TokenizerStates.STRING_INCOMPLETE_CHAR:this.char_split_buffer.set(r.subarray(i,i+this.bytes_remaining),this.bytes_in_sequence-this.bytes_remaining),this.bufferedString.appendBuf(this.char_split_buffer,0,this.bytes_in_sequence),i=this.bytes_remaining-1,this.state=TokenizerStates.STRING_DEFAULT;continue;case TokenizerStates.STRING_AFTER_BACKSLASH:const n=escapedSequences[s];if(n){this.bufferedString.appendChar(n),this.state=TokenizerStates.STRING_DEFAULT;continue}if(s===charset.LATIN_SMALL_LETTER_U){this.unicode="",this.state=TokenizerStates.STRING_UNICODE_DIGIT_1;continue}break;case TokenizerStates.STRING_UNICODE_DIGIT_1:case TokenizerStates.STRING_UNICODE_DIGIT_2:case TokenizerStates.STRING_UNICODE_DIGIT_3:if(s>=charset.DIGIT_ZERO&&s<=charset.DIGIT_NINE||s>=charset.LATIN_CAPITAL_LETTER_A&&s<=charset.LATIN_CAPITAL_LETTER_F||s>=charset.LATIN_SMALL_LETTER_A&&s<=charset.LATIN_SMALL_LETTER_F){this.unicode+=String.fromCharCode(s),this.state+=1;continue}break;case TokenizerStates.STRING_UNICODE_DIGIT_4:if(s>=charset.DIGIT_ZERO&&s<=charset.DIGIT_NINE||s>=charset.LATIN_CAPITAL_LETTER_A&&s<=charset.LATIN_CAPITAL_LETTER_F||s>=charset.LATIN_SMALL_LETTER_A&&s<=charset.LATIN_SMALL_LETTER_F){const o=parseInt(this.unicode+String.fromCharCode(s),16);this.highSurrogate===void 0?o>=55296&&o<=56319?this.highSurrogate=o:this.bufferedString.appendBuf(this.encoder.encode(String.fromCharCode(o))):(o>=56320&&o<=57343?this.bufferedString.appendBuf(this.encoder.encode(String.fromCharCode(this.highSurrogate,o))):this.bufferedString.appendBuf(this.encoder.encode(String.fromCharCode(this.highSurrogate))),this.highSurrogate=void 0),this.state=TokenizerStates.STRING_DEFAULT;continue}case TokenizerStates.NUMBER_AFTER_INITIAL_MINUS:if(s===charset.DIGIT_ZERO){this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_INITIAL_ZERO;continue}if(s>=charset.DIGIT_ONE&&s<=charset.DIGIT_NINE){this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_INITIAL_NON_ZERO;continue}break;case TokenizerStates.NUMBER_AFTER_INITIAL_ZERO:if(s===charset.FULL_STOP){this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_FULL_STOP;continue}if(s===charset.LATIN_SMALL_LETTER_E||s===charset.LATIN_CAPITAL_LETTER_E){this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_E;continue}i-=1,this.state=TokenizerStates.START,this.emitNumber();continue;case TokenizerStates.NUMBER_AFTER_INITIAL_NON_ZERO:if(s>=charset.DIGIT_ZERO&&s<=charset.DIGIT_NINE){this.bufferedNumber.appendChar(s);continue}if(s===charset.FULL_STOP){this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_FULL_STOP;continue}if(s===charset.LATIN_SMALL_LETTER_E||s===charset.LATIN_CAPITAL_LETTER_E){this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_E;continue}i-=1,this.state=TokenizerStates.START,this.emitNumber();continue;case TokenizerStates.NUMBER_AFTER_FULL_STOP:if(s>=charset.DIGIT_ZERO&&s<=charset.DIGIT_NINE){this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_DECIMAL;continue}break;case TokenizerStates.NUMBER_AFTER_DECIMAL:if(s>=charset.DIGIT_ZERO&&s<=charset.DIGIT_NINE){this.bufferedNumber.appendChar(s);continue}if(s===charset.LATIN_SMALL_LETTER_E||s===charset.LATIN_CAPITAL_LETTER_E){this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_E;continue}i-=1,this.state=TokenizerStates.START,this.emitNumber();continue;case TokenizerStates.NUMBER_AFTER_E:if(s===charset.PLUS_SIGN||s===charset.HYPHEN_MINUS){this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_E_AND_SIGN;continue}case TokenizerStates.NUMBER_AFTER_E_AND_SIGN:if(s>=charset.DIGIT_ZERO&&s<=charset.DIGIT_NINE){this.bufferedNumber.appendChar(s),this.state=TokenizerStates.NUMBER_AFTER_E_AND_DIGIT;continue}break;case TokenizerStates.NUMBER_AFTER_E_AND_DIGIT:if(s>=charset.DIGIT_ZERO&&s<=charset.DIGIT_NINE){this.bufferedNumber.appendChar(s);continue}i-=1,this.state=TokenizerStates.START,this.emitNumber();continue;case TokenizerStates.TRUE1:if(s===charset.LATIN_SMALL_LETTER_R){this.state=TokenizerStates.TRUE2;continue}break;case TokenizerStates.TRUE2:if(s===charset.LATIN_SMALL_LETTER_U){this.state=TokenizerStates.TRUE3;continue}break;case TokenizerStates.TRUE3:if(s===charset.LATIN_SMALL_LETTER_E){this.state=TokenizerStates.START,this.onToken(TRUE,!0,this.offset),this.offset+=3;continue}break;case TokenizerStates.FALSE1:if(s===charset.LATIN_SMALL_LETTER_A){this.state=TokenizerStates.FALSE2;continue}break;case TokenizerStates.FALSE2:if(s===charset.LATIN_SMALL_LETTER_L){this.state=TokenizerStates.FALSE3;continue}break;case TokenizerStates.FALSE3:if(s===charset.LATIN_SMALL_LETTER_S){this.state=TokenizerStates.FALSE4;continue}break;case TokenizerStates.FALSE4:if(s===charset.LATIN_SMALL_LETTER_E){this.state=TokenizerStates.START,this.onToken(FALSE,!1,this.offset),this.offset+=4;continue}break;case TokenizerStates.NULL1:if(s===charset.LATIN_SMALL_LETTER_U){this.state=TokenizerStates.NULL2;continue}break;case TokenizerStates.NULL2:if(s===charset.LATIN_SMALL_LETTER_L){this.state=TokenizerStates.NULL3;continue}break;case TokenizerStates.NULL3:if(s===charset.LATIN_SMALL_LETTER_L){this.state=TokenizerStates.START,this.onToken(NULL,null,this.offset),this.offset+=3;continue}break}this.error(new TokenizerError(`Unexpected "${String.fromCharCode(s)}" at position "${i}" in state ${TokenizerStates[this.state]}`))}}emitNumber(){this.onToken(NUMBER,this.parseNumber(this.bufferedNumber.toString()),this.offset),this.offset+=this.bufferedNumber.byteLength-1}parseNumber(e){return Number(e)}error(e){throw this.state=TokenizerStates.ERROR,e}end(){this.state!==TokenizerStates.START&&this.error(new TokenizerError(`Tokenizer ended in the middle of a token (state: ${TokenizerStates[this.state]}). Either not all the data was received or the data was invalid.`)),this.state=TokenizerStates.ENDED}onToken(e,r,i){}}const{LEFT_BRACE:LEFT_BRACE1,RIGHT_BRACE:RIGHT_BRACE1,LEFT_BRACKET:LEFT_BRACKET1,RIGHT_BRACKET:RIGHT_BRACKET1,COLON:COLON1,COMMA:COMMA1,TRUE:TRUE1,FALSE:FALSE1,NULL:NULL1,STRING:STRING1,NUMBER:NUMBER1}=TokenType;var ParserState;(function(t){t[t.VALUE=0]="VALUE",t[t.KEY=1]="KEY",t[t.COLON=2]="COLON",t[t.COMMA=3]="COMMA",t[t.ENDED=4]="ENDED",t[t.ERROR=5]="ERROR"})(ParserState||(ParserState={}));var ParserMode;(function(t){t[t.OBJECT=0]="OBJECT",t[t.ARRAY=1]="ARRAY"})(ParserMode||(ParserMode={}));const defaultOpts1={paths:void 0,keepStack:!0};class TokenParserError extends Error{constructor(e){super(e);Object.setPrototypeOf(this,TokenParserError.prototype)}}class Parser{paths;keepStack;state=ParserState.VALUE;mode=void 0;key=void 0;value=void 0;stack=[];constructor(e){e={...defaultOpts1,...e},e.paths&&(this.paths=e.paths.map(r=>{if(r===void 0||r==="$*")return;if(!r.startsWith("$"))throw new TokenParserError(`Invalid selector "${r}". Should start with "$".`);const i=r.split(".").slice(1);if(i.includes(""))throw new TokenParserError(`Invalid selector "${r}". ".." syntax not supported.`);return i})),this.keepStack=e.keepStack}shouldEmit(){return this.paths?this.paths.some(e=>{if(e===void 0)return!0;if(e.length!==this.stack.length)return!1;for(let i=0;i<e.length-1;i++){const s=e[i],n=this.stack[i+1].key;if(s!=="*"&&s!==n)return!1}const r=e[e.length-1];return r==="*"?!0:r===this.key?.toString()}):!0}push(){this.stack.push({key:this.key,value:this.value,mode:this.mode,emit:this.shouldEmit()})}pop(){const e=this.value;let r;({key:this.key,value:this.value,mode:this.mode,emit:r}=this.stack.pop()),this.emit(e,r),this.state=this.mode!==void 0?ParserState.COMMA:ParserState.VALUE}emit(e,r){this.value&&!this.keepStack&&this.stack.every(i=>!i.emit)&&delete this.value[this.key],r&&this.onValue(e,this.key,this.value,this.stack)}write(e,r){if(this.state===ParserState.VALUE){if(e===STRING1||e===NUMBER1||e===TRUE1||e===FALSE1||e===NULL1){this.mode===ParserMode.OBJECT?(this.value[this.key]=r,this.state=ParserState.COMMA):this.mode===ParserMode.ARRAY&&(this.value.push(r),this.state=ParserState.COMMA),this.emit(r,this.shouldEmit());return}if(e===LEFT_BRACE1){if(this.push(),this.mode===ParserMode.OBJECT)this.value=this.value[this.key]={};else if(this.mode===ParserMode.ARRAY){const i={};this.value.push(i),this.value=i}else this.value={};this.mode=ParserMode.OBJECT,this.state=ParserState.KEY,this.key=void 0;return}if(e===LEFT_BRACKET1){if(this.push(),this.mode===ParserMode.OBJECT)this.value=this.value[this.key]=[];else if(this.mode===ParserMode.ARRAY){const i=[];this.value.push(i),this.value=i}else this.value=[];this.mode=ParserMode.ARRAY,this.state=ParserState.VALUE,this.key=0;return}if(this.mode===ParserMode.ARRAY&&e===RIGHT_BRACKET1&&this.value.length===0){this.pop();return}}if(this.state===ParserState.KEY){if(e===STRING1){this.key=r,this.state=ParserState.COLON;return}if(e===RIGHT_BRACE1&&Object.keys(this.value).length===0){this.pop();return}}if(this.state===ParserState.COLON&&e===COLON1){this.state=ParserState.VALUE;return}if(this.state===ParserState.COMMA){if(e===COMMA1){if(this.mode===ParserMode.ARRAY){this.state=ParserState.VALUE,this.key+=1;return}if(this.mode===ParserMode.OBJECT){this.state=ParserState.KEY;return}}if(e===RIGHT_BRACE1&&this.mode===ParserMode.OBJECT||e===RIGHT_BRACKET1&&this.mode===ParserMode.ARRAY){this.pop();return}}this.error(new TokenParserError(`Unexpected ${TokenType[e]} (${JSON.stringify(r)}) in state ${ParserState[this.state]}`))}error(e){throw this.state=ParserState.ERROR,e}end(){(this.state!==ParserState.VALUE||this.stack.length>0)&&this.error(new TokenParserError(`Parser ended in mid-parsing (state: ${ParserState[this.state]}). Either not all the data was received or the data was invalid.`)),this.state=ParserState.ENDED}onValue(e,r,i,s){}}class JSONParser{tokenizer;parser;constructor(e={}){this.tokenizer=new Tokenizer(e),this.parser=new Parser(e),this.tokenizer.onToken=this.parser.write.bind(this.parser)}write(e){try{this.tokenizer.write(e)}catch(r){throw r instanceof TokenParserError&&this.tokenizer.error(r),r}}set onToken(e){this.tokenizer.onToken=e}set onValue(e){this.parser.onValue=e}end(){this.parser.end(),this.tokenizer.end()}}function isMessage(t){return Array.isArray(t)&&t.length===2&&typeof t[0]=="number"&&typeof t[1]!="undefined"}class Indexer1{#e;#t;constructor(e){if(e!=null&&e<2)throw new Error(`The attribute 'max' must be greater than 1 but ${e} has specified`);this.#e=e??Number.MAX_SAFE_INTEGER,this.#t=-1}next(){return this.#t>=this.#e&&(this.#t=-1),this.#t+=1,this.#t}}class TimeoutError1 extends Error{constructor(){super("the process didn't complete in time");this.name="TimeoutError"}}class ResponseWaiter1{#e;#t;constructor(e=1e4){this.#e=new Map,this.#t=e}get waiterCount(){return this.#e.size}wait(e,r){let i=this.#e.get(e)?.response;if(!i){i=deferred3();const s=setTimeout(()=>{const n=this.#e.get(e)?.response;!n||(n.reject(new TimeoutError1),this.#e.delete(e))},r??this.#t);this.#e.set(e,{timer:s,response:i})}return i}provide(e){const[r,i]=e,s=this.#e.get(r);if(!s)return!1;this.#e.delete(r);const{timer:n,response:o}=s;return clearTimeout(n),o.resolve(e),!0}}const MSGID_THRESHOLD1=2**32,BUFFER_SIZE=32*1024,utf8Encoder=new TextEncoder;class Session1{#e;#t;#i;#r;#n;#o;#s;#a;constructor(e,r,i=()=>{},s={}){this.#e=new Indexer1(MSGID_THRESHOLD1),this.#t=new ResponseWaiter1(s.responseTimeout),this.#i=e,this.#r=r,this.#n=i,this.#s=!1,this.#a=deferred3(),this.#o=this.listen().catch(n=>{s.errorCallback?s.errorCallback(n):console.error(`Unexpected error occured in session: ${n}`)})}nextMsgid(){return this.#e.next()*-1}async send(e){await mod4.writeAll(this.#r,utf8Encoder.encode(JSON.stringify(e)))}async listen(){const e=new JSONParser;e.onValue=(r,i,s,n)=>{if(!(n.length>0)){if(!isMessage(r)){console.warn(`Unexpected data received: ${r}`);return}if(!this.#t.provide(r)){this.#n.apply(this,[r]);return}}};try{const r=new Uint8Array(BUFFER_SIZE);for(;!this.#s;){const i=await Promise.race([this.#a,this.#i.read(r)]);if(i==null)break;e.write(r.subarray(0,i))}}catch(r){if(r instanceof SessionClosedError1||r instanceof Deno.errors.BadResource)return;throw r}}dispose(){this.close()}close(){this.#s=!0,this.#a.reject(new SessionClosedError1)}waitClosed(){return this.#o}async reply(e,r){if(this.#s)throw new SessionClosedError1;const i=[e,r];await this.send(i)}async redraw(e=!1){if(this.#s)throw new SessionClosedError1;const r=["redraw",e?"force":""];await this.send(r)}async ex(e){if(this.#s)throw new SessionClosedError1;const r=["ex",e];await this.send(r)}async normal(e){if(this.#s)throw new SessionClosedError1;const r=["normal",e];await this.send(r)}async expr(e){if(this.#s)throw new SessionClosedError1;const r=this.nextMsgid(),i=["expr",e,r],[s,n]=await Promise.all([this.send(i),this.#t.wait(r)]);return n[1]}async exprNoReply(e){if(this.#s)throw new SessionClosedError1;const r=["expr",e];await this.send(r)}async call(e,...r){if(this.#s)throw new SessionClosedError1;const i=this.nextMsgid(),s=["call",e,r,i],[n,o]=await Promise.all([this.send(s),this.#t.wait(i)]);return o[1]}async callNoReply(e,...r){if(this.#s)throw new SessionClosedError1;const i=["call",e,r];await this.send(i)}replaceCallback(e){this.#n=e}}class SessionClosedError1 extends Error{constructor(){super("The session is closed");this.name="SessionClosedError"}}async function using(t,e){try{return await e(t)}finally{await t.dispose()}}const responseTimeout=60*60*24*7;class Invoker{#e;constructor(e){this.#e=e}register(e,r,i,s){this.#e.register(e,r,i,s)}dispatch(e,r,i){return this.#e.dispatch(e,r,i)}dispatchAsync(e,r,i,s,n){return this.#e.dispatch(e,r,i).then(async o=>{try{await this.#e.call("denops#callback#call",s,o)}catch(a){console.error(`${a.stack??a.toString()}`)}}).catch(async o=>{try{await this.#e.call("denops#callback#call",n,toErrorObject(o))}catch(a){console.error(`${a.stack??a.toString()}`)}}),Promise.resolve()}}function isInvokerMethod(t){return t in Invoker.prototype}function toErrorObject(t){return t instanceof Error?{name:t.name,message:t.message,stack:t.stack}:{name:typeof t,message:`${t}`}}const workerScript="./worker/script.bundle.js";class Service{#e;#t;constructor(e){this.#e=new Map,this.#t=e,this.#t.register(new Invoker(this))}register(e,r,i,s){const n=this.#e.get(e);if(n)if(s.mode==="reload")i.mode==="debug"&&console.log(`A denops plugin '${e}' is already registered. Reload`),n.worker.terminate();else if(s.mode==="skip"){i.mode==="debug"&&console.log(`A denops plugin '${e}' is already registered. Skip`);return}else throw new Error(`A denops plugin '${e}' is already registered`);const o=new Worker(new URL(workerScript,Deno.mainModule).href,{name:e,type:"module",deno:{namespace:!0}});o.postMessage({name:e,script:r,meta:i});const a=new WorkerReader(o),h=new WorkerWriter(o),l=new Session(a,h,{call:async(c,...f)=>(ensureString(c),ensureArray(f),await this.call(c,...f)),batch:async(...c)=>(ensureArray(c,u=>isArray(u)&&u.length>0&&isString(u[0])),await this.batch(...c)),dispatch:async(c,f,...u)=>(ensureString(c),ensureString(f),ensureArray(u),await this.dispatch(c,f,u))},{responseTimeout});this.#e.set(e,{session:l,worker:o})}async call(e,...r){return await this.#t.call(e,...r)}async batch(...e){return await this.#t.batch(...e)}async dispatch(e,r,i){try{const s=this.#e.get(e);if(!s)throw new Error(`No plugin '${e}' is registered`);return await s.session.call(r,...i)}catch(s){throw`${s.stack??s.toString()}`}}waitClosed(){return this.#t.waitClosed()}}class Vim{#e;constructor(e,r){this.#e=new Session1(e,r,void 0,{responseTimeout})}async call(e,...r){const[i,s]=await this.#e.call("denops#api#vim#call",e,r);if(s!=="")throw new Error(`Failed to call '${e}(${r.join(", ")})': ${s}`);return i}async batch(...e){return await this.#e.call("denops#api#vim#batch",e)}register(e){this.#e.replaceCallback(async r=>{const[i,s]=r;let n=null,o=null;try{n=await dispatch(e,s)}catch(a){o=a}i!==0?await this.#e.reply(i,[n,o]):o!==null&&console.error(o)})}waitClosed(){return this.#e.waitClosed()}dispose(){this.#e.dispose()}}async function dispatch(t,e){if(isInvokeMessage(e)){const[r,i,s]=e;if(!isInvokerMethod(i))throw new Error(`Method '${i}' is not defined in the invoker`);return await t[i](...s)}else throw new Error(`Unexpected JSON channel message is received: ${JSON.stringify(e)}`)}function isInvokeMessage(t){return Array.isArray(t)&&t.length===3&&t[0]==="invoke"&&typeof t[1]=="string"&&Array.isArray(t[2])}class Neovim{#e;constructor(e,r){this.#e=new Session(e,r,void 0,{responseTimeout})}call(e,...r){return this.#e.call("nvim_call_function",e,r)}async batch(...e){const[r,i]=await this.#e.call("nvim_call_atomic",e.map(([s,...n])=>["nvim_call_function",[s,n]]));return i?[r,i[2]]:[r,""]}register(e){this.#e.dispatcher={async invoke(r,i){if(ensureString(r),ensureArray(i),!isInvokerMethod(r))throw new Error(`Method '${r}' is not defined in the invoker`);return await e[r](...i)}}}waitClosed(){return this.#e.waitClosed()}dispose(){this.#e.dispose()}}const textDecoder=new TextDecoder;class TraceReader{#e;constructor(e){this.#e=e}close(){this.#e.close()}async read(e){const r=await this.#e.read(e);if(r){const i=e.subarray(0,r);try{console.log("r:",textDecoder.decode(i))}catch{console.log("r:",i)}}return r}}class TraceWriter{#e;constructor(e){this.#e=e}async write(e){const r=await this.#e.write(e),i=e.subarray(0,r);try{console.log("w:",textDecoder.decode(i))}catch{console.log("w:",i)}return r}}const opts=mod.parse(Deno.args);if(!opts.mode)throw new Error("No `--mode` option is specified.");const listener=Deno.listen({hostname:"127.0.0.1",port:0}),addr=listener.addr;console.log(`${addr.hostname}:${addr.port}`);for await(const t of listener){const e=opts.trace?new TraceReader(t):t,r=opts.trace?new TraceWriter(t):t,i=opts.mode==="vim"?Vim:Neovim;await using(new i(e,r),async s=>{await new Service(s).waitClosed()});break}
+class DenoStdInternalError extends Error {
+    constructor(message){
+        super(message);
+        this.name = "DenoStdInternalError";
+    }
+}
+function assert(expr, msg = "") {
+    if (!expr) {
+        throw new DenoStdInternalError(msg);
+    }
+}
+const { hasOwn  } = Object;
+function get(obj, key) {
+    if (hasOwn(obj, key)) {
+        return obj[key];
+    }
+}
+function getForce(obj, key) {
+    const v = get(obj, key);
+    assert(v != null);
+    return v;
+}
+function isNumber(x) {
+    if (typeof x === "number") return true;
+    if (/^0x[0-9a-f]+$/i.test(String(x))) return true;
+    return /^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(e[-+]?\d+)?$/.test(String(x));
+}
+function hasKey(obj, keys) {
+    let o = obj;
+    keys.slice(0, -1).forEach((key)=>{
+        o = get(o, key) ?? {
+        };
+    });
+    const key = keys[keys.length - 1];
+    return key in o;
+}
+function parse(args, { "--": doubleDash = false , alias ={
+} , boolean: __boolean = false , default: defaults = {
+} , stopEarly =false , string =[] , unknown =(i)=>i
+  } = {
+}) {
+    const flags = {
+        bools: {
+        },
+        strings: {
+        },
+        unknownFn: unknown,
+        allBools: false
+    };
+    if (__boolean !== undefined) {
+        if (typeof __boolean === "boolean") {
+            flags.allBools = !!__boolean;
+        } else {
+            const booleanArgs = typeof __boolean === "string" ? [
+                __boolean
+            ] : __boolean;
+            for (const key of booleanArgs.filter(Boolean)){
+                flags.bools[key] = true;
+            }
+        }
+    }
+    const aliases = {
+    };
+    if (alias !== undefined) {
+        for(const key in alias){
+            const val = getForce(alias, key);
+            if (typeof val === "string") {
+                aliases[key] = [
+                    val
+                ];
+            } else {
+                aliases[key] = val;
+            }
+            for (const alias1 of getForce(aliases, key)){
+                aliases[alias1] = [
+                    key
+                ].concat(aliases[key].filter((y)=>alias1 !== y
+                ));
+            }
+        }
+    }
+    if (string !== undefined) {
+        const stringArgs = typeof string === "string" ? [
+            string
+        ] : string;
+        for (const key of stringArgs.filter(Boolean)){
+            flags.strings[key] = true;
+            const alias = get(aliases, key);
+            if (alias) {
+                for (const al of alias){
+                    flags.strings[al] = true;
+                }
+            }
+        }
+    }
+    const argv = {
+        _: []
+    };
+    function argDefined(key, arg) {
+        return flags.allBools && /^--[^=]+$/.test(arg) || get(flags.bools, key) || !!get(flags.strings, key) || !!get(aliases, key);
+    }
+    function setKey(obj, keys, value) {
+        let o = obj;
+        keys.slice(0, -1).forEach(function(key) {
+            if (get(o, key) === undefined) {
+                o[key] = {
+                };
+            }
+            o = get(o, key);
+        });
+        const key = keys[keys.length - 1];
+        if (get(o, key) === undefined || get(flags.bools, key) || typeof get(o, key) === "boolean") {
+            o[key] = value;
+        } else if (Array.isArray(get(o, key))) {
+            o[key].push(value);
+        } else {
+            o[key] = [
+                get(o, key),
+                value
+            ];
+        }
+    }
+    function setArg(key, val, arg = undefined) {
+        if (arg && flags.unknownFn && !argDefined(key, arg)) {
+            if (flags.unknownFn(arg, key, val) === false) return;
+        }
+        const value = !get(flags.strings, key) && isNumber(val) ? Number(val) : val;
+        setKey(argv, key.split("."), value);
+        const alias = get(aliases, key);
+        if (alias) {
+            for (const x of alias){
+                setKey(argv, x.split("."), value);
+            }
+        }
+    }
+    function aliasIsBoolean(key) {
+        return getForce(aliases, key).some((x)=>typeof get(flags.bools, x) === "boolean"
+        );
+    }
+    for (const key of Object.keys(flags.bools)){
+        setArg(key, defaults[key] === undefined ? false : defaults[key]);
+    }
+    let notFlags = [];
+    if (args.includes("--")) {
+        notFlags = args.slice(args.indexOf("--") + 1);
+        args = args.slice(0, args.indexOf("--"));
+    }
+    for(let i = 0; i < args.length; i++){
+        const arg = args[i];
+        if (/^--.+=/.test(arg)) {
+            const m = arg.match(/^--([^=]+)=(.*)$/s);
+            assert(m != null);
+            const [, key, value] = m;
+            if (flags.bools[key]) {
+                const booleanValue = value !== "false";
+                setArg(key, booleanValue, arg);
+            } else {
+                setArg(key, value, arg);
+            }
+        } else if (/^--no-.+/.test(arg)) {
+            const m = arg.match(/^--no-(.+)/);
+            assert(m != null);
+            setArg(m[1], false, arg);
+        } else if (/^--.+/.test(arg)) {
+            const m = arg.match(/^--(.+)/);
+            assert(m != null);
+            const [, key] = m;
+            const next = args[i + 1];
+            if (next !== undefined && !/^-/.test(next) && !get(flags.bools, key) && !flags.allBools && (get(aliases, key) ? !aliasIsBoolean(key) : true)) {
+                setArg(key, next, arg);
+                i++;
+            } else if (/^(true|false)$/.test(next)) {
+                setArg(key, next === "true", arg);
+                i++;
+            } else {
+                setArg(key, get(flags.strings, key) ? "" : true, arg);
+            }
+        } else if (/^-[^-]+/.test(arg)) {
+            const letters = arg.slice(1, -1).split("");
+            let broken = false;
+            for(let j = 0; j < letters.length; j++){
+                const next = arg.slice(j + 2);
+                if (next === "-") {
+                    setArg(letters[j], next, arg);
+                    continue;
+                }
+                if (/[A-Za-z]/.test(letters[j]) && /=/.test(next)) {
+                    setArg(letters[j], next.split(/=(.+)/)[1], arg);
+                    broken = true;
+                    break;
+                }
+                if (/[A-Za-z]/.test(letters[j]) && /-?\d+(\.\d*)?(e-?\d+)?$/.test(next)) {
+                    setArg(letters[j], next, arg);
+                    broken = true;
+                    break;
+                }
+                if (letters[j + 1] && letters[j + 1].match(/\W/)) {
+                    setArg(letters[j], arg.slice(j + 2), arg);
+                    broken = true;
+                    break;
+                } else {
+                    setArg(letters[j], get(flags.strings, letters[j]) ? "" : true, arg);
+                }
+            }
+            const [key] = arg.slice(-1);
+            if (!broken && key !== "-") {
+                if (args[i + 1] && !/^(-|--)[^-]/.test(args[i + 1]) && !get(flags.bools, key) && (get(aliases, key) ? !aliasIsBoolean(key) : true)) {
+                    setArg(key, args[i + 1], arg);
+                    i++;
+                } else if (args[i + 1] && /^(true|false)$/.test(args[i + 1])) {
+                    setArg(key, args[i + 1] === "true", arg);
+                    i++;
+                } else {
+                    setArg(key, get(flags.strings, key) ? "" : true, arg);
+                }
+            }
+        } else {
+            if (!flags.unknownFn || flags.unknownFn(arg) !== false) {
+                argv._.push(flags.strings["_"] ?? !isNumber(arg) ? arg : Number(arg));
+            }
+            if (stopEarly) {
+                argv._.push(...args.slice(i + 1));
+                break;
+            }
+        }
+    }
+    for (const key1 of Object.keys(defaults)){
+        if (!hasKey(argv, key1.split("."))) {
+            setKey(argv, key1.split("."), defaults[key1]);
+            if (aliases[key1]) {
+                for (const x of aliases[key1]){
+                    setKey(argv, x.split("."), defaults[key1]);
+                }
+            }
+        }
+    }
+    if (doubleDash) {
+        argv["--"] = [];
+        for (const key of notFlags){
+            argv["--"].push(key);
+        }
+    } else {
+        for (const key of notFlags){
+            argv._.push(key);
+        }
+    }
+    return argv;
+}
+const mod = {
+    parse: parse
+};
+const osType = (()=>{
+    const { Deno  } = globalThis;
+    if (typeof Deno?.build?.os === "string") {
+        return Deno.build.os;
+    }
+    const { navigator  } = globalThis;
+    if (navigator?.appVersion?.includes?.("Win") ?? false) {
+        return "windows";
+    }
+    return "linux";
+})();
+const isWindows = osType === "windows";
+const CHAR_FORWARD_SLASH = 47;
+function assertPath(path) {
+    if (typeof path !== "string") {
+        throw new TypeError(`Path must be a string. Received ${JSON.stringify(path)}`);
+    }
+}
+function isPosixPathSeparator(code) {
+    return code === 47;
+}
+function isPathSeparator(code) {
+    return isPosixPathSeparator(code) || code === 92;
+}
+function isWindowsDeviceRoot(code) {
+    return code >= 97 && code <= 122 || code >= 65 && code <= 90;
+}
+function normalizeString(path, allowAboveRoot, separator, isPathSeparator) {
+    let res = "";
+    let lastSegmentLength = 0;
+    let lastSlash = -1;
+    let dots = 0;
+    let code;
+    for(let i = 0, len = path.length; i <= len; ++i){
+        if (i < len) code = path.charCodeAt(i);
+        else if (isPathSeparator(code)) break;
+        else code = CHAR_FORWARD_SLASH;
+        if (isPathSeparator(code)) {
+            if (lastSlash === i - 1 || dots === 1) {
+            } else if (lastSlash !== i - 1 && dots === 2) {
+                if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== 46 || res.charCodeAt(res.length - 2) !== 46) {
+                    if (res.length > 2) {
+                        const lastSlashIndex = res.lastIndexOf(separator);
+                        if (lastSlashIndex === -1) {
+                            res = "";
+                            lastSegmentLength = 0;
+                        } else {
+                            res = res.slice(0, lastSlashIndex);
+                            lastSegmentLength = res.length - 1 - res.lastIndexOf(separator);
+                        }
+                        lastSlash = i;
+                        dots = 0;
+                        continue;
+                    } else if (res.length === 2 || res.length === 1) {
+                        res = "";
+                        lastSegmentLength = 0;
+                        lastSlash = i;
+                        dots = 0;
+                        continue;
+                    }
+                }
+                if (allowAboveRoot) {
+                    if (res.length > 0) res += `${separator}..`;
+                    else res = "..";
+                    lastSegmentLength = 2;
+                }
+            } else {
+                if (res.length > 0) res += separator + path.slice(lastSlash + 1, i);
+                else res = path.slice(lastSlash + 1, i);
+                lastSegmentLength = i - lastSlash - 1;
+            }
+            lastSlash = i;
+            dots = 0;
+        } else if (code === 46 && dots !== -1) {
+            ++dots;
+        } else {
+            dots = -1;
+        }
+    }
+    return res;
+}
+function _format(sep, pathObject) {
+    const dir = pathObject.dir || pathObject.root;
+    const base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
+    if (!dir) return base;
+    if (dir === pathObject.root) return dir + base;
+    return dir + sep + base;
+}
+const WHITESPACE_ENCODINGS = {
+    "\u0009": "%09",
+    "\u000A": "%0A",
+    "\u000B": "%0B",
+    "\u000C": "%0C",
+    "\u000D": "%0D",
+    "\u0020": "%20"
+};
+function encodeWhitespace(string) {
+    return string.replaceAll(/[\s]/g, (c)=>{
+        return WHITESPACE_ENCODINGS[c] ?? c;
+    });
+}
+const sep = "\\";
+const delimiter = ";";
+function resolve(...pathSegments) {
+    let resolvedDevice = "";
+    let resolvedTail = "";
+    let resolvedAbsolute = false;
+    for(let i = pathSegments.length - 1; i >= -1; i--){
+        let path;
+        const { Deno  } = globalThis;
+        if (i >= 0) {
+            path = pathSegments[i];
+        } else if (!resolvedDevice) {
+            if (typeof Deno?.cwd !== "function") {
+                throw new TypeError("Resolved a drive-letter-less path without a CWD.");
+            }
+            path = Deno.cwd();
+        } else {
+            if (typeof Deno?.env?.get !== "function" || typeof Deno?.cwd !== "function") {
+                throw new TypeError("Resolved a relative path without a CWD.");
+            }
+            path = Deno.cwd();
+            if (path === undefined || path.slice(0, 3).toLowerCase() !== `${resolvedDevice.toLowerCase()}\\`) {
+                path = `${resolvedDevice}\\`;
+            }
+        }
+        assertPath(path);
+        const len = path.length;
+        if (len === 0) continue;
+        let rootEnd = 0;
+        let device = "";
+        let isAbsolute = false;
+        const code = path.charCodeAt(0);
+        if (len > 1) {
+            if (isPathSeparator(code)) {
+                isAbsolute = true;
+                if (isPathSeparator(path.charCodeAt(1))) {
+                    let j = 2;
+                    let last = j;
+                    for(; j < len; ++j){
+                        if (isPathSeparator(path.charCodeAt(j))) break;
+                    }
+                    if (j < len && j !== last) {
+                        const firstPart = path.slice(last, j);
+                        last = j;
+                        for(; j < len; ++j){
+                            if (!isPathSeparator(path.charCodeAt(j))) break;
+                        }
+                        if (j < len && j !== last) {
+                            last = j;
+                            for(; j < len; ++j){
+                                if (isPathSeparator(path.charCodeAt(j))) break;
+                            }
+                            if (j === len) {
+                                device = `\\\\${firstPart}\\${path.slice(last)}`;
+                                rootEnd = j;
+                            } else if (j !== last) {
+                                device = `\\\\${firstPart}\\${path.slice(last, j)}`;
+                                rootEnd = j;
+                            }
+                        }
+                    }
+                } else {
+                    rootEnd = 1;
+                }
+            } else if (isWindowsDeviceRoot(code)) {
+                if (path.charCodeAt(1) === 58) {
+                    device = path.slice(0, 2);
+                    rootEnd = 2;
+                    if (len > 2) {
+                        if (isPathSeparator(path.charCodeAt(2))) {
+                            isAbsolute = true;
+                            rootEnd = 3;
+                        }
+                    }
+                }
+            }
+        } else if (isPathSeparator(code)) {
+            rootEnd = 1;
+            isAbsolute = true;
+        }
+        if (device.length > 0 && resolvedDevice.length > 0 && device.toLowerCase() !== resolvedDevice.toLowerCase()) {
+            continue;
+        }
+        if (resolvedDevice.length === 0 && device.length > 0) {
+            resolvedDevice = device;
+        }
+        if (!resolvedAbsolute) {
+            resolvedTail = `${path.slice(rootEnd)}\\${resolvedTail}`;
+            resolvedAbsolute = isAbsolute;
+        }
+        if (resolvedAbsolute && resolvedDevice.length > 0) break;
+    }
+    resolvedTail = normalizeString(resolvedTail, !resolvedAbsolute, "\\", isPathSeparator);
+    return resolvedDevice + (resolvedAbsolute ? "\\" : "") + resolvedTail || ".";
+}
+function normalize(path) {
+    assertPath(path);
+    const len = path.length;
+    if (len === 0) return ".";
+    let rootEnd = 0;
+    let device;
+    let isAbsolute = false;
+    const code = path.charCodeAt(0);
+    if (len > 1) {
+        if (isPathSeparator(code)) {
+            isAbsolute = true;
+            if (isPathSeparator(path.charCodeAt(1))) {
+                let j = 2;
+                let last = j;
+                for(; j < len; ++j){
+                    if (isPathSeparator(path.charCodeAt(j))) break;
+                }
+                if (j < len && j !== last) {
+                    const firstPart = path.slice(last, j);
+                    last = j;
+                    for(; j < len; ++j){
+                        if (!isPathSeparator(path.charCodeAt(j))) break;
+                    }
+                    if (j < len && j !== last) {
+                        last = j;
+                        for(; j < len; ++j){
+                            if (isPathSeparator(path.charCodeAt(j))) break;
+                        }
+                        if (j === len) {
+                            return `\\\\${firstPart}\\${path.slice(last)}\\`;
+                        } else if (j !== last) {
+                            device = `\\\\${firstPart}\\${path.slice(last, j)}`;
+                            rootEnd = j;
+                        }
+                    }
+                }
+            } else {
+                rootEnd = 1;
+            }
+        } else if (isWindowsDeviceRoot(code)) {
+            if (path.charCodeAt(1) === 58) {
+                device = path.slice(0, 2);
+                rootEnd = 2;
+                if (len > 2) {
+                    if (isPathSeparator(path.charCodeAt(2))) {
+                        isAbsolute = true;
+                        rootEnd = 3;
+                    }
+                }
+            }
+        }
+    } else if (isPathSeparator(code)) {
+        return "\\";
+    }
+    let tail;
+    if (rootEnd < len) {
+        tail = normalizeString(path.slice(rootEnd), !isAbsolute, "\\", isPathSeparator);
+    } else {
+        tail = "";
+    }
+    if (tail.length === 0 && !isAbsolute) tail = ".";
+    if (tail.length > 0 && isPathSeparator(path.charCodeAt(len - 1))) {
+        tail += "\\";
+    }
+    if (device === undefined) {
+        if (isAbsolute) {
+            if (tail.length > 0) return `\\${tail}`;
+            else return "\\";
+        } else if (tail.length > 0) {
+            return tail;
+        } else {
+            return "";
+        }
+    } else if (isAbsolute) {
+        if (tail.length > 0) return `${device}\\${tail}`;
+        else return `${device}\\`;
+    } else if (tail.length > 0) {
+        return device + tail;
+    } else {
+        return device;
+    }
+}
+function isAbsolute(path) {
+    assertPath(path);
+    const len = path.length;
+    if (len === 0) return false;
+    const code = path.charCodeAt(0);
+    if (isPathSeparator(code)) {
+        return true;
+    } else if (isWindowsDeviceRoot(code)) {
+        if (len > 2 && path.charCodeAt(1) === 58) {
+            if (isPathSeparator(path.charCodeAt(2))) return true;
+        }
+    }
+    return false;
+}
+function join(...paths) {
+    const pathsCount = paths.length;
+    if (pathsCount === 0) return ".";
+    let joined;
+    let firstPart = null;
+    for(let i = 0; i < pathsCount; ++i){
+        const path = paths[i];
+        assertPath(path);
+        if (path.length > 0) {
+            if (joined === undefined) joined = firstPart = path;
+            else joined += `\\${path}`;
+        }
+    }
+    if (joined === undefined) return ".";
+    let needsReplace = true;
+    let slashCount = 0;
+    assert(firstPart != null);
+    if (isPathSeparator(firstPart.charCodeAt(0))) {
+        ++slashCount;
+        const firstLen = firstPart.length;
+        if (firstLen > 1) {
+            if (isPathSeparator(firstPart.charCodeAt(1))) {
+                ++slashCount;
+                if (firstLen > 2) {
+                    if (isPathSeparator(firstPart.charCodeAt(2))) ++slashCount;
+                    else {
+                        needsReplace = false;
+                    }
+                }
+            }
+        }
+    }
+    if (needsReplace) {
+        for(; slashCount < joined.length; ++slashCount){
+            if (!isPathSeparator(joined.charCodeAt(slashCount))) break;
+        }
+        if (slashCount >= 2) joined = `\\${joined.slice(slashCount)}`;
+    }
+    return normalize(joined);
+}
+function relative(from, to) {
+    assertPath(from);
+    assertPath(to);
+    if (from === to) return "";
+    const fromOrig = resolve(from);
+    const toOrig = resolve(to);
+    if (fromOrig === toOrig) return "";
+    from = fromOrig.toLowerCase();
+    to = toOrig.toLowerCase();
+    if (from === to) return "";
+    let fromStart = 0;
+    let fromEnd = from.length;
+    for(; fromStart < fromEnd; ++fromStart){
+        if (from.charCodeAt(fromStart) !== 92) break;
+    }
+    for(; fromEnd - 1 > fromStart; --fromEnd){
+        if (from.charCodeAt(fromEnd - 1) !== 92) break;
+    }
+    const fromLen = fromEnd - fromStart;
+    let toStart = 0;
+    let toEnd = to.length;
+    for(; toStart < toEnd; ++toStart){
+        if (to.charCodeAt(toStart) !== 92) break;
+    }
+    for(; toEnd - 1 > toStart; --toEnd){
+        if (to.charCodeAt(toEnd - 1) !== 92) break;
+    }
+    const toLen = toEnd - toStart;
+    const length = fromLen < toLen ? fromLen : toLen;
+    let lastCommonSep = -1;
+    let i = 0;
+    for(; i <= length; ++i){
+        if (i === length) {
+            if (toLen > length) {
+                if (to.charCodeAt(toStart + i) === 92) {
+                    return toOrig.slice(toStart + i + 1);
+                } else if (i === 2) {
+                    return toOrig.slice(toStart + i);
+                }
+            }
+            if (fromLen > length) {
+                if (from.charCodeAt(fromStart + i) === 92) {
+                    lastCommonSep = i;
+                } else if (i === 2) {
+                    lastCommonSep = 3;
+                }
+            }
+            break;
+        }
+        const fromCode = from.charCodeAt(fromStart + i);
+        const toCode = to.charCodeAt(toStart + i);
+        if (fromCode !== toCode) break;
+        else if (fromCode === 92) lastCommonSep = i;
+    }
+    if (i !== length && lastCommonSep === -1) {
+        return toOrig;
+    }
+    let out = "";
+    if (lastCommonSep === -1) lastCommonSep = 0;
+    for(i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i){
+        if (i === fromEnd || from.charCodeAt(i) === 92) {
+            if (out.length === 0) out += "..";
+            else out += "\\..";
+        }
+    }
+    if (out.length > 0) {
+        return out + toOrig.slice(toStart + lastCommonSep, toEnd);
+    } else {
+        toStart += lastCommonSep;
+        if (toOrig.charCodeAt(toStart) === 92) ++toStart;
+        return toOrig.slice(toStart, toEnd);
+    }
+}
+function toNamespacedPath(path) {
+    if (typeof path !== "string") return path;
+    if (path.length === 0) return "";
+    const resolvedPath = resolve(path);
+    if (resolvedPath.length >= 3) {
+        if (resolvedPath.charCodeAt(0) === 92) {
+            if (resolvedPath.charCodeAt(1) === 92) {
+                const code = resolvedPath.charCodeAt(2);
+                if (code !== 63 && code !== 46) {
+                    return `\\\\?\\UNC\\${resolvedPath.slice(2)}`;
+                }
+            }
+        } else if (isWindowsDeviceRoot(resolvedPath.charCodeAt(0))) {
+            if (resolvedPath.charCodeAt(1) === 58 && resolvedPath.charCodeAt(2) === 92) {
+                return `\\\\?\\${resolvedPath}`;
+            }
+        }
+    }
+    return path;
+}
+function dirname(path) {
+    assertPath(path);
+    const len = path.length;
+    if (len === 0) return ".";
+    let rootEnd = -1;
+    let end = -1;
+    let matchedSlash = true;
+    let offset = 0;
+    const code = path.charCodeAt(0);
+    if (len > 1) {
+        if (isPathSeparator(code)) {
+            rootEnd = offset = 1;
+            if (isPathSeparator(path.charCodeAt(1))) {
+                let j = 2;
+                let last = j;
+                for(; j < len; ++j){
+                    if (isPathSeparator(path.charCodeAt(j))) break;
+                }
+                if (j < len && j !== last) {
+                    last = j;
+                    for(; j < len; ++j){
+                        if (!isPathSeparator(path.charCodeAt(j))) break;
+                    }
+                    if (j < len && j !== last) {
+                        last = j;
+                        for(; j < len; ++j){
+                            if (isPathSeparator(path.charCodeAt(j))) break;
+                        }
+                        if (j === len) {
+                            return path;
+                        }
+                        if (j !== last) {
+                            rootEnd = offset = j + 1;
+                        }
+                    }
+                }
+            }
+        } else if (isWindowsDeviceRoot(code)) {
+            if (path.charCodeAt(1) === 58) {
+                rootEnd = offset = 2;
+                if (len > 2) {
+                    if (isPathSeparator(path.charCodeAt(2))) rootEnd = offset = 3;
+                }
+            }
+        }
+    } else if (isPathSeparator(code)) {
+        return path;
+    }
+    for(let i = len - 1; i >= offset; --i){
+        if (isPathSeparator(path.charCodeAt(i))) {
+            if (!matchedSlash) {
+                end = i;
+                break;
+            }
+        } else {
+            matchedSlash = false;
+        }
+    }
+    if (end === -1) {
+        if (rootEnd === -1) return ".";
+        else end = rootEnd;
+    }
+    return path.slice(0, end);
+}
+function basename(path, ext = "") {
+    if (ext !== undefined && typeof ext !== "string") {
+        throw new TypeError('"ext" argument must be a string');
+    }
+    assertPath(path);
+    let start = 0;
+    let end = -1;
+    let matchedSlash = true;
+    let i;
+    if (path.length >= 2) {
+        const drive = path.charCodeAt(0);
+        if (isWindowsDeviceRoot(drive)) {
+            if (path.charCodeAt(1) === 58) start = 2;
+        }
+    }
+    if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
+        if (ext.length === path.length && ext === path) return "";
+        let extIdx = ext.length - 1;
+        let firstNonSlashEnd = -1;
+        for(i = path.length - 1; i >= start; --i){
+            const code = path.charCodeAt(i);
+            if (isPathSeparator(code)) {
+                if (!matchedSlash) {
+                    start = i + 1;
+                    break;
+                }
+            } else {
+                if (firstNonSlashEnd === -1) {
+                    matchedSlash = false;
+                    firstNonSlashEnd = i + 1;
+                }
+                if (extIdx >= 0) {
+                    if (code === ext.charCodeAt(extIdx)) {
+                        if (--extIdx === -1) {
+                            end = i;
+                        }
+                    } else {
+                        extIdx = -1;
+                        end = firstNonSlashEnd;
+                    }
+                }
+            }
+        }
+        if (start === end) end = firstNonSlashEnd;
+        else if (end === -1) end = path.length;
+        return path.slice(start, end);
+    } else {
+        for(i = path.length - 1; i >= start; --i){
+            if (isPathSeparator(path.charCodeAt(i))) {
+                if (!matchedSlash) {
+                    start = i + 1;
+                    break;
+                }
+            } else if (end === -1) {
+                matchedSlash = false;
+                end = i + 1;
+            }
+        }
+        if (end === -1) return "";
+        return path.slice(start, end);
+    }
+}
+function extname(path) {
+    assertPath(path);
+    let start = 0;
+    let startDot = -1;
+    let startPart = 0;
+    let end = -1;
+    let matchedSlash = true;
+    let preDotState = 0;
+    if (path.length >= 2 && path.charCodeAt(1) === 58 && isWindowsDeviceRoot(path.charCodeAt(0))) {
+        start = startPart = 2;
+    }
+    for(let i = path.length - 1; i >= start; --i){
+        const code = path.charCodeAt(i);
+        if (isPathSeparator(code)) {
+            if (!matchedSlash) {
+                startPart = i + 1;
+                break;
+            }
+            continue;
+        }
+        if (end === -1) {
+            matchedSlash = false;
+            end = i + 1;
+        }
+        if (code === 46) {
+            if (startDot === -1) startDot = i;
+            else if (preDotState !== 1) preDotState = 1;
+        } else if (startDot !== -1) {
+            preDotState = -1;
+        }
+    }
+    if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+        return "";
+    }
+    return path.slice(startDot, end);
+}
+function format(pathObject) {
+    if (pathObject === null || typeof pathObject !== "object") {
+        throw new TypeError(`The "pathObject" argument must be of type Object. Received type ${typeof pathObject}`);
+    }
+    return _format("\\", pathObject);
+}
+function parse1(path) {
+    assertPath(path);
+    const ret = {
+        root: "",
+        dir: "",
+        base: "",
+        ext: "",
+        name: ""
+    };
+    const len = path.length;
+    if (len === 0) return ret;
+    let rootEnd = 0;
+    let code = path.charCodeAt(0);
+    if (len > 1) {
+        if (isPathSeparator(code)) {
+            rootEnd = 1;
+            if (isPathSeparator(path.charCodeAt(1))) {
+                let j = 2;
+                let last = j;
+                for(; j < len; ++j){
+                    if (isPathSeparator(path.charCodeAt(j))) break;
+                }
+                if (j < len && j !== last) {
+                    last = j;
+                    for(; j < len; ++j){
+                        if (!isPathSeparator(path.charCodeAt(j))) break;
+                    }
+                    if (j < len && j !== last) {
+                        last = j;
+                        for(; j < len; ++j){
+                            if (isPathSeparator(path.charCodeAt(j))) break;
+                        }
+                        if (j === len) {
+                            rootEnd = j;
+                        } else if (j !== last) {
+                            rootEnd = j + 1;
+                        }
+                    }
+                }
+            }
+        } else if (isWindowsDeviceRoot(code)) {
+            if (path.charCodeAt(1) === 58) {
+                rootEnd = 2;
+                if (len > 2) {
+                    if (isPathSeparator(path.charCodeAt(2))) {
+                        if (len === 3) {
+                            ret.root = ret.dir = path;
+                            return ret;
+                        }
+                        rootEnd = 3;
+                    }
+                } else {
+                    ret.root = ret.dir = path;
+                    return ret;
+                }
+            }
+        }
+    } else if (isPathSeparator(code)) {
+        ret.root = ret.dir = path;
+        return ret;
+    }
+    if (rootEnd > 0) ret.root = path.slice(0, rootEnd);
+    let startDot = -1;
+    let startPart = rootEnd;
+    let end = -1;
+    let matchedSlash = true;
+    let i = path.length - 1;
+    let preDotState = 0;
+    for(; i >= rootEnd; --i){
+        code = path.charCodeAt(i);
+        if (isPathSeparator(code)) {
+            if (!matchedSlash) {
+                startPart = i + 1;
+                break;
+            }
+            continue;
+        }
+        if (end === -1) {
+            matchedSlash = false;
+            end = i + 1;
+        }
+        if (code === 46) {
+            if (startDot === -1) startDot = i;
+            else if (preDotState !== 1) preDotState = 1;
+        } else if (startDot !== -1) {
+            preDotState = -1;
+        }
+    }
+    if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+        if (end !== -1) {
+            ret.base = ret.name = path.slice(startPart, end);
+        }
+    } else {
+        ret.name = path.slice(startPart, startDot);
+        ret.base = path.slice(startPart, end);
+        ret.ext = path.slice(startDot, end);
+    }
+    if (startPart > 0 && startPart !== rootEnd) {
+        ret.dir = path.slice(0, startPart - 1);
+    } else ret.dir = ret.root;
+    return ret;
+}
+function fromFileUrl(url) {
+    url = url instanceof URL ? url : new URL(url);
+    if (url.protocol != "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    let path = decodeURIComponent(url.pathname.replace(/\//g, "\\").replace(/%(?![0-9A-Fa-f]{2})/g, "%25")).replace(/^\\*([A-Za-z]:)(\\|$)/, "$1\\");
+    if (url.hostname != "") {
+        path = `\\\\${url.hostname}${path}`;
+    }
+    return path;
+}
+function toFileUrl(path) {
+    if (!isAbsolute(path)) {
+        throw new TypeError("Must be an absolute path.");
+    }
+    const [, hostname, pathname] = path.match(/^(?:[/\\]{2}([^/\\]+)(?=[/\\](?:[^/\\]|$)))?(.*)/);
+    const url = new URL("file:///");
+    url.pathname = encodeWhitespace(pathname.replace(/%/g, "%25"));
+    if (hostname != null && hostname != "localhost") {
+        url.hostname = hostname;
+        if (!url.hostname) {
+            throw new TypeError("Invalid hostname.");
+        }
+    }
+    return url;
+}
+const mod1 = {
+    sep: sep,
+    delimiter: delimiter,
+    resolve: resolve,
+    normalize: normalize,
+    isAbsolute: isAbsolute,
+    join: join,
+    relative: relative,
+    toNamespacedPath: toNamespacedPath,
+    dirname: dirname,
+    basename: basename,
+    extname: extname,
+    format: format,
+    parse: parse1,
+    fromFileUrl: fromFileUrl,
+    toFileUrl: toFileUrl
+};
+const sep1 = "/";
+const delimiter1 = ":";
+function resolve1(...pathSegments) {
+    let resolvedPath = "";
+    let resolvedAbsolute = false;
+    for(let i = pathSegments.length - 1; i >= -1 && !resolvedAbsolute; i--){
+        let path;
+        if (i >= 0) path = pathSegments[i];
+        else {
+            const { Deno  } = globalThis;
+            if (typeof Deno?.cwd !== "function") {
+                throw new TypeError("Resolved a relative path without a CWD.");
+            }
+            path = Deno.cwd();
+        }
+        assertPath(path);
+        if (path.length === 0) {
+            continue;
+        }
+        resolvedPath = `${path}/${resolvedPath}`;
+        resolvedAbsolute = path.charCodeAt(0) === CHAR_FORWARD_SLASH;
+    }
+    resolvedPath = normalizeString(resolvedPath, !resolvedAbsolute, "/", isPosixPathSeparator);
+    if (resolvedAbsolute) {
+        if (resolvedPath.length > 0) return `/${resolvedPath}`;
+        else return "/";
+    } else if (resolvedPath.length > 0) return resolvedPath;
+    else return ".";
+}
+function normalize1(path) {
+    assertPath(path);
+    if (path.length === 0) return ".";
+    const isAbsolute = path.charCodeAt(0) === 47;
+    const trailingSeparator = path.charCodeAt(path.length - 1) === 47;
+    path = normalizeString(path, !isAbsolute, "/", isPosixPathSeparator);
+    if (path.length === 0 && !isAbsolute) path = ".";
+    if (path.length > 0 && trailingSeparator) path += "/";
+    if (isAbsolute) return `/${path}`;
+    return path;
+}
+function isAbsolute1(path) {
+    assertPath(path);
+    return path.length > 0 && path.charCodeAt(0) === 47;
+}
+function join1(...paths) {
+    if (paths.length === 0) return ".";
+    let joined;
+    for(let i = 0, len = paths.length; i < len; ++i){
+        const path = paths[i];
+        assertPath(path);
+        if (path.length > 0) {
+            if (!joined) joined = path;
+            else joined += `/${path}`;
+        }
+    }
+    if (!joined) return ".";
+    return normalize1(joined);
+}
+function relative1(from, to) {
+    assertPath(from);
+    assertPath(to);
+    if (from === to) return "";
+    from = resolve1(from);
+    to = resolve1(to);
+    if (from === to) return "";
+    let fromStart = 1;
+    const fromEnd = from.length;
+    for(; fromStart < fromEnd; ++fromStart){
+        if (from.charCodeAt(fromStart) !== 47) break;
+    }
+    const fromLen = fromEnd - fromStart;
+    let toStart = 1;
+    const toEnd = to.length;
+    for(; toStart < toEnd; ++toStart){
+        if (to.charCodeAt(toStart) !== 47) break;
+    }
+    const toLen = toEnd - toStart;
+    const length = fromLen < toLen ? fromLen : toLen;
+    let lastCommonSep = -1;
+    let i = 0;
+    for(; i <= length; ++i){
+        if (i === length) {
+            if (toLen > length) {
+                if (to.charCodeAt(toStart + i) === 47) {
+                    return to.slice(toStart + i + 1);
+                } else if (i === 0) {
+                    return to.slice(toStart + i);
+                }
+            } else if (fromLen > length) {
+                if (from.charCodeAt(fromStart + i) === 47) {
+                    lastCommonSep = i;
+                } else if (i === 0) {
+                    lastCommonSep = 0;
+                }
+            }
+            break;
+        }
+        const fromCode = from.charCodeAt(fromStart + i);
+        const toCode = to.charCodeAt(toStart + i);
+        if (fromCode !== toCode) break;
+        else if (fromCode === 47) lastCommonSep = i;
+    }
+    let out = "";
+    for(i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i){
+        if (i === fromEnd || from.charCodeAt(i) === 47) {
+            if (out.length === 0) out += "..";
+            else out += "/..";
+        }
+    }
+    if (out.length > 0) return out + to.slice(toStart + lastCommonSep);
+    else {
+        toStart += lastCommonSep;
+        if (to.charCodeAt(toStart) === 47) ++toStart;
+        return to.slice(toStart);
+    }
+}
+function toNamespacedPath1(path) {
+    return path;
+}
+function dirname1(path) {
+    assertPath(path);
+    if (path.length === 0) return ".";
+    const hasRoot = path.charCodeAt(0) === 47;
+    let end = -1;
+    let matchedSlash = true;
+    for(let i = path.length - 1; i >= 1; --i){
+        if (path.charCodeAt(i) === 47) {
+            if (!matchedSlash) {
+                end = i;
+                break;
+            }
+        } else {
+            matchedSlash = false;
+        }
+    }
+    if (end === -1) return hasRoot ? "/" : ".";
+    if (hasRoot && end === 1) return "//";
+    return path.slice(0, end);
+}
+function basename1(path, ext = "") {
+    if (ext !== undefined && typeof ext !== "string") {
+        throw new TypeError('"ext" argument must be a string');
+    }
+    assertPath(path);
+    let start = 0;
+    let end = -1;
+    let matchedSlash = true;
+    let i;
+    if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
+        if (ext.length === path.length && ext === path) return "";
+        let extIdx = ext.length - 1;
+        let firstNonSlashEnd = -1;
+        for(i = path.length - 1; i >= 0; --i){
+            const code = path.charCodeAt(i);
+            if (code === 47) {
+                if (!matchedSlash) {
+                    start = i + 1;
+                    break;
+                }
+            } else {
+                if (firstNonSlashEnd === -1) {
+                    matchedSlash = false;
+                    firstNonSlashEnd = i + 1;
+                }
+                if (extIdx >= 0) {
+                    if (code === ext.charCodeAt(extIdx)) {
+                        if (--extIdx === -1) {
+                            end = i;
+                        }
+                    } else {
+                        extIdx = -1;
+                        end = firstNonSlashEnd;
+                    }
+                }
+            }
+        }
+        if (start === end) end = firstNonSlashEnd;
+        else if (end === -1) end = path.length;
+        return path.slice(start, end);
+    } else {
+        for(i = path.length - 1; i >= 0; --i){
+            if (path.charCodeAt(i) === 47) {
+                if (!matchedSlash) {
+                    start = i + 1;
+                    break;
+                }
+            } else if (end === -1) {
+                matchedSlash = false;
+                end = i + 1;
+            }
+        }
+        if (end === -1) return "";
+        return path.slice(start, end);
+    }
+}
+function extname1(path) {
+    assertPath(path);
+    let startDot = -1;
+    let startPart = 0;
+    let end = -1;
+    let matchedSlash = true;
+    let preDotState = 0;
+    for(let i = path.length - 1; i >= 0; --i){
+        const code = path.charCodeAt(i);
+        if (code === 47) {
+            if (!matchedSlash) {
+                startPart = i + 1;
+                break;
+            }
+            continue;
+        }
+        if (end === -1) {
+            matchedSlash = false;
+            end = i + 1;
+        }
+        if (code === 46) {
+            if (startDot === -1) startDot = i;
+            else if (preDotState !== 1) preDotState = 1;
+        } else if (startDot !== -1) {
+            preDotState = -1;
+        }
+    }
+    if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+        return "";
+    }
+    return path.slice(startDot, end);
+}
+function format1(pathObject) {
+    if (pathObject === null || typeof pathObject !== "object") {
+        throw new TypeError(`The "pathObject" argument must be of type Object. Received type ${typeof pathObject}`);
+    }
+    return _format("/", pathObject);
+}
+function parse2(path) {
+    assertPath(path);
+    const ret = {
+        root: "",
+        dir: "",
+        base: "",
+        ext: "",
+        name: ""
+    };
+    if (path.length === 0) return ret;
+    const isAbsolute = path.charCodeAt(0) === 47;
+    let start;
+    if (isAbsolute) {
+        ret.root = "/";
+        start = 1;
+    } else {
+        start = 0;
+    }
+    let startDot = -1;
+    let startPart = 0;
+    let end = -1;
+    let matchedSlash = true;
+    let i = path.length - 1;
+    let preDotState = 0;
+    for(; i >= start; --i){
+        const code = path.charCodeAt(i);
+        if (code === 47) {
+            if (!matchedSlash) {
+                startPart = i + 1;
+                break;
+            }
+            continue;
+        }
+        if (end === -1) {
+            matchedSlash = false;
+            end = i + 1;
+        }
+        if (code === 46) {
+            if (startDot === -1) startDot = i;
+            else if (preDotState !== 1) preDotState = 1;
+        } else if (startDot !== -1) {
+            preDotState = -1;
+        }
+    }
+    if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+        if (end !== -1) {
+            if (startPart === 0 && isAbsolute) {
+                ret.base = ret.name = path.slice(1, end);
+            } else {
+                ret.base = ret.name = path.slice(startPart, end);
+            }
+        }
+    } else {
+        if (startPart === 0 && isAbsolute) {
+            ret.name = path.slice(1, startDot);
+            ret.base = path.slice(1, end);
+        } else {
+            ret.name = path.slice(startPart, startDot);
+            ret.base = path.slice(startPart, end);
+        }
+        ret.ext = path.slice(startDot, end);
+    }
+    if (startPart > 0) ret.dir = path.slice(0, startPart - 1);
+    else if (isAbsolute) ret.dir = "/";
+    return ret;
+}
+function fromFileUrl1(url) {
+    url = url instanceof URL ? url : new URL(url);
+    if (url.protocol != "file:") {
+        throw new TypeError("Must be a file URL.");
+    }
+    return decodeURIComponent(url.pathname.replace(/%(?![0-9A-Fa-f]{2})/g, "%25"));
+}
+function toFileUrl1(path) {
+    if (!isAbsolute1(path)) {
+        throw new TypeError("Must be an absolute path.");
+    }
+    const url = new URL("file:///");
+    url.pathname = encodeWhitespace(path.replace(/%/g, "%25").replace(/\\/g, "%5C"));
+    return url;
+}
+const mod2 = {
+    sep: sep1,
+    delimiter: delimiter1,
+    resolve: resolve1,
+    normalize: normalize1,
+    isAbsolute: isAbsolute1,
+    join: join1,
+    relative: relative1,
+    toNamespacedPath: toNamespacedPath1,
+    dirname: dirname1,
+    basename: basename1,
+    extname: extname1,
+    format: format1,
+    parse: parse2,
+    fromFileUrl: fromFileUrl1,
+    toFileUrl: toFileUrl1
+};
+const path = isWindows ? mod1 : mod2;
+const { join: join2 , normalize: normalize2  } = path;
+const path1 = isWindows ? mod1 : mod2;
+const { basename: basename2 , delimiter: delimiter2 , dirname: dirname2 , extname: extname2 , format: format2 , fromFileUrl: fromFileUrl2 , isAbsolute: isAbsolute2 , join: join3 , normalize: normalize3 , parse: parse3 , relative: relative2 , resolve: resolve2 , sep: sep2 , toFileUrl: toFileUrl2 , toNamespacedPath: toNamespacedPath2 ,  } = path1;
+function isString(x) {
+    return typeof x === "string";
+}
+function isArray(x, pred) {
+    return Array.isArray(x) && (!pred || x.every(pred));
+}
+class EnsureError extends Error {
+    constructor(message){
+        super(message);
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, EnsureError);
+        }
+        this.name = "EnsureError";
+    }
+}
+function ensure(x, pred, message = "The value is not expected type") {
+    if (!pred(x)) {
+        throw new EnsureError(message);
+    }
+}
+function ensureString(x) {
+    return ensure(x, isString, "The value must be string");
+}
+function ensureArray(x, ipred) {
+    const pred = (x)=>isArray(x, ipred)
+    ;
+    return ensure(x, pred, "The value must be array");
+}
+function deferred() {
+    let methods;
+    const promise = new Promise((resolve, reject)=>{
+        methods = {
+            resolve,
+            reject
+        };
+    });
+    return Object.assign(promise, methods);
+}
+class Lock {
+    #waiters;
+    constructor(){
+        this.#waiters = [];
+    }
+    async with(callback) {
+        await this.acquire();
+        try {
+            await (callback() ?? Promise.resolve());
+        } finally{
+            this.release();
+        }
+    }
+    async acquire() {
+        const waiters = [
+            ...this.#waiters
+        ];
+        this.#waiters.push(deferred());
+        if (waiters.length) {
+            await Promise.all(waiters);
+        }
+        return true;
+    }
+    release() {
+        const waiter = this.#waiters.shift();
+        if (waiter) {
+            waiter.resolve();
+        } else {
+            throw new Error("The lock is not locked");
+        }
+    }
+    locked() {
+        return !!this.#waiters.length;
+    }
+}
+class Event {
+    #waiter;
+    constructor(){
+        this.#waiter = deferred();
+    }
+    async wait() {
+        if (this.#waiter) {
+            await this.#waiter;
+        }
+        return true;
+    }
+    set() {
+        if (this.#waiter) {
+            this.#waiter.resolve();
+            this.#waiter = null;
+        }
+    }
+    clear() {
+        if (!this.#waiter) {
+            this.#waiter = deferred();
+        }
+    }
+    is_set() {
+        return !this.#waiter;
+    }
+}
+class Condition {
+    #lock;
+    #waiters;
+    constructor(lock){
+        this.#lock = lock ?? new Lock();
+        this.#waiters = [];
+    }
+    async with(callback) {
+        await this.acquire();
+        try {
+            await (callback() ?? Promise.resolve());
+        } finally{
+            this.release();
+        }
+    }
+    async acquire() {
+        await this.#lock.acquire();
+        return true;
+    }
+    release() {
+        this.#lock.release();
+    }
+    locked() {
+        return this.#lock.locked();
+    }
+    notify(n = 1) {
+        if (!this.locked()) {
+            throw new Error("The lock is not acquired");
+        }
+        for (const i of Array(n)){
+            const waiter = this.#waiters.shift();
+            if (!waiter) {
+                break;
+            }
+            waiter.set();
+        }
+    }
+    notify_all() {
+        this.notify(this.#waiters.length);
+    }
+    async wait() {
+        if (!this.locked()) {
+            throw new Error("The lock is not acquired");
+        }
+        const event = new Event();
+        this.#waiters.push(event);
+        this.release();
+        await event.wait();
+        await this.acquire();
+        return true;
+    }
+    async wait_for(predicate) {
+        while(!predicate()){
+            await this.wait();
+        }
+    }
+}
+class QueueEmpty extends Error {
+}
+class QueueFull extends Error {
+}
+class Queue {
+    #queue;
+    #maxsize;
+    #full_notifier;
+    #empty_notifier;
+    constructor(maxsize = 0){
+        this.#queue = [];
+        this.#maxsize = maxsize <= 0 ? 0 : maxsize;
+        this.#full_notifier = new Condition();
+        this.#empty_notifier = new Condition();
+    }
+    empty() {
+        return !this.#queue.length;
+    }
+    full() {
+        return !!this.#maxsize && this.#queue.length === this.#maxsize;
+    }
+    async get() {
+        const value = this.#queue.shift();
+        if (!value) {
+            return new Promise((resolve)=>{
+                this.#empty_notifier.with(async ()=>{
+                    await this.#empty_notifier.wait_for(()=>!!this.#queue.length
+                    );
+                    resolve(await this.get());
+                });
+            });
+        }
+        await this.#full_notifier.with(()=>{
+            this.#full_notifier.notify();
+        });
+        return value;
+    }
+    get_nowait() {
+        const value = this.#queue.shift();
+        if (!value) {
+            throw new QueueEmpty("Queue empty");
+        }
+        this.#full_notifier.with(()=>{
+            this.#full_notifier.notify();
+        });
+        return value;
+    }
+    async put(value) {
+        if (this.#maxsize && this.#queue.length >= this.#maxsize) {
+            await this.#full_notifier.with(async ()=>{
+                await this.#full_notifier.wait_for(()=>this.#queue.length < this.#maxsize
+                );
+                await this.put(value);
+            });
+            return;
+        }
+        await this.#empty_notifier.with(()=>{
+            this.#empty_notifier.notify();
+        });
+        this.#queue.push(value);
+    }
+    put_nowait(value) {
+        if (this.#maxsize && this.#queue.length >= this.#maxsize) {
+            throw new QueueFull("Queue full");
+        }
+        this.#empty_notifier.with(()=>{
+            this.#empty_notifier.notify();
+        });
+        this.#queue.push(value);
+    }
+    qsize() {
+        return this.#queue.length;
+    }
+}
+function deferred1() {
+    let methods;
+    let state = "pending";
+    const promise = new Promise((resolve, reject)=>{
+        methods = {
+            async resolve (value) {
+                await value;
+                state = "fulfilled";
+                resolve(value);
+            },
+            reject (reason) {
+                state = "rejected";
+                reject(reason);
+            }
+        };
+    });
+    Object.defineProperty(promise, "state", {
+        get: ()=>state
+    });
+    return Object.assign(promise, methods);
+}
+const semver = /^v?(?:\d+)(\.(?:[x*]|\d+)(\.(?:[x*]|\d+)(\.(?:[x*]|\d+))?(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?)?)?$/i;
+const indexOrEnd = (str, q)=>{
+    return str.indexOf(q) === -1 ? str.length : str.indexOf(q);
+};
+const split = (v)=>{
+    const c = v.replace(/^v/, "").replace(/\+.*$/, "");
+    const patchIndex = indexOrEnd(c, "-");
+    const arr = c.substring(0, patchIndex).split(".");
+    arr.push(c.substring(patchIndex + 1));
+    return arr;
+};
+const tryParse = (v)=>{
+    return isNaN(Number(v)) ? v : Number(v);
+};
+const validate = (version)=>{
+    if (typeof version !== "string") {
+        throw new TypeError("Invalid argument expected string");
+    }
+    if (!semver.test(version)) {
+        throw new Error("Invalid argument not valid semver ('" + version + "' received)");
+    }
+};
+const compareVersions = (v1, v2)=>{
+    [
+        v1,
+        v2
+    ].forEach(validate);
+    const s1 = split(v1);
+    const s2 = split(v2);
+    for(let i = 0; i < Math.max(s1.length - 1, s2.length - 1); i++){
+        const n1 = parseInt(s1[i] || "0", 10);
+        const n2 = parseInt(s2[i] || "0", 10);
+        if (n1 > n2) return 1;
+        if (n2 > n1) return -1;
+    }
+    const sp1 = s1[s1.length - 1];
+    const sp2 = s2[s2.length - 1];
+    if (sp1 && sp2) {
+        const p1 = sp1.split(".").map(tryParse);
+        const p2 = sp2.split(".").map(tryParse);
+        for(let i = 0; i < Math.max(p1.length, p2.length); i++){
+            if (p1[i] === undefined || typeof p2[i] === "string" && typeof p1[i] === "number") {
+                return -1;
+            }
+            if (p2[i] === undefined || typeof p1[i] === "string" && typeof p2[i] === "number") {
+                return 1;
+            }
+            if (p1[i] > p2[i]) return 1;
+            if (p2[i] > p1[i]) return -1;
+        }
+    } else if (sp1 || sp2) {
+        return sp1 ? -1 : 1;
+    }
+    return 0;
+};
+const allowedOperators = [
+    ">",
+    ">=",
+    "=",
+    "<",
+    "<=", 
+];
+const operatorResMap = {
+    ">": [
+        1
+    ],
+    ">=": [
+        0,
+        1
+    ],
+    "=": [
+        0
+    ],
+    "<=": [
+        -1,
+        0
+    ],
+    "<": [
+        -1
+    ]
+};
+const validateOperator = (op)=>{
+    if (typeof op !== "string") {
+        throw new TypeError("Invalid operator type, expected string but got " + typeof op);
+    }
+    if (allowedOperators.indexOf(op) === -1) {
+        throw new TypeError("Invalid operator, expected one of " + allowedOperators.join("|"));
+    }
+};
+compareVersions.validate = (version)=>{
+    return typeof version === "string" && semver.test(version);
+};
+compareVersions.compare = (v1, v2, operator)=>{
+    validateOperator(operator);
+    const res = compareVersions(v1, v2);
+    return operatorResMap[operator].indexOf(res) > -1;
+};
+class WorkerReader {
+    #queue;
+    #remain;
+    #closed;
+    #waiter;
+    #worker;
+    constructor(worker){
+        this.#queue = new Queue();
+        this.#remain = new Uint8Array();
+        this.#closed = false;
+        this.#waiter = deferred1();
+        this.#worker = worker;
+        this.#worker.onmessage = (e)=>{
+            if (this.#queue && !this.#closed) {
+                this.#queue.put_nowait(e.data);
+            }
+        };
+    }
+    async read(p) {
+        if (this.#remain.length) {
+            return this.readFromRemain(p);
+        }
+        if (!this.#queue || this.#closed && this.#queue.empty()) {
+            this.#queue = undefined;
+            return null;
+        }
+        if (!this.#queue?.empty()) {
+            this.#remain = this.#queue.get_nowait();
+            return this.readFromRemain(p);
+        }
+        const r = await Promise.race([
+            this.#queue.get(),
+            this.#waiter
+        ]);
+        if (r == undefined) {
+            return await this.read(p);
+        }
+        this.#remain = r;
+        return this.readFromRemain(p);
+    }
+    readFromRemain(p) {
+        const n = p.byteLength;
+        const d = this.#remain.subarray(0, n);
+        this.#remain = this.#remain.subarray(n);
+        p.set(d);
+        return d.byteLength;
+    }
+    close() {
+        this.#closed = true;
+        this.#waiter.resolve();
+    }
+}
+const supportTransfer = compareVersions(Deno.version.deno, "1.14.0") >= 0;
+class WorkerWriter {
+    #worker;
+    constructor(worker){
+        this.#worker = worker;
+    }
+    write(p) {
+        if (supportTransfer) {
+            const c = new Uint8Array(p);
+            this.#worker.postMessage(c, [
+                c.buffer
+            ]);
+        } else {
+            this.#worker.postMessage(p);
+        }
+        return Promise.resolve(p.length);
+    }
+}
+function utf8Count(str) {
+    const strLength = str.length;
+    let byteLength = 0;
+    let pos = 0;
+    while(pos < strLength){
+        let value = str.charCodeAt(pos++);
+        if ((value & 4294967168) === 0) {
+            byteLength++;
+            continue;
+        } else if ((value & 4294965248) === 0) {
+            byteLength += 2;
+        } else {
+            if (value >= 55296 && value <= 56319) {
+                if (pos < strLength) {
+                    const extra = str.charCodeAt(pos);
+                    if ((extra & 64512) === 56320) {
+                        ++pos;
+                        value = ((value & 1023) << 10) + (extra & 1023) + 65536;
+                    }
+                }
+            }
+            if ((value & 4294901760) === 0) {
+                byteLength += 3;
+            } else {
+                byteLength += 4;
+            }
+        }
+    }
+    return byteLength;
+}
+function utf8EncodeJs(str, output, outputOffset) {
+    const strLength = str.length;
+    let offset = outputOffset;
+    let pos = 0;
+    while(pos < strLength){
+        let value = str.charCodeAt(pos++);
+        if ((value & 4294967168) === 0) {
+            output[offset++] = value;
+            continue;
+        } else if ((value & 4294965248) === 0) {
+            output[offset++] = value >> 6 & 31 | 192;
+        } else {
+            if (value >= 55296 && value <= 56319) {
+                if (pos < strLength) {
+                    const extra = str.charCodeAt(pos);
+                    if ((extra & 64512) === 56320) {
+                        ++pos;
+                        value = ((value & 1023) << 10) + (extra & 1023) + 65536;
+                    }
+                }
+            }
+            if ((value & 4294901760) === 0) {
+                output[offset++] = value >> 12 & 15 | 224;
+                output[offset++] = value >> 6 & 63 | 128;
+            } else {
+                output[offset++] = value >> 18 & 7 | 240;
+                output[offset++] = value >> 12 & 63 | 128;
+                output[offset++] = value >> 6 & 63 | 128;
+            }
+        }
+        output[offset++] = value & 63 | 128;
+    }
+}
+const sharedTextEncoder = new TextEncoder();
+function utf8EncodeTEencodeInto(str, output, outputOffset) {
+    sharedTextEncoder.encodeInto(str, output.subarray(outputOffset));
+}
+const utf8EncodeTE = utf8EncodeTEencodeInto;
+function utf8DecodeJs(bytes, inputOffset, byteLength) {
+    let offset = inputOffset;
+    const end = offset + byteLength;
+    const units = [];
+    let result = "";
+    while(offset < end){
+        const byte1 = bytes[offset++];
+        if ((byte1 & 128) === 0) {
+            units.push(byte1);
+        } else if ((byte1 & 224) === 192) {
+            const byte2 = bytes[offset++] & 63;
+            units.push((byte1 & 31) << 6 | byte2);
+        } else if ((byte1 & 240) === 224) {
+            const byte2 = bytes[offset++] & 63;
+            const byte3 = bytes[offset++] & 63;
+            units.push((byte1 & 31) << 12 | byte2 << 6 | byte3);
+        } else if ((byte1 & 248) === 240) {
+            const byte2 = bytes[offset++] & 63;
+            const byte3 = bytes[offset++] & 63;
+            const byte4 = bytes[offset++] & 63;
+            let unit = (byte1 & 7) << 18 | byte2 << 12 | byte3 << 6 | byte4;
+            if (unit > 65535) {
+                unit -= 65536;
+                units.push(unit >>> 10 & 1023 | 55296);
+                unit = 56320 | unit & 1023;
+            }
+            units.push(unit);
+        } else {
+            units.push(byte1);
+        }
+        if (units.length >= 4096) {
+            result += String.fromCharCode(...units);
+            units.length = 0;
+        }
+    }
+    if (units.length > 0) {
+        result += String.fromCharCode(...units);
+    }
+    return result;
+}
+const sharedTextDecoder = new TextDecoder();
+function utf8DecodeTD(bytes, inputOffset, byteLength) {
+    const stringBytes = bytes.subarray(inputOffset, inputOffset + byteLength);
+    return sharedTextDecoder.decode(stringBytes);
+}
+class ExtData {
+    type;
+    data;
+    constructor(type, data){
+        this.type = type;
+        this.data = data;
+    }
+}
+function setUint64(view, offset, value) {
+    const high = value / 4294967296;
+    const low = value;
+    view.setUint32(offset, high);
+    view.setUint32(offset + 4, low);
+}
+function setInt64(view, offset, value) {
+    const high = Math.floor(value / 4294967296);
+    const low = value;
+    view.setUint32(offset, high);
+    view.setUint32(offset + 4, low);
+}
+function getInt64(view, offset) {
+    const high = view.getInt32(offset);
+    const low = view.getUint32(offset + 4);
+    return high * 4294967296 + low;
+}
+function getUint64(view, offset) {
+    const high = view.getUint32(offset);
+    const low = view.getUint32(offset + 4);
+    return high * 4294967296 + low;
+}
+const EXT_TIMESTAMP = -1;
+const TIMESTAMP32_MAX_SEC = 4294967296 - 1;
+const TIMESTAMP64_MAX_SEC = 17179869184 - 1;
+function encodeTimeSpecToTimestamp({ sec , nsec  }) {
+    if (sec >= 0 && nsec >= 0 && sec <= TIMESTAMP64_MAX_SEC) {
+        if (nsec === 0 && sec <= TIMESTAMP32_MAX_SEC) {
+            const rv = new Uint8Array(4);
+            const view = new DataView(rv.buffer);
+            view.setUint32(0, sec);
+            return rv;
+        } else {
+            const secHigh = sec / 4294967296;
+            const secLow = sec & 4294967295;
+            const rv = new Uint8Array(8);
+            const view = new DataView(rv.buffer);
+            view.setUint32(0, nsec << 2 | secHigh & 3);
+            view.setUint32(4, secLow);
+            return rv;
+        }
+    } else {
+        const rv = new Uint8Array(12);
+        const view = new DataView(rv.buffer);
+        view.setUint32(0, nsec);
+        setInt64(view, 4, sec);
+        return rv;
+    }
+}
+function encodeDateToTimeSpec(date) {
+    const msec = date.getTime();
+    const sec = Math.floor(msec / 1000);
+    const nsec = (msec - sec * 1000) * 1000000;
+    const nsecInSec = Math.floor(nsec / 1000000000);
+    return {
+        sec: sec + nsecInSec,
+        nsec: nsec - nsecInSec * 1000000000
+    };
+}
+function encodeTimestampExtension(object) {
+    if (object instanceof Date) {
+        const timeSpec = encodeDateToTimeSpec(object);
+        return encodeTimeSpecToTimestamp(timeSpec);
+    } else {
+        return null;
+    }
+}
+function decodeTimestampToTimeSpec(data) {
+    const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    switch(data.byteLength){
+        case 4:
+            {
+                const sec = view.getUint32(0);
+                return {
+                    sec,
+                    nsec: 0
+                };
+            }
+        case 8:
+            {
+                const nsec30AndSecHigh2 = view.getUint32(0);
+                const secLow32 = view.getUint32(4);
+                const sec = (nsec30AndSecHigh2 & 3) * 4294967296 + secLow32;
+                const nsec = nsec30AndSecHigh2 >>> 2;
+                return {
+                    sec,
+                    nsec
+                };
+            }
+        case 12:
+            {
+                const sec = getInt64(view, 4);
+                const nsec = view.getUint32(0);
+                return {
+                    sec,
+                    nsec
+                };
+            }
+        default:
+            throw new Error(`Unrecognized data size for timestamp: ${data.length}`);
+    }
+}
+function decodeTimestampExtension(data) {
+    const timeSpec = decodeTimestampToTimeSpec(data);
+    return new Date(timeSpec.sec * 1000 + timeSpec.nsec / 1000000);
+}
+const timestampExtension = {
+    type: EXT_TIMESTAMP,
+    encode: encodeTimestampExtension,
+    decode: decodeTimestampExtension
+};
+class ExtensionCodec {
+    static defaultCodec = new ExtensionCodec();
+    __brand;
+    builtInEncoders = [];
+    builtInDecoders = [];
+    encoders = [];
+    decoders = [];
+    constructor(){
+        this.register(timestampExtension);
+    }
+    register({ type , encode , decode  }) {
+        if (type >= 0) {
+            this.encoders[type] = encode;
+            this.decoders[type] = decode;
+        } else {
+            const index = 1 + type;
+            this.builtInEncoders[index] = encode;
+            this.builtInDecoders[index] = decode;
+        }
+    }
+    tryToEncode(object, context) {
+        for(let i = 0; i < this.builtInEncoders.length; i++){
+            const encoder = this.builtInEncoders[i];
+            if (encoder != null) {
+                const data = encoder(object, context);
+                if (data != null) {
+                    const type = -1 - i;
+                    return new ExtData(type, data);
+                }
+            }
+        }
+        for(let i1 = 0; i1 < this.encoders.length; i1++){
+            const encoder = this.encoders[i1];
+            if (encoder != null) {
+                const data = encoder(object, context);
+                if (data != null) {
+                    const type = i1;
+                    return new ExtData(type, data);
+                }
+            }
+        }
+        if (object instanceof ExtData) {
+            return object;
+        }
+        return null;
+    }
+    decode(data, type, context) {
+        const decoder = type < 0 ? this.builtInDecoders[-1 - type] : this.decoders[type];
+        if (decoder) {
+            return decoder(data, type, context);
+        } else {
+            return new ExtData(type, data);
+        }
+    }
+}
+function ensureUint8Array(buffer) {
+    if (buffer instanceof Uint8Array) {
+        return buffer;
+    } else if (ArrayBuffer.isView(buffer)) {
+        return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+    } else if (buffer instanceof ArrayBuffer) {
+        return new Uint8Array(buffer);
+    } else {
+        return Uint8Array.from(buffer);
+    }
+}
+function createDataView(buffer) {
+    if (buffer instanceof ArrayBuffer) {
+        return new DataView(buffer);
+    }
+    const bufferView = ensureUint8Array(buffer);
+    return new DataView(bufferView.buffer, bufferView.byteOffset, bufferView.byteLength);
+}
+class Encoder {
+    extensionCodec;
+    context;
+    maxDepth;
+    initialBufferSize;
+    sortKeys;
+    forceFloat32;
+    ignoreUndefined;
+    pos = 0;
+    view;
+    bytes;
+    constructor(extensionCodec = ExtensionCodec.defaultCodec, context = undefined, maxDepth = 100, initialBufferSize = 2048, sortKeys = false, forceFloat32 = false, ignoreUndefined = false){
+        this.extensionCodec = extensionCodec;
+        this.context = context;
+        this.maxDepth = maxDepth;
+        this.initialBufferSize = initialBufferSize;
+        this.sortKeys = sortKeys;
+        this.forceFloat32 = forceFloat32;
+        this.ignoreUndefined = ignoreUndefined;
+        this.view = new DataView(new ArrayBuffer(this.initialBufferSize));
+        this.bytes = new Uint8Array(this.view.buffer);
+    }
+    getUint8Array() {
+        return this.bytes.subarray(0, this.pos);
+    }
+    reinitializeState() {
+        this.pos = 0;
+    }
+    encode(object) {
+        this.reinitializeState();
+        this.doEncode(object, 1);
+        return this.getUint8Array();
+    }
+    doEncode(object, depth) {
+        if (depth > this.maxDepth) {
+            throw new Error(`Too deep objects in depth ${depth}`);
+        }
+        if (object == null) {
+            this.encodeNil();
+        } else if (typeof object === "boolean") {
+            this.encodeBoolean(object);
+        } else if (typeof object === "number") {
+            this.encodeNumber(object);
+        } else if (typeof object === "string") {
+            this.encodeString(object);
+        } else {
+            this.encodeObject(object, depth);
+        }
+    }
+    ensureBufferSizeToWrite(sizeToWrite) {
+        const requiredSize = this.pos + sizeToWrite;
+        if (this.view.byteLength < requiredSize) {
+            this.resizeBuffer(requiredSize * 2);
+        }
+    }
+    resizeBuffer(newSize) {
+        const newBuffer = new ArrayBuffer(newSize);
+        const newBytes = new Uint8Array(newBuffer);
+        const newView = new DataView(newBuffer);
+        newBytes.set(this.bytes);
+        this.view = newView;
+        this.bytes = newBytes;
+    }
+    encodeNil() {
+        this.writeU8(192);
+    }
+    encodeBoolean(object) {
+        if (object === false) {
+            this.writeU8(194);
+        } else {
+            this.writeU8(195);
+        }
+    }
+    encodeNumber(object) {
+        if (Number.isSafeInteger(object)) {
+            if (object >= 0) {
+                if (object < 128) {
+                    this.writeU8(object);
+                } else if (object < 256) {
+                    this.writeU8(204);
+                    this.writeU8(object);
+                } else if (object < 65536) {
+                    this.writeU8(205);
+                    this.writeU16(object);
+                } else if (object < 4294967296) {
+                    this.writeU8(206);
+                    this.writeU32(object);
+                } else {
+                    this.writeU8(207);
+                    this.writeU64(object);
+                }
+            } else {
+                if (object >= -32) {
+                    this.writeU8(224 | object + 32);
+                } else if (object >= -128) {
+                    this.writeU8(208);
+                    this.writeI8(object);
+                } else if (object >= -32768) {
+                    this.writeU8(209);
+                    this.writeI16(object);
+                } else if (object >= -2147483648) {
+                    this.writeU8(210);
+                    this.writeI32(object);
+                } else {
+                    this.writeU8(211);
+                    this.writeI64(object);
+                }
+            }
+        } else {
+            if (this.forceFloat32) {
+                this.writeU8(202);
+                this.writeF32(object);
+            } else {
+                this.writeU8(203);
+                this.writeF64(object);
+            }
+        }
+    }
+    writeStringHeader(byteLength) {
+        if (byteLength < 32) {
+            this.writeU8(160 + byteLength);
+        } else if (byteLength < 256) {
+            this.writeU8(217);
+            this.writeU8(byteLength);
+        } else if (byteLength < 65536) {
+            this.writeU8(218);
+            this.writeU16(byteLength);
+        } else if (byteLength < 4294967296) {
+            this.writeU8(219);
+            this.writeU32(byteLength);
+        } else {
+            throw new Error(`Too long string: ${byteLength} bytes in UTF-8`);
+        }
+    }
+    encodeString(object) {
+        const maxHeaderSize = 1 + 4;
+        const strLength = object.length;
+        if (strLength > 200) {
+            const byteLength = utf8Count(object);
+            this.ensureBufferSizeToWrite(maxHeaderSize + byteLength);
+            this.writeStringHeader(byteLength);
+            utf8EncodeTE(object, this.bytes, this.pos);
+            this.pos += byteLength;
+        } else {
+            const byteLength = utf8Count(object);
+            this.ensureBufferSizeToWrite(maxHeaderSize + byteLength);
+            this.writeStringHeader(byteLength);
+            utf8EncodeJs(object, this.bytes, this.pos);
+            this.pos += byteLength;
+        }
+    }
+    encodeObject(object, depth) {
+        const ext = this.extensionCodec.tryToEncode(object, this.context);
+        if (ext != null) {
+            this.encodeExtension(ext);
+        } else if (Array.isArray(object)) {
+            this.encodeArray(object, depth);
+        } else if (ArrayBuffer.isView(object)) {
+            this.encodeBinary(object);
+        } else if (typeof object === "object") {
+            this.encodeMap(object, depth);
+        } else {
+            throw new Error(`Unrecognized object: ${Object.prototype.toString.apply(object)}`);
+        }
+    }
+    encodeBinary(object) {
+        const size = object.byteLength;
+        if (size < 256) {
+            this.writeU8(196);
+            this.writeU8(size);
+        } else if (size < 65536) {
+            this.writeU8(197);
+            this.writeU16(size);
+        } else if (size < 4294967296) {
+            this.writeU8(198);
+            this.writeU32(size);
+        } else {
+            throw new Error(`Too large binary: ${size}`);
+        }
+        const bytes = ensureUint8Array(object);
+        this.writeU8a(bytes);
+    }
+    encodeArray(object, depth) {
+        const size = object.length;
+        if (size < 16) {
+            this.writeU8(144 + size);
+        } else if (size < 65536) {
+            this.writeU8(220);
+            this.writeU16(size);
+        } else if (size < 4294967296) {
+            this.writeU8(221);
+            this.writeU32(size);
+        } else {
+            throw new Error(`Too large array: ${size}`);
+        }
+        for (const item of object){
+            this.doEncode(item, depth + 1);
+        }
+    }
+    countWithoutUndefined(object, keys) {
+        let count = 0;
+        for (const key of keys){
+            if (object[key] !== undefined) {
+                count++;
+            }
+        }
+        return count;
+    }
+    encodeMap(object, depth) {
+        const keys = Object.keys(object);
+        if (this.sortKeys) {
+            keys.sort();
+        }
+        const size = this.ignoreUndefined ? this.countWithoutUndefined(object, keys) : keys.length;
+        if (size < 16) {
+            this.writeU8(128 + size);
+        } else if (size < 65536) {
+            this.writeU8(222);
+            this.writeU16(size);
+        } else if (size < 4294967296) {
+            this.writeU8(223);
+            this.writeU32(size);
+        } else {
+            throw new Error(`Too large map object: ${size}`);
+        }
+        for (const key of keys){
+            const value = object[key];
+            if (!(this.ignoreUndefined && value === undefined)) {
+                this.encodeString(key);
+                this.doEncode(value, depth + 1);
+            }
+        }
+    }
+    encodeExtension(ext) {
+        const size = ext.data.length;
+        if (size === 1) {
+            this.writeU8(212);
+        } else if (size === 2) {
+            this.writeU8(213);
+        } else if (size === 4) {
+            this.writeU8(214);
+        } else if (size === 8) {
+            this.writeU8(215);
+        } else if (size === 16) {
+            this.writeU8(216);
+        } else if (size < 256) {
+            this.writeU8(199);
+            this.writeU8(size);
+        } else if (size < 65536) {
+            this.writeU8(200);
+            this.writeU16(size);
+        } else if (size < 4294967296) {
+            this.writeU8(201);
+            this.writeU32(size);
+        } else {
+            throw new Error(`Too large extension object: ${size}`);
+        }
+        this.writeI8(ext.type);
+        this.writeU8a(ext.data);
+    }
+    writeU8(value) {
+        this.ensureBufferSizeToWrite(1);
+        this.view.setUint8(this.pos, value);
+        this.pos++;
+    }
+    writeU8a(values) {
+        const size = values.length;
+        this.ensureBufferSizeToWrite(size);
+        this.bytes.set(values, this.pos);
+        this.pos += size;
+    }
+    writeI8(value) {
+        this.ensureBufferSizeToWrite(1);
+        this.view.setInt8(this.pos, value);
+        this.pos++;
+    }
+    writeU16(value) {
+        this.ensureBufferSizeToWrite(2);
+        this.view.setUint16(this.pos, value);
+        this.pos += 2;
+    }
+    writeI16(value) {
+        this.ensureBufferSizeToWrite(2);
+        this.view.setInt16(this.pos, value);
+        this.pos += 2;
+    }
+    writeU32(value) {
+        this.ensureBufferSizeToWrite(4);
+        this.view.setUint32(this.pos, value);
+        this.pos += 4;
+    }
+    writeI32(value) {
+        this.ensureBufferSizeToWrite(4);
+        this.view.setInt32(this.pos, value);
+        this.pos += 4;
+    }
+    writeF32(value) {
+        this.ensureBufferSizeToWrite(4);
+        this.view.setFloat32(this.pos, value);
+        this.pos += 4;
+    }
+    writeF64(value) {
+        this.ensureBufferSizeToWrite(8);
+        this.view.setFloat64(this.pos, value);
+        this.pos += 8;
+    }
+    writeU64(value) {
+        this.ensureBufferSizeToWrite(8);
+        setUint64(this.view, this.pos, value);
+        this.pos += 8;
+    }
+    writeI64(value) {
+        this.ensureBufferSizeToWrite(8);
+        setInt64(this.view, this.pos, value);
+        this.pos += 8;
+    }
+}
+const defaultEncodeOptions = {
+};
+function encode1(value, options = defaultEncodeOptions) {
+    const encoder = new Encoder(options.extensionCodec, options.context, options.maxDepth, options.initialBufferSize, options.sortKeys, options.forceFloat32, options.ignoreUndefined);
+    return encoder.encode(value);
+}
+function prettyByte(__byte) {
+    return `${__byte < 0 ? "-" : ""}0x${Math.abs(__byte).toString(16).padStart(2, "0")}`;
+}
+class CachedKeyDecoder {
+    maxKeyLength;
+    maxLengthPerKey;
+    hit = 0;
+    miss = 0;
+    caches;
+    constructor(maxKeyLength = 16, maxLengthPerKey = 16){
+        this.maxKeyLength = maxKeyLength;
+        this.maxLengthPerKey = maxLengthPerKey;
+        this.caches = [];
+        for(let i = 0; i < this.maxKeyLength; i++){
+            this.caches.push([]);
+        }
+    }
+    canBeCached(byteLength) {
+        return byteLength > 0 && byteLength <= this.maxKeyLength;
+    }
+    get(bytes, inputOffset, byteLength) {
+        const records = this.caches[byteLength - 1];
+        const recordsLength = records.length;
+        FIND_CHUNK: for(let i = 0; i < recordsLength; i++){
+            const record = records[i];
+            const recordBytes = record.bytes;
+            for(let j = 0; j < byteLength; j++){
+                if (recordBytes[j] !== bytes[inputOffset + j]) {
+                    continue FIND_CHUNK;
+                }
+            }
+            return record.value;
+        }
+        return null;
+    }
+    store(bytes, value) {
+        const records = this.caches[bytes.length - 1];
+        const record = {
+            bytes,
+            value
+        };
+        if (records.length >= this.maxLengthPerKey) {
+            records[Math.random() * records.length | 0] = record;
+        } else {
+            records.push(record);
+        }
+    }
+    decode(bytes, inputOffset, byteLength) {
+        const cachedValue = this.get(bytes, inputOffset, byteLength);
+        if (cachedValue != null) {
+            this.hit++;
+            return cachedValue;
+        }
+        this.miss++;
+        const value = utf8DecodeJs(bytes, inputOffset, byteLength);
+        const slicedCopyOfBytes = Uint8Array.prototype.slice.call(bytes, inputOffset, inputOffset + byteLength);
+        this.store(slicedCopyOfBytes, value);
+        return value;
+    }
+}
+var State;
+(function(State) {
+    State[State["ARRAY"] = 0] = "ARRAY";
+    State[State["MAP_KEY"] = 1] = "MAP_KEY";
+    State[State["MAP_VALUE"] = 2] = "MAP_VALUE";
+})(State || (State = {
+}));
+const isValidMapKeyType = (key)=>{
+    const keyType = typeof key;
+    return keyType === "string" || keyType === "number";
+};
+const HEAD_BYTE_REQUIRED = -1;
+const EMPTY_VIEW = new DataView(new ArrayBuffer(0));
+const EMPTY_BYTES = new Uint8Array(EMPTY_VIEW.buffer);
+const DataViewIndexOutOfBoundsError = (()=>{
+    try {
+        EMPTY_VIEW.getInt8(0);
+    } catch (e) {
+        return e.constructor;
+    }
+    throw new Error("never reached");
+})();
+const MORE_DATA = new DataViewIndexOutOfBoundsError("Insufficient data");
+const sharedCachedKeyDecoder = new CachedKeyDecoder();
+class Decoder {
+    extensionCodec;
+    context;
+    maxStrLength;
+    maxBinLength;
+    maxArrayLength;
+    maxMapLength;
+    maxExtLength;
+    keyDecoder;
+    totalPos = 0;
+    pos = 0;
+    view = EMPTY_VIEW;
+    bytes = EMPTY_BYTES;
+    headByte = HEAD_BYTE_REQUIRED;
+    stack = [];
+    constructor(extensionCodec = ExtensionCodec.defaultCodec, context = undefined, maxStrLength = 4294967295, maxBinLength = 4294967295, maxArrayLength = 4294967295, maxMapLength = 4294967295, maxExtLength = 4294967295, keyDecoder = sharedCachedKeyDecoder){
+        this.extensionCodec = extensionCodec;
+        this.context = context;
+        this.maxStrLength = maxStrLength;
+        this.maxBinLength = maxBinLength;
+        this.maxArrayLength = maxArrayLength;
+        this.maxMapLength = maxMapLength;
+        this.maxExtLength = maxExtLength;
+        this.keyDecoder = keyDecoder;
+    }
+    reinitializeState() {
+        this.totalPos = 0;
+        this.headByte = HEAD_BYTE_REQUIRED;
+    }
+    setBuffer(buffer) {
+        this.bytes = ensureUint8Array(buffer);
+        this.view = createDataView(this.bytes);
+        this.pos = 0;
+    }
+    appendBuffer(buffer) {
+        buffer = ensureUint8Array(buffer).slice();
+        if (this.headByte === HEAD_BYTE_REQUIRED && !this.hasRemaining()) {
+            this.setBuffer(buffer);
+        } else {
+            const remainingData = this.bytes.subarray(this.pos);
+            const newData = ensureUint8Array(buffer);
+            const concated = new Uint8Array(remainingData.length + newData.length);
+            concated.set(remainingData);
+            concated.set(newData, remainingData.length);
+            this.setBuffer(concated);
+        }
+    }
+    hasRemaining(size = 1) {
+        return this.view.byteLength - this.pos >= size;
+    }
+    createNoExtraBytesError(posToShow) {
+        const { view , pos  } = this;
+        return new RangeError(`Extra ${view.byteLength - pos} of ${view.byteLength} byte(s) found at buffer[${posToShow}]`);
+    }
+    decode(buffer) {
+        this.reinitializeState();
+        this.setBuffer(buffer);
+        return this.doDecodeSingleSync();
+    }
+    doDecodeSingleSync() {
+        const object = this.doDecodeSync();
+        if (this.hasRemaining()) {
+            throw this.createNoExtraBytesError(this.pos);
+        }
+        return object;
+    }
+    async decodeAsync(stream) {
+        let decoded = false;
+        let object;
+        for await (const buffer of stream){
+            if (decoded) {
+                throw this.createNoExtraBytesError(this.totalPos);
+            }
+            this.appendBuffer(buffer);
+            try {
+                object = this.doDecodeSync();
+                decoded = true;
+            } catch (e) {
+                if (!(e instanceof DataViewIndexOutOfBoundsError)) {
+                    throw e;
+                }
+            }
+            this.totalPos += this.pos;
+        }
+        if (decoded) {
+            if (this.hasRemaining()) {
+                throw this.createNoExtraBytesError(this.totalPos);
+            }
+            return object;
+        }
+        const { headByte , pos , totalPos  } = this;
+        throw new RangeError(`Insufficient data in parcing ${prettyByte(headByte)} at ${totalPos} (${pos} in the current buffer)`);
+    }
+    decodeArrayStream(stream) {
+        return this.decodeMultiAsync(stream, true);
+    }
+    decodeStream(stream) {
+        return this.decodeMultiAsync(stream, false);
+    }
+    async *decodeMultiAsync(stream, isArray) {
+        let isArrayHeaderRequired = isArray;
+        let arrayItemsLeft = -1;
+        for await (const buffer of stream){
+            if (isArray && arrayItemsLeft === 0) {
+                throw this.createNoExtraBytesError(this.totalPos);
+            }
+            this.appendBuffer(buffer);
+            if (isArrayHeaderRequired) {
+                arrayItemsLeft = this.readArraySize();
+                isArrayHeaderRequired = false;
+                this.complete();
+            }
+            try {
+                while(true){
+                    yield this.doDecodeSync();
+                    if (--arrayItemsLeft === 0) {
+                        break;
+                    }
+                }
+            } catch (e) {
+                if (!(e instanceof DataViewIndexOutOfBoundsError)) {
+                    throw e;
+                }
+            }
+            this.totalPos += this.pos;
+        }
+    }
+    doDecodeSync() {
+        DECODE: while(true){
+            const headByte = this.readHeadByte();
+            let object;
+            if (headByte >= 224) {
+                object = headByte - 256;
+            } else if (headByte < 192) {
+                if (headByte < 128) {
+                    object = headByte;
+                } else if (headByte < 144) {
+                    const size = headByte - 128;
+                    if (size !== 0) {
+                        this.pushMapState(size);
+                        this.complete();
+                        continue DECODE;
+                    } else {
+                        object = {
+                        };
+                    }
+                } else if (headByte < 160) {
+                    const size = headByte - 144;
+                    if (size !== 0) {
+                        this.pushArrayState(size);
+                        this.complete();
+                        continue DECODE;
+                    } else {
+                        object = [];
+                    }
+                } else {
+                    const byteLength = headByte - 160;
+                    object = this.decodeUtf8String(byteLength, 0);
+                }
+            } else if (headByte === 192) {
+                object = null;
+            } else if (headByte === 194) {
+                object = false;
+            } else if (headByte === 195) {
+                object = true;
+            } else if (headByte === 202) {
+                object = this.readF32();
+            } else if (headByte === 203) {
+                object = this.readF64();
+            } else if (headByte === 204) {
+                object = this.readU8();
+            } else if (headByte === 205) {
+                object = this.readU16();
+            } else if (headByte === 206) {
+                object = this.readU32();
+            } else if (headByte === 207) {
+                object = this.readU64();
+            } else if (headByte === 208) {
+                object = this.readI8();
+            } else if (headByte === 209) {
+                object = this.readI16();
+            } else if (headByte === 210) {
+                object = this.readI32();
+            } else if (headByte === 211) {
+                object = this.readI64();
+            } else if (headByte === 217) {
+                const byteLength = this.lookU8();
+                object = this.decodeUtf8String(byteLength, 1);
+            } else if (headByte === 218) {
+                const byteLength = this.lookU16();
+                object = this.decodeUtf8String(byteLength, 2);
+            } else if (headByte === 219) {
+                const byteLength = this.lookU32();
+                object = this.decodeUtf8String(byteLength, 4);
+            } else if (headByte === 220) {
+                const size = this.readU16();
+                if (size !== 0) {
+                    this.pushArrayState(size);
+                    this.complete();
+                    continue DECODE;
+                } else {
+                    object = [];
+                }
+            } else if (headByte === 221) {
+                const size = this.readU32();
+                if (size !== 0) {
+                    this.pushArrayState(size);
+                    this.complete();
+                    continue DECODE;
+                } else {
+                    object = [];
+                }
+            } else if (headByte === 222) {
+                const size = this.readU16();
+                if (size !== 0) {
+                    this.pushMapState(size);
+                    this.complete();
+                    continue DECODE;
+                } else {
+                    object = {
+                    };
+                }
+            } else if (headByte === 223) {
+                const size = this.readU32();
+                if (size !== 0) {
+                    this.pushMapState(size);
+                    this.complete();
+                    continue DECODE;
+                } else {
+                    object = {
+                    };
+                }
+            } else if (headByte === 196) {
+                const size = this.lookU8();
+                object = this.decodeBinary(size, 1);
+            } else if (headByte === 197) {
+                const size = this.lookU16();
+                object = this.decodeBinary(size, 2);
+            } else if (headByte === 198) {
+                const size = this.lookU32();
+                object = this.decodeBinary(size, 4);
+            } else if (headByte === 212) {
+                object = this.decodeExtension(1, 0);
+            } else if (headByte === 213) {
+                object = this.decodeExtension(2, 0);
+            } else if (headByte === 214) {
+                object = this.decodeExtension(4, 0);
+            } else if (headByte === 215) {
+                object = this.decodeExtension(8, 0);
+            } else if (headByte === 216) {
+                object = this.decodeExtension(16, 0);
+            } else if (headByte === 199) {
+                const size = this.lookU8();
+                object = this.decodeExtension(size, 1);
+            } else if (headByte === 200) {
+                const size = this.lookU16();
+                object = this.decodeExtension(size, 2);
+            } else if (headByte === 201) {
+                const size = this.lookU32();
+                object = this.decodeExtension(size, 4);
+            } else {
+                throw new Error(`Unrecognized type byte: ${prettyByte(headByte)}`);
+            }
+            this.complete();
+            const stack = this.stack;
+            while(stack.length > 0){
+                const state = stack[stack.length - 1];
+                if (state.type === State.ARRAY) {
+                    state.array[state.position] = object;
+                    state.position++;
+                    if (state.position === state.size) {
+                        stack.pop();
+                        object = state.array;
+                    } else {
+                        continue DECODE;
+                    }
+                } else if (state.type === State.MAP_KEY) {
+                    if (!isValidMapKeyType(object)) {
+                        throw new Error("The type of key must be string or number but " + typeof object);
+                    }
+                    state.key = object;
+                    state.type = State.MAP_VALUE;
+                    continue DECODE;
+                } else {
+                    state.map[state.key] = object;
+                    state.readCount++;
+                    if (state.readCount === state.size) {
+                        stack.pop();
+                        object = state.map;
+                    } else {
+                        state.key = null;
+                        state.type = State.MAP_KEY;
+                        continue DECODE;
+                    }
+                }
+            }
+            return object;
+        }
+    }
+    readHeadByte() {
+        if (this.headByte === HEAD_BYTE_REQUIRED) {
+            this.headByte = this.readU8();
+        }
+        return this.headByte;
+    }
+    complete() {
+        this.headByte = HEAD_BYTE_REQUIRED;
+    }
+    readArraySize() {
+        const headByte = this.readHeadByte();
+        switch(headByte){
+            case 220:
+                return this.readU16();
+            case 221:
+                return this.readU32();
+            default:
+                {
+                    if (headByte < 160) {
+                        return headByte - 144;
+                    } else {
+                        throw new Error(`Unrecognized array type byte: ${prettyByte(headByte)}`);
+                    }
+                }
+        }
+    }
+    pushMapState(size) {
+        if (size > this.maxMapLength) {
+            throw new Error(`Max length exceeded: map length (${size}) > maxMapLengthLength (${this.maxMapLength})`);
+        }
+        this.stack.push({
+            type: State.MAP_KEY,
+            size,
+            key: null,
+            readCount: 0,
+            map: {
+            }
+        });
+    }
+    pushArrayState(size) {
+        if (size > this.maxArrayLength) {
+            throw new Error(`Max length exceeded: array length (${size}) > maxArrayLength (${this.maxArrayLength})`);
+        }
+        this.stack.push({
+            type: State.ARRAY,
+            size,
+            array: new Array(size),
+            position: 0
+        });
+    }
+    decodeUtf8String(byteLength, headerOffset) {
+        if (byteLength > this.maxStrLength) {
+            throw new Error(`Max length exceeded: UTF-8 byte length (${byteLength}) > maxStrLength (${this.maxStrLength})`);
+        }
+        if (this.bytes.byteLength < this.pos + headerOffset + byteLength) {
+            throw MORE_DATA;
+        }
+        const offset = this.pos + headerOffset;
+        let object;
+        if (this.stateIsMapKey() && this.keyDecoder?.canBeCached(byteLength)) {
+            object = this.keyDecoder.decode(this.bytes, offset, byteLength);
+        } else if (byteLength > 200) {
+            object = utf8DecodeTD(this.bytes, offset, byteLength);
+        } else {
+            object = utf8DecodeJs(this.bytes, offset, byteLength);
+        }
+        this.pos += headerOffset + byteLength;
+        return object;
+    }
+    stateIsMapKey() {
+        if (this.stack.length > 0) {
+            const state = this.stack[this.stack.length - 1];
+            return state.type === State.MAP_KEY;
+        }
+        return false;
+    }
+    decodeBinary(byteLength, headOffset) {
+        if (byteLength > this.maxBinLength) {
+            throw new Error(`Max length exceeded: bin length (${byteLength}) > maxBinLength (${this.maxBinLength})`);
+        }
+        if (!this.hasRemaining(byteLength + headOffset)) {
+            throw MORE_DATA;
+        }
+        const offset = this.pos + headOffset;
+        const object = this.bytes.subarray(offset, offset + byteLength);
+        this.pos += headOffset + byteLength;
+        return object;
+    }
+    decodeExtension(size, headOffset) {
+        if (size > this.maxExtLength) {
+            throw new Error(`Max length exceeded: ext length (${size}) > maxExtLength (${this.maxExtLength})`);
+        }
+        const extType = this.view.getInt8(this.pos + headOffset);
+        const data = this.decodeBinary(size, headOffset + 1);
+        return this.extensionCodec.decode(data, extType, this.context);
+    }
+    lookU8() {
+        return this.view.getUint8(this.pos);
+    }
+    lookU16() {
+        return this.view.getUint16(this.pos);
+    }
+    lookU32() {
+        return this.view.getUint32(this.pos);
+    }
+    readU8() {
+        const value = this.view.getUint8(this.pos);
+        this.pos++;
+        return value;
+    }
+    readI8() {
+        const value = this.view.getInt8(this.pos);
+        this.pos++;
+        return value;
+    }
+    readU16() {
+        const value = this.view.getUint16(this.pos);
+        this.pos += 2;
+        return value;
+    }
+    readI16() {
+        const value = this.view.getInt16(this.pos);
+        this.pos += 2;
+        return value;
+    }
+    readU32() {
+        const value = this.view.getUint32(this.pos);
+        this.pos += 4;
+        return value;
+    }
+    readI32() {
+        const value = this.view.getInt32(this.pos);
+        this.pos += 4;
+        return value;
+    }
+    readU64() {
+        const value = getUint64(this.view, this.pos);
+        this.pos += 8;
+        return value;
+    }
+    readI64() {
+        const value = getInt64(this.view, this.pos);
+        this.pos += 8;
+        return value;
+    }
+    readF32() {
+        const value = this.view.getFloat32(this.pos);
+        this.pos += 4;
+        return value;
+    }
+    readF64() {
+        const value = this.view.getFloat64(this.pos);
+        this.pos += 8;
+        return value;
+    }
+}
+const defaultDecodeOptions = {
+};
+function isAsyncIterable(object) {
+    return object[Symbol.asyncIterator] != null;
+}
+function assertNonNull(value) {
+    if (value == null) {
+        throw new Error("Assertion Failure: value must not be null nor undefined");
+    }
+}
+async function* asyncIterableFromStream(stream) {
+    const reader = stream.getReader();
+    try {
+        while(true){
+            const { done , value  } = await reader.read();
+            if (done) {
+                return;
+            }
+            assertNonNull(value);
+            yield value;
+        }
+    } finally{
+        reader.releaseLock();
+    }
+}
+function ensureAsyncIterabe(streamLike) {
+    if (isAsyncIterable(streamLike)) {
+        return streamLike;
+    } else {
+        return asyncIterableFromStream(streamLike);
+    }
+}
+function decodeStream(streamLike, options = defaultDecodeOptions) {
+    const stream = ensureAsyncIterabe(streamLike);
+    const decoder = new Decoder(options.extensionCodec, options.context, options.maxStrLength, options.maxBinLength, options.maxArrayLength, options.maxMapLength, options.maxExtLength);
+    return decoder.decodeStream(stream);
+}
+function deferred2() {
+    let methods;
+    let state = "pending";
+    const promise = new Promise((resolve, reject)=>{
+        methods = {
+            async resolve (value) {
+                await value;
+                state = "fulfilled";
+                resolve(value);
+            },
+            reject (reason) {
+                state = "rejected";
+                reject(reason);
+            }
+        };
+    });
+    Object.defineProperty(promise, "state", {
+        get: ()=>state
+    });
+    return Object.assign(promise, methods);
+}
+class DenoStdInternalError1 extends Error {
+    constructor(message){
+        super(message);
+        this.name = "DenoStdInternalError";
+    }
+}
+function assert1(expr, msg = "") {
+    if (!expr) {
+        throw new DenoStdInternalError1(msg);
+    }
+}
+function concat(...buf) {
+    let length = 0;
+    for (const b of buf){
+        length += b.length;
+    }
+    const output = new Uint8Array(length);
+    let index = 0;
+    for (const b1 of buf){
+        output.set(b1, index);
+        index += b1.length;
+    }
+    return output;
+}
+function copy(src, dst, off = 0) {
+    off = Math.max(0, Math.min(off, dst.byteLength));
+    const dstBytesAvailable = dst.byteLength - off;
+    if (src.byteLength > dstBytesAvailable) {
+        src = src.subarray(0, dstBytesAvailable);
+    }
+    dst.set(src, off);
+    return src.byteLength;
+}
+const MIN_READ = 32 * 1024;
+const MAX_SIZE = 2 ** 32 - 2;
+class Buffer {
+    #buf;
+    #off = 0;
+    constructor(ab){
+        this.#buf = ab === undefined ? new Uint8Array(0) : new Uint8Array(ab);
+    }
+    bytes(options = {
+        copy: true
+    }) {
+        if (options.copy === false) return this.#buf.subarray(this.#off);
+        return this.#buf.slice(this.#off);
+    }
+    empty() {
+        return this.#buf.byteLength <= this.#off;
+    }
+    get length() {
+        return this.#buf.byteLength - this.#off;
+    }
+    get capacity() {
+        return this.#buf.buffer.byteLength;
+    }
+    truncate(n) {
+        if (n === 0) {
+            this.reset();
+            return;
+        }
+        if (n < 0 || n > this.length) {
+            throw Error("bytes.Buffer: truncation out of range");
+        }
+        this.#reslice(this.#off + n);
+    }
+    reset() {
+        this.#reslice(0);
+        this.#off = 0;
+    }
+     #tryGrowByReslice(n) {
+        const l = this.#buf.byteLength;
+        if (n <= this.capacity - l) {
+            this.#reslice(l + n);
+            return l;
+        }
+        return -1;
+    }
+     #reslice(len) {
+        assert1(len <= this.#buf.buffer.byteLength);
+        this.#buf = new Uint8Array(this.#buf.buffer, 0, len);
+    }
+    readSync(p) {
+        if (this.empty()) {
+            this.reset();
+            if (p.byteLength === 0) {
+                return 0;
+            }
+            return null;
+        }
+        const nread = copy(this.#buf.subarray(this.#off), p);
+        this.#off += nread;
+        return nread;
+    }
+    read(p) {
+        const rr = this.readSync(p);
+        return Promise.resolve(rr);
+    }
+    writeSync(p) {
+        const m = this.#grow(p.byteLength);
+        return copy(p, this.#buf, m);
+    }
+    write(p) {
+        const n = this.writeSync(p);
+        return Promise.resolve(n);
+    }
+     #grow(n) {
+        const m = this.length;
+        if (m === 0 && this.#off !== 0) {
+            this.reset();
+        }
+        const i = this.#tryGrowByReslice(n);
+        if (i >= 0) {
+            return i;
+        }
+        const c = this.capacity;
+        if (n <= Math.floor(c / 2) - m) {
+            copy(this.#buf.subarray(this.#off), this.#buf);
+        } else if (c + n > MAX_SIZE) {
+            throw new Error("The buffer cannot be grown beyond the maximum size.");
+        } else {
+            const buf = new Uint8Array(Math.min(2 * c + n, MAX_SIZE));
+            copy(this.#buf.subarray(this.#off), buf);
+            this.#buf = buf;
+        }
+        this.#off = 0;
+        this.#reslice(Math.min(m + n, MAX_SIZE));
+        return m;
+    }
+    grow(n) {
+        if (n < 0) {
+            throw Error("Buffer.grow: negative count");
+        }
+        const m = this.#grow(n);
+        this.#reslice(m);
+    }
+    async readFrom(r) {
+        let n = 0;
+        const tmp = new Uint8Array(MIN_READ);
+        while(true){
+            const shouldGrow = this.capacity - this.length < MIN_READ;
+            const buf = shouldGrow ? tmp : new Uint8Array(this.#buf.buffer, this.length);
+            const nread = await r.read(buf);
+            if (nread === null) {
+                return n;
+            }
+            if (shouldGrow) this.writeSync(buf.subarray(0, nread));
+            else this.#reslice(this.length + nread);
+            n += nread;
+        }
+    }
+    readFromSync(r) {
+        let n = 0;
+        const tmp = new Uint8Array(MIN_READ);
+        while(true){
+            const shouldGrow = this.capacity - this.length < MIN_READ;
+            const buf = shouldGrow ? tmp : new Uint8Array(this.#buf.buffer, this.length);
+            const nread = r.readSync(buf);
+            if (nread === null) {
+                return n;
+            }
+            if (shouldGrow) this.writeSync(buf.subarray(0, nread));
+            else this.#reslice(this.length + nread);
+            n += nread;
+        }
+    }
+}
+class BytesList {
+    len = 0;
+    chunks = [];
+    constructor(){
+    }
+    size() {
+        return this.len;
+    }
+    add(value, start = 0, end = value.byteLength) {
+        if (value.byteLength === 0 || end - start === 0) {
+            return;
+        }
+        checkRange(start, end, value.byteLength);
+        this.chunks.push({
+            value,
+            end,
+            start,
+            offset: this.len
+        });
+        this.len += end - start;
+    }
+    shift(n) {
+        if (n === 0) {
+            return;
+        }
+        if (this.len <= n) {
+            this.chunks = [];
+            this.len = 0;
+            return;
+        }
+        const idx = this.getChunkIndex(n);
+        this.chunks.splice(0, idx);
+        const [chunk] = this.chunks;
+        if (chunk) {
+            const diff = n - chunk.offset;
+            chunk.start += diff;
+        }
+        let offset = 0;
+        for (const chunk1 of this.chunks){
+            chunk1.offset = offset;
+            offset += chunk1.end - chunk1.start;
+        }
+        this.len = offset;
+    }
+    getChunkIndex(pos) {
+        let max = this.chunks.length;
+        let min = 0;
+        while(true){
+            const i = min + Math.floor((max - min) / 2);
+            if (i < 0 || this.chunks.length <= i) {
+                return -1;
+            }
+            const { offset , start , end  } = this.chunks[i];
+            const len = end - start;
+            if (offset <= pos && pos < offset + len) {
+                return i;
+            } else if (offset + len <= pos) {
+                min = i + 1;
+            } else {
+                max = i - 1;
+            }
+        }
+    }
+    get(i) {
+        if (i < 0 || this.len <= i) {
+            throw new Error("out of range");
+        }
+        const idx = this.getChunkIndex(i);
+        const { value , offset , start  } = this.chunks[idx];
+        return value[start + i - offset];
+    }
+    *iterator(start = 0) {
+        const startIdx = this.getChunkIndex(start);
+        if (startIdx < 0) return;
+        const first = this.chunks[startIdx];
+        let firstOffset = start - first.offset;
+        for(let i = startIdx; i < this.chunks.length; i++){
+            const chunk = this.chunks[i];
+            for(let j = chunk.start + firstOffset; j < chunk.end; j++){
+                yield chunk.value[j];
+            }
+            firstOffset = 0;
+        }
+    }
+    slice(start, end = this.len) {
+        if (end === start) {
+            return new Uint8Array();
+        }
+        checkRange(start, end, this.len);
+        const result = new Uint8Array(end - start);
+        const startIdx = this.getChunkIndex(start);
+        const endIdx = this.getChunkIndex(end - 1);
+        let written = 0;
+        for(let i = startIdx; i < endIdx; i++){
+            const chunk = this.chunks[i];
+            const len = chunk.end - chunk.start;
+            result.set(chunk.value.subarray(chunk.start, chunk.end), written);
+            written += len;
+        }
+        const last = this.chunks[endIdx];
+        const rest = end - start - written;
+        result.set(last.value.subarray(last.start, last.start + rest), written);
+        return result;
+    }
+    concat() {
+        const result = new Uint8Array(this.len);
+        let sum = 0;
+        for (const { value , start , end  } of this.chunks){
+            result.set(value.subarray(start, end), sum);
+            sum += end - start;
+        }
+        return result;
+    }
+}
+function checkRange(start, end, len) {
+    if (start < 0 || len < start || end < 0 || len < end || end < start) {
+        throw new Error("invalid range");
+    }
+}
+const { Deno: Deno1  } = globalThis;
+typeof Deno1?.noColor === "boolean" ? Deno1.noColor : true;
+new RegExp([
+    "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
+    "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))", 
+].join("|"), "g");
+var DiffType;
+(function(DiffType) {
+    DiffType["removed"] = "removed";
+    DiffType["common"] = "common";
+    DiffType["added"] = "added";
+})(DiffType || (DiffType = {
+}));
+class AssertionError extends Error {
+    name = "AssertionError";
+    constructor(message){
+        super(message);
+    }
+}
+function assert2(expr, msg = "") {
+    if (!expr) {
+        throw new AssertionError(msg);
+    }
+}
+const DEFAULT_BUFFER_SIZE = 32 * 1024;
+async function readAll(r) {
+    const buf = new Buffer();
+    await buf.readFrom(r);
+    return buf.bytes();
+}
+function readAllSync(r) {
+    const buf = new Buffer();
+    buf.readFromSync(r);
+    return buf.bytes();
+}
+async function readRange(r, range) {
+    let length = range.end - range.start + 1;
+    assert2(length > 0, "Invalid byte range was passed.");
+    await r.seek(range.start, Deno.SeekMode.Start);
+    const result = new Uint8Array(length);
+    let off = 0;
+    while(length){
+        const p = new Uint8Array(Math.min(length, DEFAULT_BUFFER_SIZE));
+        const nread = await r.read(p);
+        assert2(nread !== null, "Unexpected EOF reach while reading a range.");
+        assert2(nread > 0, "Unexpected read of 0 bytes while reading a range.");
+        copy(p, result, off);
+        off += nread;
+        length -= nread;
+        assert2(length >= 0, "Unexpected length remaining after reading range.");
+    }
+    return result;
+}
+function readRangeSync(r, range) {
+    let length = range.end - range.start + 1;
+    assert2(length > 0, "Invalid byte range was passed.");
+    r.seekSync(range.start, Deno.SeekMode.Start);
+    const result = new Uint8Array(length);
+    let off = 0;
+    while(length){
+        const p = new Uint8Array(Math.min(length, DEFAULT_BUFFER_SIZE));
+        const nread = r.readSync(p);
+        assert2(nread !== null, "Unexpected EOF reach while reading a range.");
+        assert2(nread > 0, "Unexpected read of 0 bytes while reading a range.");
+        copy(p, result, off);
+        off += nread;
+        length -= nread;
+        assert2(length >= 0, "Unexpected length remaining after reading range.");
+    }
+    return result;
+}
+async function writeAll(w, arr) {
+    let nwritten = 0;
+    while(nwritten < arr.length){
+        nwritten += await w.write(arr.subarray(nwritten));
+    }
+}
+function writeAllSync(w, arr) {
+    let nwritten = 0;
+    while(nwritten < arr.length){
+        nwritten += w.writeSync(arr.subarray(nwritten));
+    }
+}
+async function* iter(r, options) {
+    const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
+    const b = new Uint8Array(bufSize);
+    while(true){
+        const result = await r.read(b);
+        if (result === null) {
+            break;
+        }
+        yield b.subarray(0, result);
+    }
+}
+function* iterSync(r, options) {
+    const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
+    const b = new Uint8Array(bufSize);
+    while(true){
+        const result = r.readSync(b);
+        if (result === null) {
+            break;
+        }
+        yield b.subarray(0, result);
+    }
+}
+async function copy1(src, dst, options) {
+    let n = 0;
+    const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE;
+    const b = new Uint8Array(bufSize);
+    let gotEOF = false;
+    while(gotEOF === false){
+        const result = await src.read(b);
+        if (result === null) {
+            gotEOF = true;
+        } else {
+            let nwritten = 0;
+            while(nwritten < result){
+                nwritten += await dst.write(b.subarray(nwritten, result));
+            }
+            n += nwritten;
+        }
+    }
+    return n;
+}
+const DEFAULT_BUF_SIZE = 4096;
+const MIN_BUF_SIZE = 16;
+const CR = "\r".charCodeAt(0);
+const LF = "\n".charCodeAt(0);
+class BufferFullError extends Error {
+    partial;
+    name = "BufferFullError";
+    constructor(partial){
+        super("Buffer full");
+        this.partial = partial;
+    }
+}
+class PartialReadError extends Error {
+    name = "PartialReadError";
+    partial;
+    constructor(){
+        super("Encountered UnexpectedEof, data only partially read");
+    }
+}
+class BufReader {
+    buf;
+    rd;
+    r = 0;
+    w = 0;
+    eof = false;
+    static create(r, size = 4096) {
+        return r instanceof BufReader ? r : new BufReader(r, size);
+    }
+    constructor(rd, size = 4096){
+        if (size < 16) {
+            size = MIN_BUF_SIZE;
+        }
+        this._reset(new Uint8Array(size), rd);
+    }
+    size() {
+        return this.buf.byteLength;
+    }
+    buffered() {
+        return this.w - this.r;
+    }
+    async _fill() {
+        if (this.r > 0) {
+            this.buf.copyWithin(0, this.r, this.w);
+            this.w -= this.r;
+            this.r = 0;
+        }
+        if (this.w >= this.buf.byteLength) {
+            throw Error("bufio: tried to fill full buffer");
+        }
+        for(let i = 100; i > 0; i--){
+            const rr = await this.rd.read(this.buf.subarray(this.w));
+            if (rr === null) {
+                this.eof = true;
+                return;
+            }
+            assert1(rr >= 0, "negative read");
+            this.w += rr;
+            if (rr > 0) {
+                return;
+            }
+        }
+        throw new Error(`No progress after ${100} read() calls`);
+    }
+    reset(r) {
+        this._reset(this.buf, r);
+    }
+    _reset(buf, rd) {
+        this.buf = buf;
+        this.rd = rd;
+        this.eof = false;
+    }
+    async read(p) {
+        let rr = p.byteLength;
+        if (p.byteLength === 0) return rr;
+        if (this.r === this.w) {
+            if (p.byteLength >= this.buf.byteLength) {
+                const rr = await this.rd.read(p);
+                const nread = rr ?? 0;
+                assert1(nread >= 0, "negative read");
+                return rr;
+            }
+            this.r = 0;
+            this.w = 0;
+            rr = await this.rd.read(this.buf);
+            if (rr === 0 || rr === null) return rr;
+            assert1(rr >= 0, "negative read");
+            this.w += rr;
+        }
+        const copied = copy(this.buf.subarray(this.r, this.w), p, 0);
+        this.r += copied;
+        return copied;
+    }
+    async readFull(p) {
+        let bytesRead = 0;
+        while(bytesRead < p.length){
+            try {
+                const rr = await this.read(p.subarray(bytesRead));
+                if (rr === null) {
+                    if (bytesRead === 0) {
+                        return null;
+                    } else {
+                        throw new PartialReadError();
+                    }
+                }
+                bytesRead += rr;
+            } catch (err) {
+                if (err instanceof PartialReadError) {
+                    err.partial = p.subarray(0, bytesRead);
+                } else if (err instanceof Error) {
+                    const e = new PartialReadError();
+                    e.partial = p.subarray(0, bytesRead);
+                    e.stack = err.stack;
+                    e.message = err.message;
+                    e.cause = err.cause;
+                    throw err;
+                }
+                throw err;
+            }
+        }
+        return p;
+    }
+    async readByte() {
+        while(this.r === this.w){
+            if (this.eof) return null;
+            await this._fill();
+        }
+        const c = this.buf[this.r];
+        this.r++;
+        return c;
+    }
+    async readString(delim) {
+        if (delim.length !== 1) {
+            throw new Error("Delimiter should be a single character");
+        }
+        const buffer = await this.readSlice(delim.charCodeAt(0));
+        if (buffer === null) return null;
+        return new TextDecoder().decode(buffer);
+    }
+    async readLine() {
+        let line = null;
+        try {
+            line = await this.readSlice(LF);
+        } catch (err) {
+            if (err instanceof Deno.errors.BadResource) {
+                throw err;
+            }
+            let partial;
+            if (err instanceof PartialReadError) {
+                partial = err.partial;
+                assert1(partial instanceof Uint8Array, "bufio: caught error from `readSlice()` without `partial` property");
+            }
+            if (!(err instanceof BufferFullError)) {
+                throw err;
+            }
+            if (!this.eof && partial && partial.byteLength > 0 && partial[partial.byteLength - 1] === CR) {
+                assert1(this.r > 0, "bufio: tried to rewind past start of buffer");
+                this.r--;
+                partial = partial.subarray(0, partial.byteLength - 1);
+            }
+            if (partial) {
+                return {
+                    line: partial,
+                    more: !this.eof
+                };
+            }
+        }
+        if (line === null) {
+            return null;
+        }
+        if (line.byteLength === 0) {
+            return {
+                line,
+                more: false
+            };
+        }
+        if (line[line.byteLength - 1] == LF) {
+            let drop = 1;
+            if (line.byteLength > 1 && line[line.byteLength - 2] === CR) {
+                drop = 2;
+            }
+            line = line.subarray(0, line.byteLength - drop);
+        }
+        return {
+            line,
+            more: false
+        };
+    }
+    async readSlice(delim) {
+        let s = 0;
+        let slice;
+        while(true){
+            let i = this.buf.subarray(this.r + s, this.w).indexOf(delim);
+            if (i >= 0) {
+                i += s;
+                slice = this.buf.subarray(this.r, this.r + i + 1);
+                this.r += i + 1;
+                break;
+            }
+            if (this.eof) {
+                if (this.r === this.w) {
+                    return null;
+                }
+                slice = this.buf.subarray(this.r, this.w);
+                this.r = this.w;
+                break;
+            }
+            if (this.buffered() >= this.buf.byteLength) {
+                this.r = this.w;
+                const oldbuf = this.buf;
+                const newbuf = this.buf.slice(0);
+                this.buf = newbuf;
+                throw new BufferFullError(oldbuf);
+            }
+            s = this.w - this.r;
+            try {
+                await this._fill();
+            } catch (err) {
+                if (err instanceof PartialReadError) {
+                    err.partial = slice;
+                } else if (err instanceof Error) {
+                    const e = new PartialReadError();
+                    e.partial = slice;
+                    e.stack = err.stack;
+                    e.message = err.message;
+                    e.cause = err.cause;
+                    throw err;
+                }
+                throw err;
+            }
+        }
+        return slice;
+    }
+    async peek(n) {
+        if (n < 0) {
+            throw Error("negative count");
+        }
+        let avail = this.w - this.r;
+        while(avail < n && avail < this.buf.byteLength && !this.eof){
+            try {
+                await this._fill();
+            } catch (err) {
+                if (err instanceof PartialReadError) {
+                    err.partial = this.buf.subarray(this.r, this.w);
+                } else if (err instanceof Error) {
+                    const e = new PartialReadError();
+                    e.partial = this.buf.subarray(this.r, this.w);
+                    e.stack = err.stack;
+                    e.message = err.message;
+                    e.cause = err.cause;
+                    throw err;
+                }
+                throw err;
+            }
+            avail = this.w - this.r;
+        }
+        if (avail === 0 && this.eof) {
+            return null;
+        } else if (avail < n && this.eof) {
+            return this.buf.subarray(this.r, this.r + avail);
+        } else if (avail < n) {
+            throw new BufferFullError(this.buf.subarray(this.r, this.w));
+        }
+        return this.buf.subarray(this.r, this.r + n);
+    }
+}
+class AbstractBufBase {
+    buf;
+    usedBufferBytes = 0;
+    err = null;
+    size() {
+        return this.buf.byteLength;
+    }
+    available() {
+        return this.buf.byteLength - this.usedBufferBytes;
+    }
+    buffered() {
+        return this.usedBufferBytes;
+    }
+}
+class BufWriter extends AbstractBufBase {
+    writer;
+    static create(writer, size = 4096) {
+        return writer instanceof BufWriter ? writer : new BufWriter(writer, size);
+    }
+    constructor(writer, size = 4096){
+        super();
+        this.writer = writer;
+        if (size <= 0) {
+            size = DEFAULT_BUF_SIZE;
+        }
+        this.buf = new Uint8Array(size);
+    }
+    reset(w) {
+        this.err = null;
+        this.usedBufferBytes = 0;
+        this.writer = w;
+    }
+    async flush() {
+        if (this.err !== null) throw this.err;
+        if (this.usedBufferBytes === 0) return;
+        try {
+            await writeAll(this.writer, this.buf.subarray(0, this.usedBufferBytes));
+        } catch (e) {
+            if (e instanceof Error) {
+                this.err = e;
+            }
+            throw e;
+        }
+        this.buf = new Uint8Array(this.buf.length);
+        this.usedBufferBytes = 0;
+    }
+    async write(data) {
+        if (this.err !== null) throw this.err;
+        if (data.length === 0) return 0;
+        let totalBytesWritten = 0;
+        let numBytesWritten = 0;
+        while(data.byteLength > this.available()){
+            if (this.buffered() === 0) {
+                try {
+                    numBytesWritten = await this.writer.write(data);
+                } catch (e) {
+                    if (e instanceof Error) {
+                        this.err = e;
+                    }
+                    throw e;
+                }
+            } else {
+                numBytesWritten = copy(data, this.buf, this.usedBufferBytes);
+                this.usedBufferBytes += numBytesWritten;
+                await this.flush();
+            }
+            totalBytesWritten += numBytesWritten;
+            data = data.subarray(numBytesWritten);
+        }
+        numBytesWritten = copy(data, this.buf, this.usedBufferBytes);
+        this.usedBufferBytes += numBytesWritten;
+        totalBytesWritten += numBytesWritten;
+        return totalBytesWritten;
+    }
+}
+class BufWriterSync extends AbstractBufBase {
+    writer;
+    static create(writer, size = 4096) {
+        return writer instanceof BufWriterSync ? writer : new BufWriterSync(writer, size);
+    }
+    constructor(writer, size = 4096){
+        super();
+        this.writer = writer;
+        if (size <= 0) {
+            size = DEFAULT_BUF_SIZE;
+        }
+        this.buf = new Uint8Array(size);
+    }
+    reset(w) {
+        this.err = null;
+        this.usedBufferBytes = 0;
+        this.writer = w;
+    }
+    flush() {
+        if (this.err !== null) throw this.err;
+        if (this.usedBufferBytes === 0) return;
+        try {
+            writeAllSync(this.writer, this.buf.subarray(0, this.usedBufferBytes));
+        } catch (e) {
+            if (e instanceof Error) {
+                this.err = e;
+            }
+            throw e;
+        }
+        this.buf = new Uint8Array(this.buf.length);
+        this.usedBufferBytes = 0;
+    }
+    writeSync(data) {
+        if (this.err !== null) throw this.err;
+        if (data.length === 0) return 0;
+        let totalBytesWritten = 0;
+        let numBytesWritten = 0;
+        while(data.byteLength > this.available()){
+            if (this.buffered() === 0) {
+                try {
+                    numBytesWritten = this.writer.writeSync(data);
+                } catch (e) {
+                    if (e instanceof Error) {
+                        this.err = e;
+                    }
+                    throw e;
+                }
+            } else {
+                numBytesWritten = copy(data, this.buf, this.usedBufferBytes);
+                this.usedBufferBytes += numBytesWritten;
+                this.flush();
+            }
+            totalBytesWritten += numBytesWritten;
+            data = data.subarray(numBytesWritten);
+        }
+        numBytesWritten = copy(data, this.buf, this.usedBufferBytes);
+        this.usedBufferBytes += numBytesWritten;
+        totalBytesWritten += numBytesWritten;
+        return totalBytesWritten;
+    }
+}
+function createLPS(pat) {
+    const lps = new Uint8Array(pat.length);
+    lps[0] = 0;
+    let prefixEnd = 0;
+    let i = 1;
+    while(i < lps.length){
+        if (pat[i] == pat[prefixEnd]) {
+            prefixEnd++;
+            lps[i] = prefixEnd;
+            i++;
+        } else if (prefixEnd === 0) {
+            lps[i] = 0;
+            i++;
+        } else {
+            prefixEnd = lps[prefixEnd - 1];
+        }
+    }
+    return lps;
+}
+async function* readDelim(reader, delim) {
+    const delimLen = delim.length;
+    const delimLPS = createLPS(delim);
+    const chunks = new BytesList();
+    const bufSize = Math.max(1024, delimLen + 1);
+    let inspectIndex = 0;
+    let matchIndex = 0;
+    while(true){
+        const inspectArr = new Uint8Array(bufSize);
+        const result = await reader.read(inspectArr);
+        if (result === null) {
+            yield chunks.concat();
+            return;
+        } else if (result < 0) {
+            return;
+        }
+        chunks.add(inspectArr, 0, result);
+        let localIndex = 0;
+        while(inspectIndex < chunks.size()){
+            if (inspectArr[localIndex] === delim[matchIndex]) {
+                inspectIndex++;
+                localIndex++;
+                matchIndex++;
+                if (matchIndex === delimLen) {
+                    const matchEnd = inspectIndex - delimLen;
+                    const readyBytes = chunks.slice(0, matchEnd);
+                    yield readyBytes;
+                    chunks.shift(inspectIndex);
+                    inspectIndex = 0;
+                    matchIndex = 0;
+                }
+            } else {
+                if (matchIndex === 0) {
+                    inspectIndex++;
+                    localIndex++;
+                } else {
+                    matchIndex = delimLPS[matchIndex - 1];
+                }
+            }
+        }
+    }
+}
+async function* readStringDelim(reader, delim, decoderOpts) {
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder(decoderOpts?.encoding, decoderOpts);
+    for await (const chunk of readDelim(reader, encoder.encode(delim))){
+        yield decoder.decode(chunk);
+    }
+}
+async function* readLines(reader, decoderOpts) {
+    const bufReader = new BufReader(reader);
+    let chunks = [];
+    const decoder = new TextDecoder(decoderOpts?.encoding, decoderOpts);
+    while(true){
+        const res = await bufReader.readLine();
+        if (!res) {
+            if (chunks.length > 0) {
+                yield decoder.decode(concat(...chunks));
+            }
+            break;
+        }
+        chunks.push(res.line);
+        if (!res.more) {
+            yield decoder.decode(concat(...chunks));
+            chunks = [];
+        }
+    }
+}
+const DEFAULT_BUFFER_SIZE1 = 32 * 1024;
+async function copyN(r, dest, size) {
+    let bytesRead = 0;
+    let buf = new Uint8Array(DEFAULT_BUFFER_SIZE1);
+    while(bytesRead < size){
+        if (size - bytesRead < DEFAULT_BUFFER_SIZE1) {
+            buf = new Uint8Array(size - bytesRead);
+        }
+        const result = await r.read(buf);
+        const nread = result ?? 0;
+        bytesRead += nread;
+        if (nread > 0) {
+            let n = 0;
+            while(n < nread){
+                n += await dest.write(buf.slice(n, nread));
+            }
+            assert1(n === nread, "could not write");
+        }
+        if (result === null) {
+            break;
+        }
+    }
+    return bytesRead;
+}
+async function readShort(buf) {
+    const high = await buf.readByte();
+    if (high === null) return null;
+    const low = await buf.readByte();
+    if (low === null) throw new Deno.errors.UnexpectedEof();
+    return high << 8 | low;
+}
+async function readInt(buf) {
+    const high = await readShort(buf);
+    if (high === null) return null;
+    const low = await readShort(buf);
+    if (low === null) throw new Deno.errors.UnexpectedEof();
+    return high << 16 | low;
+}
+const MAX_SAFE_INTEGER = BigInt(Number.MAX_SAFE_INTEGER);
+async function readLong(buf) {
+    const high = await readInt(buf);
+    if (high === null) return null;
+    const low = await readInt(buf);
+    if (low === null) throw new Deno.errors.UnexpectedEof();
+    const big = BigInt(high) << 32n | BigInt(low);
+    if (big > MAX_SAFE_INTEGER) {
+        throw new RangeError("Long value too big to be represented as a JavaScript number.");
+    }
+    return Number(big);
+}
+function sliceLongToBytes(d, dest = new Array(8)) {
+    let big = BigInt(d);
+    for(let i = 0; i < 8; i++){
+        dest[7 - i] = Number(big & 255n);
+        big >>= 8n;
+    }
+    return dest;
+}
+class StringReader extends Buffer {
+    constructor(s){
+        super(new TextEncoder().encode(s).buffer);
+    }
+}
+class MultiReader {
+    readers;
+    currentIndex = 0;
+    constructor(...readers){
+        this.readers = readers;
+    }
+    async read(p) {
+        const r = this.readers[this.currentIndex];
+        if (!r) return null;
+        const result = await r.read(p);
+        if (result === null) {
+            this.currentIndex++;
+            return 0;
+        }
+        return result;
+    }
+}
+class LimitedReader {
+    reader;
+    limit;
+    constructor(reader, limit){
+        this.reader = reader;
+        this.limit = limit;
+    }
+    async read(p) {
+        if (this.limit <= 0) {
+            return null;
+        }
+        if (p.length > this.limit) {
+            p = p.subarray(0, this.limit);
+        }
+        const n = await this.reader.read(p);
+        if (n == null) {
+            return null;
+        }
+        this.limit -= n;
+        return n;
+    }
+}
+function isCloser(value) {
+    return typeof value === "object" && value != null && "close" in value && typeof value["close"] === "function";
+}
+function readerFromIterable(iterable) {
+    const iterator = iterable[Symbol.asyncIterator]?.() ?? iterable[Symbol.iterator]?.();
+    const buffer = new Buffer();
+    return {
+        async read (p) {
+            if (buffer.length == 0) {
+                const result = await iterator.next();
+                if (result.done) {
+                    return null;
+                } else {
+                    if (result.value.byteLength <= p.byteLength) {
+                        p.set(result.value);
+                        return result.value.byteLength;
+                    }
+                    p.set(result.value.subarray(0, p.byteLength));
+                    await writeAll(buffer, result.value.subarray(p.byteLength));
+                    return p.byteLength;
+                }
+            } else {
+                const n = await buffer.read(p);
+                if (n == null) {
+                    return this.read(p);
+                }
+                return n;
+            }
+        }
+    };
+}
+function writerFromStreamWriter(streamWriter) {
+    return {
+        async write (p) {
+            await streamWriter.ready;
+            await streamWriter.write(p);
+            return p.length;
+        }
+    };
+}
+function readerFromStreamReader(streamReader) {
+    const buffer = new Buffer();
+    return {
+        async read (p) {
+            if (buffer.empty()) {
+                const res = await streamReader.read();
+                if (res.done) {
+                    return null;
+                }
+                await writeAll(buffer, res.value);
+            }
+            return buffer.read(p);
+        }
+    };
+}
+function writableStreamFromWriter(writer, options = {
+}) {
+    const { autoClose =true  } = options;
+    return new WritableStream({
+        async write (chunk, controller) {
+            try {
+                await writeAll(writer, chunk);
+            } catch (e) {
+                controller.error(e);
+                if (isCloser(writer) && autoClose) {
+                    writer.close();
+                }
+            }
+        },
+        close () {
+            if (isCloser(writer) && autoClose) {
+                writer.close();
+            }
+        },
+        abort () {
+            if (isCloser(writer) && autoClose) {
+                writer.close();
+            }
+        }
+    });
+}
+function readableStreamFromIterable(iterable) {
+    const iterator = iterable[Symbol.asyncIterator]?.() ?? iterable[Symbol.iterator]?.();
+    return new ReadableStream({
+        async pull (controller) {
+            const { value , done  } = await iterator.next();
+            if (done) {
+                controller.close();
+            } else {
+                controller.enqueue(value);
+            }
+        },
+        async cancel (reason) {
+            if (typeof iterator.throw == "function") {
+                try {
+                    await iterator.throw(reason);
+                } catch  {
+                }
+            }
+        }
+    });
+}
+function readableStreamFromReader(reader, options = {
+}) {
+    const { autoClose =true , chunkSize =16640 , strategy ,  } = options;
+    return new ReadableStream({
+        async pull (controller) {
+            const chunk = new Uint8Array(chunkSize);
+            try {
+                const read = await reader.read(chunk);
+                if (read === null) {
+                    if (isCloser(reader) && autoClose) {
+                        reader.close();
+                    }
+                    controller.close();
+                    return;
+                }
+                controller.enqueue(chunk.subarray(0, read));
+            } catch (e) {
+                controller.error(e);
+                if (isCloser(reader)) {
+                    reader.close();
+                }
+            }
+        },
+        cancel () {
+            if (isCloser(reader) && autoClose) {
+                reader.close();
+            }
+        }
+    }, strategy);
+}
+const decoder2 = new TextDecoder();
+class StringWriter {
+    base;
+    chunks = [];
+    byteLength = 0;
+    cache;
+    constructor(base = ""){
+        this.base = base;
+        const c = new TextEncoder().encode(base);
+        this.chunks.push(c);
+        this.byteLength += c.byteLength;
+    }
+    write(p) {
+        return Promise.resolve(this.writeSync(p));
+    }
+    writeSync(p) {
+        this.chunks.push(p);
+        this.byteLength += p.byteLength;
+        this.cache = undefined;
+        return p.byteLength;
+    }
+    toString() {
+        if (this.cache) {
+            return this.cache;
+        }
+        const buf = new Uint8Array(this.byteLength);
+        let offs = 0;
+        for (const chunk of this.chunks){
+            buf.set(chunk, offs);
+            offs += chunk.byteLength;
+        }
+        this.cache = decoder2.decode(buf);
+        return this.cache;
+    }
+}
+const mod3 = {
+    Buffer,
+    BufferFullError,
+    PartialReadError,
+    BufReader,
+    BufWriter,
+    BufWriterSync,
+    readDelim,
+    readStringDelim,
+    readLines,
+    readAll,
+    readAllSync,
+    readRange,
+    readRangeSync,
+    writeAll,
+    writeAllSync,
+    iter,
+    iterSync,
+    copy: copy1,
+    copyN,
+    readShort,
+    readInt,
+    readLong,
+    sliceLongToBytes,
+    StringReader,
+    MultiReader,
+    LimitedReader,
+    readerFromIterable,
+    writerFromStreamWriter,
+    readerFromStreamReader,
+    writableStreamFromWriter,
+    readableStreamFromIterable,
+    readableStreamFromReader,
+    StringWriter
+};
+function isRequestMessage(data) {
+    return Array.isArray(data) && data.length === 4 && data[0] === 0 && typeof data[1] === "number" && typeof data[2] === "string" && Array.isArray(data[3]);
+}
+function isResponseMessage(data) {
+    return Array.isArray(data) && data.length === 4 && data[0] === 1 && typeof data[1] === "number" && typeof data[2] !== "undefined" && typeof data[3] !== "undefined";
+}
+function isNotificationMessage(data) {
+    return Array.isArray(data) && data.length === 3 && data[0] === 2 && typeof data[1] === "string" && Array.isArray(data[2]);
+}
+class Indexer {
+    #max;
+    #val;
+    constructor(max){
+        if (max != null && max < 2) {
+            throw new Error(`The attribute 'max' must be greater than 1 but ${max} has specified`);
+        }
+        this.#max = max ?? Number.MAX_SAFE_INTEGER;
+        this.#val = -1;
+    }
+    next() {
+        if (this.#val >= this.#max) {
+            this.#val = -1;
+        }
+        this.#val += 1;
+        return this.#val;
+    }
+}
+class TimeoutError extends Error {
+    constructor(){
+        super("the process didn't complete in time");
+        this.name = "TimeoutError";
+    }
+}
+class ResponseWaiter {
+    #waiters;
+    #timeout;
+    constructor(timeout = 10000){
+        this.#waiters = new Map();
+        this.#timeout = timeout;
+    }
+    get waiterCount() {
+        return this.#waiters.size;
+    }
+    wait(msgid, timeout) {
+        let response = this.#waiters.get(msgid)?.response;
+        if (!response) {
+            response = deferred2();
+            const timer = setTimeout(()=>{
+                const response = this.#waiters.get(msgid)?.response;
+                if (!response) {
+                    return;
+                }
+                response.reject(new TimeoutError());
+                this.#waiters.delete(msgid);
+            }, timeout ?? this.#timeout);
+            this.#waiters.set(msgid, {
+                timer,
+                response
+            });
+        }
+        return response;
+    }
+    provide(message) {
+        const [_type, msgid, _error, _result] = message;
+        const waiter = this.#waiters.get(msgid);
+        if (!waiter) {
+            return false;
+        }
+        this.#waiters.delete(msgid);
+        const { timer , response  } = waiter;
+        clearTimeout(timer);
+        response.resolve(message);
+        return true;
+    }
+}
+const MSGID_THRESHOLD = 2 ** 32;
+class Session {
+    #indexer;
+    #waiter;
+    #reader;
+    #writer;
+    #listener;
+    #closed;
+    #closedSignal;
+    dispatcher;
+    constructor(reader, writer, dispatcher = {
+    }, options = {
+    }){
+        this.dispatcher = dispatcher;
+        this.#indexer = new Indexer(MSGID_THRESHOLD);
+        this.#waiter = new ResponseWaiter(options.responseTimeout);
+        this.#reader = reader;
+        this.#writer = writer;
+        this.#closed = false;
+        this.#closedSignal = deferred2();
+        this.#listener = this.listen().catch((e)=>{
+            if (options.errorCallback) {
+                options.errorCallback(e);
+            } else {
+                console.error(`Unexpected error occured in session: ${e}`);
+            }
+        });
+    }
+    async send(data) {
+        await mod3.writeAll(this.#writer, data);
+    }
+    async dispatch(method, ...params) {
+        if (!Object.prototype.hasOwnProperty.call(this.dispatcher, method)) {
+            const propertyNames = Object.getOwnPropertyNames(this.dispatcher);
+            throw new Error(`No method '${method}' exists in ${JSON.stringify(propertyNames)}`);
+        }
+        return await this.dispatcher[method].apply(this, params);
+    }
+    async handleRequest(request) {
+        const [_, msgid, method, params] = request;
+        const [result, error] = await (async ()=>{
+            let result = null;
+            let error = null;
+            try {
+                result = await this.dispatch(method, ...params);
+            } catch (e) {
+                error = e.stack ?? e.toString();
+            }
+            return [
+                result,
+                error
+            ];
+        })();
+        const response = [
+            1,
+            msgid,
+            error,
+            result
+        ];
+        await this.send(encode1(response));
+    }
+    handleResponse(response) {
+        if (!this.#waiter.provide(response)) {
+            console.warn("Unexpected response message received", response);
+        }
+    }
+    async handleNotification(notification) {
+        const [_, method, params] = notification;
+        try {
+            await this.dispatch(method, ...params);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    async listen() {
+        const iter = decodeStream(mod3.iter(this.#reader));
+        try {
+            while(!this.#closed){
+                const { done , value  } = await Promise.race([
+                    this.#closedSignal,
+                    iter.next(), 
+                ]);
+                if (done) {
+                    return;
+                }
+                if (isRequestMessage(value)) {
+                    this.handleRequest(value);
+                } else if (isResponseMessage(value)) {
+                    this.handleResponse(value);
+                } else if (isNotificationMessage(value)) {
+                    this.handleNotification(value);
+                } else {
+                    console.warn(`Unexpected data received: ${value}`);
+                    continue;
+                }
+            }
+        } catch (e) {
+            if (e instanceof SessionClosedError) {
+                return;
+            }
+            if (e instanceof Deno.errors.BadResource) {
+                return;
+            }
+            throw e;
+        }
+    }
+    dispose() {
+        this.close();
+    }
+    close() {
+        this.#closed = true;
+        this.#closedSignal.reject(new SessionClosedError());
+    }
+    waitClosed() {
+        return this.#listener;
+    }
+    async call(method, ...params) {
+        if (this.#closed) {
+            throw new SessionClosedError();
+        }
+        const msgid = this.#indexer.next();
+        const data = [
+            0,
+            msgid,
+            method,
+            params
+        ];
+        const [_, response] = await Promise.race([
+            this.#closedSignal,
+            Promise.all([
+                this.send(encode1(data)),
+                this.#waiter.wait(msgid)
+            ]), 
+        ]);
+        const [err, result] = response.slice(2);
+        if (err) {
+            const paramsStr = JSON.stringify(params);
+            const errStr = typeof err === "string" ? err : JSON.stringify(err);
+            throw new Error(`Failed to call '${method}' with ${paramsStr}: ${errStr}`);
+        }
+        return result;
+    }
+    async notify(method, ...params) {
+        if (this.#closed) {
+            throw new SessionClosedError();
+        }
+        const data = [
+            2,
+            method,
+            params
+        ];
+        await Promise.race([
+            this.#closedSignal,
+            this.send(encode1(data))
+        ]);
+    }
+    clearDispatcher() {
+        this.dispatcher = {
+        };
+    }
+    extendDispatcher(dispatcher) {
+        this.dispatcher = {
+            ...this.dispatcher,
+            ...dispatcher
+        };
+    }
+}
+class SessionClosedError extends Error {
+    constructor(){
+        super("The session is closed");
+        this.name = "SessionClosedError";
+    }
+}
+class DenoStdInternalError2 extends Error {
+    constructor(message){
+        super(message);
+        this.name = "DenoStdInternalError";
+    }
+}
+function assert3(expr, msg = "") {
+    if (!expr) {
+        throw new DenoStdInternalError2(msg);
+    }
+}
+function concat1(...buf) {
+    let length = 0;
+    for (const b of buf){
+        length += b.length;
+    }
+    const output = new Uint8Array(length);
+    let index = 0;
+    for (const b1 of buf){
+        output.set(b1, index);
+        index += b1.length;
+    }
+    return output;
+}
+function copy2(src, dst, off = 0) {
+    off = Math.max(0, Math.min(off, dst.byteLength));
+    const dstBytesAvailable = dst.byteLength - off;
+    if (src.byteLength > dstBytesAvailable) {
+        src = src.subarray(0, dstBytesAvailable);
+    }
+    dst.set(src, off);
+    return src.byteLength;
+}
+const MIN_READ1 = 32 * 1024;
+const MAX_SIZE1 = 2 ** 32 - 2;
+class Buffer1 {
+    #buf;
+    #off = 0;
+    constructor(ab){
+        this.#buf = ab === undefined ? new Uint8Array(0) : new Uint8Array(ab);
+    }
+    bytes(options = {
+        copy: true
+    }) {
+        if (options.copy === false) return this.#buf.subarray(this.#off);
+        return this.#buf.slice(this.#off);
+    }
+    empty() {
+        return this.#buf.byteLength <= this.#off;
+    }
+    get length() {
+        return this.#buf.byteLength - this.#off;
+    }
+    get capacity() {
+        return this.#buf.buffer.byteLength;
+    }
+    truncate(n) {
+        if (n === 0) {
+            this.reset();
+            return;
+        }
+        if (n < 0 || n > this.length) {
+            throw Error("bytes.Buffer: truncation out of range");
+        }
+        this.#reslice(this.#off + n);
+    }
+    reset() {
+        this.#reslice(0);
+        this.#off = 0;
+    }
+     #tryGrowByReslice(n) {
+        const l = this.#buf.byteLength;
+        if (n <= this.capacity - l) {
+            this.#reslice(l + n);
+            return l;
+        }
+        return -1;
+    }
+     #reslice(len) {
+        assert3(len <= this.#buf.buffer.byteLength);
+        this.#buf = new Uint8Array(this.#buf.buffer, 0, len);
+    }
+    readSync(p) {
+        if (this.empty()) {
+            this.reset();
+            if (p.byteLength === 0) {
+                return 0;
+            }
+            return null;
+        }
+        const nread = copy2(this.#buf.subarray(this.#off), p);
+        this.#off += nread;
+        return nread;
+    }
+    read(p) {
+        const rr = this.readSync(p);
+        return Promise.resolve(rr);
+    }
+    writeSync(p) {
+        const m = this.#grow(p.byteLength);
+        return copy2(p, this.#buf, m);
+    }
+    write(p) {
+        const n = this.writeSync(p);
+        return Promise.resolve(n);
+    }
+     #grow(n) {
+        const m = this.length;
+        if (m === 0 && this.#off !== 0) {
+            this.reset();
+        }
+        const i = this.#tryGrowByReslice(n);
+        if (i >= 0) {
+            return i;
+        }
+        const c = this.capacity;
+        if (n <= Math.floor(c / 2) - m) {
+            copy2(this.#buf.subarray(this.#off), this.#buf);
+        } else if (c + n > MAX_SIZE1) {
+            throw new Error("The buffer cannot be grown beyond the maximum size.");
+        } else {
+            const buf = new Uint8Array(Math.min(2 * c + n, MAX_SIZE1));
+            copy2(this.#buf.subarray(this.#off), buf);
+            this.#buf = buf;
+        }
+        this.#off = 0;
+        this.#reslice(Math.min(m + n, MAX_SIZE1));
+        return m;
+    }
+    grow(n) {
+        if (n < 0) {
+            throw Error("Buffer.grow: negative count");
+        }
+        const m = this.#grow(n);
+        this.#reslice(m);
+    }
+    async readFrom(r) {
+        let n = 0;
+        const tmp = new Uint8Array(MIN_READ1);
+        while(true){
+            const shouldGrow = this.capacity - this.length < MIN_READ1;
+            const buf = shouldGrow ? tmp : new Uint8Array(this.#buf.buffer, this.length);
+            const nread = await r.read(buf);
+            if (nread === null) {
+                return n;
+            }
+            if (shouldGrow) this.writeSync(buf.subarray(0, nread));
+            else this.#reslice(this.length + nread);
+            n += nread;
+        }
+    }
+    readFromSync(r) {
+        let n = 0;
+        const tmp = new Uint8Array(MIN_READ1);
+        while(true){
+            const shouldGrow = this.capacity - this.length < MIN_READ1;
+            const buf = shouldGrow ? tmp : new Uint8Array(this.#buf.buffer, this.length);
+            const nread = r.readSync(buf);
+            if (nread === null) {
+                return n;
+            }
+            if (shouldGrow) this.writeSync(buf.subarray(0, nread));
+            else this.#reslice(this.length + nread);
+            n += nread;
+        }
+    }
+}
+class BytesList1 {
+    len = 0;
+    chunks = [];
+    constructor(){
+    }
+    size() {
+        return this.len;
+    }
+    add(value, start = 0, end = value.byteLength) {
+        if (value.byteLength === 0 || end - start === 0) {
+            return;
+        }
+        checkRange1(start, end, value.byteLength);
+        this.chunks.push({
+            value,
+            end,
+            start,
+            offset: this.len
+        });
+        this.len += end - start;
+    }
+    shift(n) {
+        if (n === 0) {
+            return;
+        }
+        if (this.len <= n) {
+            this.chunks = [];
+            this.len = 0;
+            return;
+        }
+        const idx = this.getChunkIndex(n);
+        this.chunks.splice(0, idx);
+        const [chunk] = this.chunks;
+        if (chunk) {
+            const diff = n - chunk.offset;
+            chunk.start += diff;
+        }
+        let offset = 0;
+        for (const chunk1 of this.chunks){
+            chunk1.offset = offset;
+            offset += chunk1.end - chunk1.start;
+        }
+        this.len = offset;
+    }
+    getChunkIndex(pos) {
+        let max = this.chunks.length;
+        let min = 0;
+        while(true){
+            const i = min + Math.floor((max - min) / 2);
+            if (i < 0 || this.chunks.length <= i) {
+                return -1;
+            }
+            const { offset , start , end  } = this.chunks[i];
+            const len = end - start;
+            if (offset <= pos && pos < offset + len) {
+                return i;
+            } else if (offset + len <= pos) {
+                min = i + 1;
+            } else {
+                max = i - 1;
+            }
+        }
+    }
+    get(i) {
+        if (i < 0 || this.len <= i) {
+            throw new Error("out of range");
+        }
+        const idx = this.getChunkIndex(i);
+        const { value , offset , start  } = this.chunks[idx];
+        return value[start + i - offset];
+    }
+    *iterator(start = 0) {
+        const startIdx = this.getChunkIndex(start);
+        if (startIdx < 0) return;
+        const first = this.chunks[startIdx];
+        let firstOffset = start - first.offset;
+        for(let i = startIdx; i < this.chunks.length; i++){
+            const chunk = this.chunks[i];
+            for(let j = chunk.start + firstOffset; j < chunk.end; j++){
+                yield chunk.value[j];
+            }
+            firstOffset = 0;
+        }
+    }
+    slice(start, end = this.len) {
+        if (end === start) {
+            return new Uint8Array();
+        }
+        checkRange1(start, end, this.len);
+        const result = new Uint8Array(end - start);
+        const startIdx = this.getChunkIndex(start);
+        const endIdx = this.getChunkIndex(end - 1);
+        let written = 0;
+        for(let i = startIdx; i < endIdx; i++){
+            const chunk = this.chunks[i];
+            const len = chunk.end - chunk.start;
+            result.set(chunk.value.subarray(chunk.start, chunk.end), written);
+            written += len;
+        }
+        const last = this.chunks[endIdx];
+        const rest = end - start - written;
+        result.set(last.value.subarray(last.start, last.start + rest), written);
+        return result;
+    }
+    concat() {
+        const result = new Uint8Array(this.len);
+        let sum = 0;
+        for (const { value , start , end  } of this.chunks){
+            result.set(value.subarray(start, end), sum);
+            sum += end - start;
+        }
+        return result;
+    }
+}
+function checkRange1(start, end, len) {
+    if (start < 0 || len < start || end < 0 || len < end || end < start) {
+        throw new Error("invalid range");
+    }
+}
+const { Deno: Deno2  } = globalThis;
+typeof Deno2?.noColor === "boolean" ? Deno2.noColor : true;
+new RegExp([
+    "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
+    "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))", 
+].join("|"), "g");
+var DiffType1;
+(function(DiffType) {
+    DiffType["removed"] = "removed";
+    DiffType["common"] = "common";
+    DiffType["added"] = "added";
+})(DiffType1 || (DiffType1 = {
+}));
+class AssertionError1 extends Error {
+    constructor(message){
+        super(message);
+        this.name = "AssertionError";
+    }
+}
+function assert4(expr, msg = "") {
+    if (!expr) {
+        throw new AssertionError1(msg);
+    }
+}
+const DEFAULT_BUFFER_SIZE2 = 32 * 1024;
+async function readAll1(r) {
+    const buf = new Buffer1();
+    await buf.readFrom(r);
+    return buf.bytes();
+}
+function readAllSync1(r) {
+    const buf = new Buffer1();
+    buf.readFromSync(r);
+    return buf.bytes();
+}
+async function readRange1(r, range) {
+    let length = range.end - range.start + 1;
+    assert4(length > 0, "Invalid byte range was passed.");
+    await r.seek(range.start, Deno.SeekMode.Start);
+    const result = new Uint8Array(length);
+    let off = 0;
+    while(length){
+        const p = new Uint8Array(Math.min(length, DEFAULT_BUFFER_SIZE2));
+        const nread = await r.read(p);
+        assert4(nread !== null, "Unexpected EOF reach while reading a range.");
+        assert4(nread > 0, "Unexpected read of 0 bytes while reading a range.");
+        copy2(p, result, off);
+        off += nread;
+        length -= nread;
+        assert4(length >= 0, "Unexpected length remaining after reading range.");
+    }
+    return result;
+}
+function readRangeSync1(r, range) {
+    let length = range.end - range.start + 1;
+    assert4(length > 0, "Invalid byte range was passed.");
+    r.seekSync(range.start, Deno.SeekMode.Start);
+    const result = new Uint8Array(length);
+    let off = 0;
+    while(length){
+        const p = new Uint8Array(Math.min(length, DEFAULT_BUFFER_SIZE2));
+        const nread = r.readSync(p);
+        assert4(nread !== null, "Unexpected EOF reach while reading a range.");
+        assert4(nread > 0, "Unexpected read of 0 bytes while reading a range.");
+        copy2(p, result, off);
+        off += nread;
+        length -= nread;
+        assert4(length >= 0, "Unexpected length remaining after reading range.");
+    }
+    return result;
+}
+async function writeAll1(w, arr) {
+    let nwritten = 0;
+    while(nwritten < arr.length){
+        nwritten += await w.write(arr.subarray(nwritten));
+    }
+}
+function writeAllSync1(w, arr) {
+    let nwritten = 0;
+    while(nwritten < arr.length){
+        nwritten += w.writeSync(arr.subarray(nwritten));
+    }
+}
+async function* iter1(r, options) {
+    const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE2;
+    const b = new Uint8Array(bufSize);
+    while(true){
+        const result = await r.read(b);
+        if (result === null) {
+            break;
+        }
+        yield b.subarray(0, result);
+    }
+}
+function* iterSync1(r, options) {
+    const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE2;
+    const b = new Uint8Array(bufSize);
+    while(true){
+        const result = r.readSync(b);
+        if (result === null) {
+            break;
+        }
+        yield b.subarray(0, result);
+    }
+}
+async function copy3(src, dst, options) {
+    let n = 0;
+    const bufSize = options?.bufSize ?? DEFAULT_BUFFER_SIZE2;
+    const b = new Uint8Array(bufSize);
+    let gotEOF = false;
+    while(gotEOF === false){
+        const result = await src.read(b);
+        if (result === null) {
+            gotEOF = true;
+        } else {
+            let nwritten = 0;
+            while(nwritten < result){
+                nwritten += await dst.write(b.subarray(nwritten, result));
+            }
+            n += nwritten;
+        }
+    }
+    return n;
+}
+const DEFAULT_BUF_SIZE1 = 4096;
+const MIN_BUF_SIZE1 = 16;
+const CR1 = "\r".charCodeAt(0);
+const LF1 = "\n".charCodeAt(0);
+class BufferFullError1 extends Error {
+    partial;
+    name = "BufferFullError";
+    constructor(partial){
+        super("Buffer full");
+        this.partial = partial;
+    }
+}
+class PartialReadError1 extends Error {
+    name = "PartialReadError";
+    partial;
+    constructor(){
+        super("Encountered UnexpectedEof, data only partially read");
+    }
+}
+class BufReader1 {
+    buf;
+    rd;
+    r = 0;
+    w = 0;
+    eof = false;
+    static create(r, size = 4096) {
+        return r instanceof BufReader1 ? r : new BufReader1(r, size);
+    }
+    constructor(rd, size = 4096){
+        if (size < 16) {
+            size = MIN_BUF_SIZE1;
+        }
+        this._reset(new Uint8Array(size), rd);
+    }
+    size() {
+        return this.buf.byteLength;
+    }
+    buffered() {
+        return this.w - this.r;
+    }
+    async _fill() {
+        if (this.r > 0) {
+            this.buf.copyWithin(0, this.r, this.w);
+            this.w -= this.r;
+            this.r = 0;
+        }
+        if (this.w >= this.buf.byteLength) {
+            throw Error("bufio: tried to fill full buffer");
+        }
+        for(let i = 100; i > 0; i--){
+            const rr = await this.rd.read(this.buf.subarray(this.w));
+            if (rr === null) {
+                this.eof = true;
+                return;
+            }
+            assert3(rr >= 0, "negative read");
+            this.w += rr;
+            if (rr > 0) {
+                return;
+            }
+        }
+        throw new Error(`No progress after ${100} read() calls`);
+    }
+    reset(r) {
+        this._reset(this.buf, r);
+    }
+    _reset(buf, rd) {
+        this.buf = buf;
+        this.rd = rd;
+        this.eof = false;
+    }
+    async read(p) {
+        let rr = p.byteLength;
+        if (p.byteLength === 0) return rr;
+        if (this.r === this.w) {
+            if (p.byteLength >= this.buf.byteLength) {
+                const rr = await this.rd.read(p);
+                const nread = rr ?? 0;
+                assert3(nread >= 0, "negative read");
+                return rr;
+            }
+            this.r = 0;
+            this.w = 0;
+            rr = await this.rd.read(this.buf);
+            if (rr === 0 || rr === null) return rr;
+            assert3(rr >= 0, "negative read");
+            this.w += rr;
+        }
+        const copied = copy2(this.buf.subarray(this.r, this.w), p, 0);
+        this.r += copied;
+        return copied;
+    }
+    async readFull(p) {
+        let bytesRead = 0;
+        while(bytesRead < p.length){
+            try {
+                const rr = await this.read(p.subarray(bytesRead));
+                if (rr === null) {
+                    if (bytesRead === 0) {
+                        return null;
+                    } else {
+                        throw new PartialReadError1();
+                    }
+                }
+                bytesRead += rr;
+            } catch (err) {
+                err.partial = p.subarray(0, bytesRead);
+                throw err;
+            }
+        }
+        return p;
+    }
+    async readByte() {
+        while(this.r === this.w){
+            if (this.eof) return null;
+            await this._fill();
+        }
+        const c = this.buf[this.r];
+        this.r++;
+        return c;
+    }
+    async readString(delim) {
+        if (delim.length !== 1) {
+            throw new Error("Delimiter should be a single character");
+        }
+        const buffer = await this.readSlice(delim.charCodeAt(0));
+        if (buffer === null) return null;
+        return new TextDecoder().decode(buffer);
+    }
+    async readLine() {
+        let line;
+        try {
+            line = await this.readSlice(LF1);
+        } catch (err) {
+            if (err instanceof Deno.errors.BadResource) {
+                throw err;
+            }
+            let { partial  } = err;
+            assert3(partial instanceof Uint8Array, "bufio: caught error from `readSlice()` without `partial` property");
+            if (!(err instanceof BufferFullError1)) {
+                throw err;
+            }
+            if (!this.eof && partial.byteLength > 0 && partial[partial.byteLength - 1] === CR1) {
+                assert3(this.r > 0, "bufio: tried to rewind past start of buffer");
+                this.r--;
+                partial = partial.subarray(0, partial.byteLength - 1);
+            }
+            return {
+                line: partial,
+                more: !this.eof
+            };
+        }
+        if (line === null) {
+            return null;
+        }
+        if (line.byteLength === 0) {
+            return {
+                line,
+                more: false
+            };
+        }
+        if (line[line.byteLength - 1] == LF1) {
+            let drop = 1;
+            if (line.byteLength > 1 && line[line.byteLength - 2] === CR1) {
+                drop = 2;
+            }
+            line = line.subarray(0, line.byteLength - drop);
+        }
+        return {
+            line,
+            more: false
+        };
+    }
+    async readSlice(delim) {
+        let s = 0;
+        let slice;
+        while(true){
+            let i = this.buf.subarray(this.r + s, this.w).indexOf(delim);
+            if (i >= 0) {
+                i += s;
+                slice = this.buf.subarray(this.r, this.r + i + 1);
+                this.r += i + 1;
+                break;
+            }
+            if (this.eof) {
+                if (this.r === this.w) {
+                    return null;
+                }
+                slice = this.buf.subarray(this.r, this.w);
+                this.r = this.w;
+                break;
+            }
+            if (this.buffered() >= this.buf.byteLength) {
+                this.r = this.w;
+                const oldbuf = this.buf;
+                const newbuf = this.buf.slice(0);
+                this.buf = newbuf;
+                throw new BufferFullError1(oldbuf);
+            }
+            s = this.w - this.r;
+            try {
+                await this._fill();
+            } catch (err) {
+                err.partial = slice;
+                throw err;
+            }
+        }
+        return slice;
+    }
+    async peek(n) {
+        if (n < 0) {
+            throw Error("negative count");
+        }
+        let avail = this.w - this.r;
+        while(avail < n && avail < this.buf.byteLength && !this.eof){
+            try {
+                await this._fill();
+            } catch (err) {
+                err.partial = this.buf.subarray(this.r, this.w);
+                throw err;
+            }
+            avail = this.w - this.r;
+        }
+        if (avail === 0 && this.eof) {
+            return null;
+        } else if (avail < n && this.eof) {
+            return this.buf.subarray(this.r, this.r + avail);
+        } else if (avail < n) {
+            throw new BufferFullError1(this.buf.subarray(this.r, this.w));
+        }
+        return this.buf.subarray(this.r, this.r + n);
+    }
+}
+class AbstractBufBase1 {
+    buf;
+    usedBufferBytes = 0;
+    err = null;
+    size() {
+        return this.buf.byteLength;
+    }
+    available() {
+        return this.buf.byteLength - this.usedBufferBytes;
+    }
+    buffered() {
+        return this.usedBufferBytes;
+    }
+}
+class BufWriter1 extends AbstractBufBase1 {
+    writer;
+    static create(writer, size = 4096) {
+        return writer instanceof BufWriter1 ? writer : new BufWriter1(writer, size);
+    }
+    constructor(writer, size = 4096){
+        super();
+        this.writer = writer;
+        if (size <= 0) {
+            size = DEFAULT_BUF_SIZE1;
+        }
+        this.buf = new Uint8Array(size);
+    }
+    reset(w) {
+        this.err = null;
+        this.usedBufferBytes = 0;
+        this.writer = w;
+    }
+    async flush() {
+        if (this.err !== null) throw this.err;
+        if (this.usedBufferBytes === 0) return;
+        try {
+            await writeAll1(this.writer, this.buf.subarray(0, this.usedBufferBytes));
+        } catch (e) {
+            this.err = e;
+            throw e;
+        }
+        this.buf = new Uint8Array(this.buf.length);
+        this.usedBufferBytes = 0;
+    }
+    async write(data) {
+        if (this.err !== null) throw this.err;
+        if (data.length === 0) return 0;
+        let totalBytesWritten = 0;
+        let numBytesWritten = 0;
+        while(data.byteLength > this.available()){
+            if (this.buffered() === 0) {
+                try {
+                    numBytesWritten = await this.writer.write(data);
+                } catch (e) {
+                    this.err = e;
+                    throw e;
+                }
+            } else {
+                numBytesWritten = copy2(data, this.buf, this.usedBufferBytes);
+                this.usedBufferBytes += numBytesWritten;
+                await this.flush();
+            }
+            totalBytesWritten += numBytesWritten;
+            data = data.subarray(numBytesWritten);
+        }
+        numBytesWritten = copy2(data, this.buf, this.usedBufferBytes);
+        this.usedBufferBytes += numBytesWritten;
+        totalBytesWritten += numBytesWritten;
+        return totalBytesWritten;
+    }
+}
+class BufWriterSync1 extends AbstractBufBase1 {
+    writer;
+    static create(writer, size = 4096) {
+        return writer instanceof BufWriterSync1 ? writer : new BufWriterSync1(writer, size);
+    }
+    constructor(writer, size = 4096){
+        super();
+        this.writer = writer;
+        if (size <= 0) {
+            size = DEFAULT_BUF_SIZE1;
+        }
+        this.buf = new Uint8Array(size);
+    }
+    reset(w) {
+        this.err = null;
+        this.usedBufferBytes = 0;
+        this.writer = w;
+    }
+    flush() {
+        if (this.err !== null) throw this.err;
+        if (this.usedBufferBytes === 0) return;
+        try {
+            writeAllSync1(this.writer, this.buf.subarray(0, this.usedBufferBytes));
+        } catch (e) {
+            this.err = e;
+            throw e;
+        }
+        this.buf = new Uint8Array(this.buf.length);
+        this.usedBufferBytes = 0;
+    }
+    writeSync(data) {
+        if (this.err !== null) throw this.err;
+        if (data.length === 0) return 0;
+        let totalBytesWritten = 0;
+        let numBytesWritten = 0;
+        while(data.byteLength > this.available()){
+            if (this.buffered() === 0) {
+                try {
+                    numBytesWritten = this.writer.writeSync(data);
+                } catch (e) {
+                    this.err = e;
+                    throw e;
+                }
+            } else {
+                numBytesWritten = copy2(data, this.buf, this.usedBufferBytes);
+                this.usedBufferBytes += numBytesWritten;
+                this.flush();
+            }
+            totalBytesWritten += numBytesWritten;
+            data = data.subarray(numBytesWritten);
+        }
+        numBytesWritten = copy2(data, this.buf, this.usedBufferBytes);
+        this.usedBufferBytes += numBytesWritten;
+        totalBytesWritten += numBytesWritten;
+        return totalBytesWritten;
+    }
+}
+function createLPS1(pat) {
+    const lps = new Uint8Array(pat.length);
+    lps[0] = 0;
+    let prefixEnd = 0;
+    let i = 1;
+    while(i < lps.length){
+        if (pat[i] == pat[prefixEnd]) {
+            prefixEnd++;
+            lps[i] = prefixEnd;
+            i++;
+        } else if (prefixEnd === 0) {
+            lps[i] = 0;
+            i++;
+        } else {
+            prefixEnd = lps[prefixEnd - 1];
+        }
+    }
+    return lps;
+}
+async function* readDelim1(reader, delim) {
+    const delimLen = delim.length;
+    const delimLPS = createLPS1(delim);
+    const chunks = new BytesList1();
+    const bufSize = Math.max(1024, delimLen + 1);
+    let inspectIndex = 0;
+    let matchIndex = 0;
+    while(true){
+        const inspectArr = new Uint8Array(bufSize);
+        const result = await reader.read(inspectArr);
+        if (result === null) {
+            yield chunks.concat();
+            return;
+        } else if (result < 0) {
+            return;
+        }
+        chunks.add(inspectArr, 0, result);
+        let localIndex = 0;
+        while(inspectIndex < chunks.size()){
+            if (inspectArr[localIndex] === delim[matchIndex]) {
+                inspectIndex++;
+                localIndex++;
+                matchIndex++;
+                if (matchIndex === delimLen) {
+                    const matchEnd = inspectIndex - delimLen;
+                    const readyBytes = chunks.slice(0, matchEnd);
+                    yield readyBytes;
+                    chunks.shift(inspectIndex);
+                    inspectIndex = 0;
+                    matchIndex = 0;
+                }
+            } else {
+                if (matchIndex === 0) {
+                    inspectIndex++;
+                    localIndex++;
+                } else {
+                    matchIndex = delimLPS[matchIndex - 1];
+                }
+            }
+        }
+    }
+}
+async function* readStringDelim1(reader, delim, decoderOpts) {
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder(decoderOpts?.encoding, decoderOpts);
+    for await (const chunk of readDelim1(reader, encoder.encode(delim))){
+        yield decoder.decode(chunk);
+    }
+}
+async function* readLines1(reader, decoderOpts) {
+    const bufReader = new BufReader1(reader);
+    let chunks = [];
+    const decoder = new TextDecoder(decoderOpts?.encoding, decoderOpts);
+    while(true){
+        const res = await bufReader.readLine();
+        if (!res) {
+            if (chunks.length > 0) {
+                yield decoder.decode(concat1(...chunks));
+            }
+            break;
+        }
+        chunks.push(res.line);
+        if (!res.more) {
+            yield decoder.decode(concat1(...chunks));
+            chunks = [];
+        }
+    }
+}
+const DEFAULT_BUFFER_SIZE3 = 32 * 1024;
+async function copyN1(r, dest, size) {
+    let bytesRead = 0;
+    let buf = new Uint8Array(DEFAULT_BUFFER_SIZE3);
+    while(bytesRead < size){
+        if (size - bytesRead < DEFAULT_BUFFER_SIZE3) {
+            buf = new Uint8Array(size - bytesRead);
+        }
+        const result = await r.read(buf);
+        const nread = result ?? 0;
+        bytesRead += nread;
+        if (nread > 0) {
+            let n = 0;
+            while(n < nread){
+                n += await dest.write(buf.slice(n, nread));
+            }
+            assert3(n === nread, "could not write");
+        }
+        if (result === null) {
+            break;
+        }
+    }
+    return bytesRead;
+}
+async function readShort1(buf) {
+    const high = await buf.readByte();
+    if (high === null) return null;
+    const low = await buf.readByte();
+    if (low === null) throw new Deno.errors.UnexpectedEof();
+    return high << 8 | low;
+}
+async function readInt1(buf) {
+    const high = await readShort1(buf);
+    if (high === null) return null;
+    const low = await readShort1(buf);
+    if (low === null) throw new Deno.errors.UnexpectedEof();
+    return high << 16 | low;
+}
+const MAX_SAFE_INTEGER1 = BigInt(Number.MAX_SAFE_INTEGER);
+async function readLong1(buf) {
+    const high = await readInt1(buf);
+    if (high === null) return null;
+    const low = await readInt1(buf);
+    if (low === null) throw new Deno.errors.UnexpectedEof();
+    const big = BigInt(high) << 32n | BigInt(low);
+    if (big > MAX_SAFE_INTEGER1) {
+        throw new RangeError("Long value too big to be represented as a JavaScript number.");
+    }
+    return Number(big);
+}
+function sliceLongToBytes1(d, dest = new Array(8)) {
+    let big = BigInt(d);
+    for(let i = 0; i < 8; i++){
+        dest[7 - i] = Number(big & 255n);
+        big >>= 8n;
+    }
+    return dest;
+}
+class StringReader1 extends Buffer1 {
+    constructor(s){
+        super(new TextEncoder().encode(s).buffer);
+    }
+}
+class MultiReader1 {
+    readers;
+    currentIndex = 0;
+    constructor(...readers){
+        this.readers = readers;
+    }
+    async read(p) {
+        const r = this.readers[this.currentIndex];
+        if (!r) return null;
+        const result = await r.read(p);
+        if (result === null) {
+            this.currentIndex++;
+            return 0;
+        }
+        return result;
+    }
+}
+class LimitedReader1 {
+    reader;
+    limit;
+    constructor(reader, limit){
+        this.reader = reader;
+        this.limit = limit;
+    }
+    async read(p) {
+        if (this.limit <= 0) {
+            return null;
+        }
+        if (p.length > this.limit) {
+            p = p.subarray(0, this.limit);
+        }
+        const n = await this.reader.read(p);
+        if (n == null) {
+            return null;
+        }
+        this.limit -= n;
+        return n;
+    }
+}
+function isCloser1(value) {
+    return typeof value === "object" && value != null && "close" in value && typeof value["close"] === "function";
+}
+function readerFromIterable1(iterable) {
+    const iterator = iterable[Symbol.asyncIterator]?.() ?? iterable[Symbol.iterator]?.();
+    const buffer = new Buffer1();
+    return {
+        async read (p) {
+            if (buffer.length == 0) {
+                const result = await iterator.next();
+                if (result.done) {
+                    return null;
+                } else {
+                    if (result.value.byteLength <= p.byteLength) {
+                        p.set(result.value);
+                        return result.value.byteLength;
+                    }
+                    p.set(result.value.subarray(0, p.byteLength));
+                    await writeAll1(buffer, result.value.subarray(p.byteLength));
+                    return p.byteLength;
+                }
+            } else {
+                const n = await buffer.read(p);
+                if (n == null) {
+                    return this.read(p);
+                }
+                return n;
+            }
+        }
+    };
+}
+function writerFromStreamWriter1(streamWriter) {
+    return {
+        async write (p) {
+            await streamWriter.ready;
+            await streamWriter.write(p);
+            return p.length;
+        }
+    };
+}
+function readerFromStreamReader1(streamReader) {
+    const buffer = new Buffer1();
+    return {
+        async read (p) {
+            if (buffer.empty()) {
+                const res = await streamReader.read();
+                if (res.done) {
+                    return null;
+                }
+                await writeAll1(buffer, res.value);
+            }
+            return buffer.read(p);
+        }
+    };
+}
+function writableStreamFromWriter1(writer, options = {
+}) {
+    const { autoClose =true  } = options;
+    return new WritableStream({
+        async write (chunk, controller) {
+            try {
+                await writeAll1(writer, chunk);
+            } catch (e) {
+                controller.error(e);
+                if (isCloser1(writer) && autoClose) {
+                    writer.close();
+                }
+            }
+        },
+        close () {
+            if (isCloser1(writer) && autoClose) {
+                writer.close();
+            }
+        },
+        abort () {
+            if (isCloser1(writer) && autoClose) {
+                writer.close();
+            }
+        }
+    });
+}
+function readableStreamFromIterable1(iterable) {
+    const iterator = iterable[Symbol.asyncIterator]?.() ?? iterable[Symbol.iterator]?.();
+    return new ReadableStream({
+        async pull (controller) {
+            const { value , done  } = await iterator.next();
+            if (done) {
+                controller.close();
+            } else {
+                controller.enqueue(value);
+            }
+        }
+    });
+}
+function readableStreamFromReader1(reader, options = {
+}) {
+    const { autoClose =true , chunkSize =16640 , strategy ,  } = options;
+    return new ReadableStream({
+        async pull (controller) {
+            const chunk = new Uint8Array(chunkSize);
+            try {
+                const read = await reader.read(chunk);
+                if (read === null) {
+                    if (isCloser1(reader) && autoClose) {
+                        reader.close();
+                    }
+                    controller.close();
+                    return;
+                }
+                controller.enqueue(chunk.subarray(0, read));
+            } catch (e) {
+                controller.error(e);
+                if (isCloser1(reader)) {
+                    reader.close();
+                }
+            }
+        },
+        cancel () {
+            if (isCloser1(reader) && autoClose) {
+                reader.close();
+            }
+        }
+    }, strategy);
+}
+const decoder1 = new TextDecoder();
+class StringWriter1 {
+    base;
+    chunks = [];
+    byteLength = 0;
+    cache;
+    constructor(base = ""){
+        this.base = base;
+        const c = new TextEncoder().encode(base);
+        this.chunks.push(c);
+        this.byteLength += c.byteLength;
+    }
+    write(p) {
+        return Promise.resolve(this.writeSync(p));
+    }
+    writeSync(p) {
+        this.chunks.push(p);
+        this.byteLength += p.byteLength;
+        this.cache = undefined;
+        return p.byteLength;
+    }
+    toString() {
+        if (this.cache) {
+            return this.cache;
+        }
+        const buf = new Uint8Array(this.byteLength);
+        let offs = 0;
+        for (const chunk of this.chunks){
+            buf.set(chunk, offs);
+            offs += chunk.byteLength;
+        }
+        this.cache = decoder1.decode(buf);
+        return this.cache;
+    }
+}
+const mod4 = {
+    Buffer: Buffer1,
+    BufferFullError: BufferFullError1,
+    PartialReadError: PartialReadError1,
+    BufReader: BufReader1,
+    BufWriter: BufWriter1,
+    BufWriterSync: BufWriterSync1,
+    readDelim: readDelim1,
+    readStringDelim: readStringDelim1,
+    readLines: readLines1,
+    readAll: readAll1,
+    readAllSync: readAllSync1,
+    readRange: readRange1,
+    readRangeSync: readRangeSync1,
+    writeAll: writeAll1,
+    writeAllSync: writeAllSync1,
+    iter: iter1,
+    iterSync: iterSync1,
+    copy: copy3,
+    copyN: copyN1,
+    readShort: readShort1,
+    readInt: readInt1,
+    readLong: readLong1,
+    sliceLongToBytes: sliceLongToBytes1,
+    StringReader: StringReader1,
+    MultiReader: MultiReader1,
+    LimitedReader: LimitedReader1,
+    readerFromIterable: readerFromIterable1,
+    writerFromStreamWriter: writerFromStreamWriter1,
+    readerFromStreamReader: readerFromStreamReader1,
+    writableStreamFromWriter: writableStreamFromWriter1,
+    readableStreamFromIterable: readableStreamFromIterable1,
+    readableStreamFromReader: readableStreamFromReader1,
+    StringWriter: StringWriter1
+};
+function deferred3() {
+    let methods;
+    let state = "pending";
+    const promise = new Promise((resolve, reject)=>{
+        methods = {
+            async resolve (value) {
+                await value;
+                state = "fulfilled";
+                resolve(value);
+            },
+            reject (reason) {
+                state = "rejected";
+                reject(reason);
+            }
+        };
+    });
+    Object.defineProperty(promise, "state", {
+        get: ()=>state
+    });
+    return Object.assign(promise, methods);
+}
+var charset;
+(function(charset) {
+    charset[charset["BACKSPACE"] = 8] = "BACKSPACE";
+    charset[charset["FORM_FEED"] = 12] = "FORM_FEED";
+    charset[charset["NEWLINE"] = 10] = "NEWLINE";
+    charset[charset["CARRIAGE_RETURN"] = 13] = "CARRIAGE_RETURN";
+    charset[charset["TAB"] = 9] = "TAB";
+    charset[charset["SPACE"] = 32] = "SPACE";
+    charset[charset["EXCLAMATION_MARK"] = 33] = "EXCLAMATION_MARK";
+    charset[charset["QUOTATION_MARK"] = 34] = "QUOTATION_MARK";
+    charset[charset["NUMBER_SIGN"] = 35] = "NUMBER_SIGN";
+    charset[charset["DOLLAR_SIGN"] = 36] = "DOLLAR_SIGN";
+    charset[charset["PERCENT_SIGN"] = 37] = "PERCENT_SIGN";
+    charset[charset["AMPERSAND"] = 38] = "AMPERSAND";
+    charset[charset["APOSTROPHE"] = 39] = "APOSTROPHE";
+    charset[charset["LEFT_PARENTHESIS"] = 40] = "LEFT_PARENTHESIS";
+    charset[charset["RIGHT_PARENTHESIS"] = 41] = "RIGHT_PARENTHESIS";
+    charset[charset["ASTERISK"] = 42] = "ASTERISK";
+    charset[charset["PLUS_SIGN"] = 43] = "PLUS_SIGN";
+    charset[charset["COMMA"] = 44] = "COMMA";
+    charset[charset["HYPHEN_MINUS"] = 45] = "HYPHEN_MINUS";
+    charset[charset["FULL_STOP"] = 46] = "FULL_STOP";
+    charset[charset["SOLIDUS"] = 47] = "SOLIDUS";
+    charset[charset["DIGIT_ZERO"] = 48] = "DIGIT_ZERO";
+    charset[charset["DIGIT_ONE"] = 49] = "DIGIT_ONE";
+    charset[charset["DIGIT_TWO"] = 50] = "DIGIT_TWO";
+    charset[charset["DIGIT_THREE"] = 51] = "DIGIT_THREE";
+    charset[charset["DIGIT_FOUR"] = 52] = "DIGIT_FOUR";
+    charset[charset["DIGIT_FIVE"] = 53] = "DIGIT_FIVE";
+    charset[charset["DIGIT_SIX"] = 54] = "DIGIT_SIX";
+    charset[charset["DIGIT_SEVEN"] = 55] = "DIGIT_SEVEN";
+    charset[charset["DIGIT_EIGHT"] = 56] = "DIGIT_EIGHT";
+    charset[charset["DIGIT_NINE"] = 57] = "DIGIT_NINE";
+    charset[charset["COLON"] = 58] = "COLON";
+    charset[charset["SEMICOLON"] = 59] = "SEMICOLON";
+    charset[charset["LESS_THAN_SIGN"] = 60] = "LESS_THAN_SIGN";
+    charset[charset["EQUALS_SIGN"] = 61] = "EQUALS_SIGN";
+    charset[charset["GREATER_THAN_SIGN"] = 62] = "GREATER_THAN_SIGN";
+    charset[charset["QUESTION_MARK"] = 63] = "QUESTION_MARK";
+    charset[charset["COMMERCIAL_AT"] = 64] = "COMMERCIAL_AT";
+    charset[charset["LATIN_CAPITAL_LETTER_A"] = 65] = "LATIN_CAPITAL_LETTER_A";
+    charset[charset["LATIN_CAPITAL_LETTER_B"] = 66] = "LATIN_CAPITAL_LETTER_B";
+    charset[charset["LATIN_CAPITAL_LETTER_C"] = 67] = "LATIN_CAPITAL_LETTER_C";
+    charset[charset["LATIN_CAPITAL_LETTER_D"] = 68] = "LATIN_CAPITAL_LETTER_D";
+    charset[charset["LATIN_CAPITAL_LETTER_E"] = 69] = "LATIN_CAPITAL_LETTER_E";
+    charset[charset["LATIN_CAPITAL_LETTER_F"] = 70] = "LATIN_CAPITAL_LETTER_F";
+    charset[charset["LATIN_CAPITAL_LETTER_G"] = 71] = "LATIN_CAPITAL_LETTER_G";
+    charset[charset["LATIN_CAPITAL_LETTER_H"] = 72] = "LATIN_CAPITAL_LETTER_H";
+    charset[charset["LATIN_CAPITAL_LETTER_I"] = 73] = "LATIN_CAPITAL_LETTER_I";
+    charset[charset["LATIN_CAPITAL_LETTER_J"] = 74] = "LATIN_CAPITAL_LETTER_J";
+    charset[charset["LATIN_CAPITAL_LETTER_K"] = 75] = "LATIN_CAPITAL_LETTER_K";
+    charset[charset["LATIN_CAPITAL_LETTER_L"] = 76] = "LATIN_CAPITAL_LETTER_L";
+    charset[charset["LATIN_CAPITAL_LETTER_M"] = 77] = "LATIN_CAPITAL_LETTER_M";
+    charset[charset["LATIN_CAPITAL_LETTER_N"] = 78] = "LATIN_CAPITAL_LETTER_N";
+    charset[charset["LATIN_CAPITAL_LETTER_O"] = 79] = "LATIN_CAPITAL_LETTER_O";
+    charset[charset["LATIN_CAPITAL_LETTER_P"] = 80] = "LATIN_CAPITAL_LETTER_P";
+    charset[charset["LATIN_CAPITAL_LETTER_Q"] = 81] = "LATIN_CAPITAL_LETTER_Q";
+    charset[charset["LATIN_CAPITAL_LETTER_R"] = 82] = "LATIN_CAPITAL_LETTER_R";
+    charset[charset["LATIN_CAPITAL_LETTER_S"] = 83] = "LATIN_CAPITAL_LETTER_S";
+    charset[charset["LATIN_CAPITAL_LETTER_T"] = 84] = "LATIN_CAPITAL_LETTER_T";
+    charset[charset["LATIN_CAPITAL_LETTER_U"] = 85] = "LATIN_CAPITAL_LETTER_U";
+    charset[charset["LATIN_CAPITAL_LETTER_V"] = 86] = "LATIN_CAPITAL_LETTER_V";
+    charset[charset["LATIN_CAPITAL_LETTER_W"] = 87] = "LATIN_CAPITAL_LETTER_W";
+    charset[charset["LATIN_CAPITAL_LETTER_X"] = 88] = "LATIN_CAPITAL_LETTER_X";
+    charset[charset["LATIN_CAPITAL_LETTER_Y"] = 89] = "LATIN_CAPITAL_LETTER_Y";
+    charset[charset["LATIN_CAPITAL_LETTER_Z"] = 90] = "LATIN_CAPITAL_LETTER_Z";
+    charset[charset["LEFT_SQUARE_BRACKET"] = 91] = "LEFT_SQUARE_BRACKET";
+    charset[charset["REVERSE_SOLIDUS"] = 92] = "REVERSE_SOLIDUS";
+    charset[charset["RIGHT_SQUARE_BRACKET"] = 93] = "RIGHT_SQUARE_BRACKET";
+    charset[charset["CIRCUMFLEX_ACCENT"] = 94] = "CIRCUMFLEX_ACCENT";
+    charset[charset["LOW_LINE"] = 95] = "LOW_LINE";
+    charset[charset["GRAVE_ACCENT"] = 96] = "GRAVE_ACCENT";
+    charset[charset["LATIN_SMALL_LETTER_A"] = 97] = "LATIN_SMALL_LETTER_A";
+    charset[charset["LATIN_SMALL_LETTER_B"] = 98] = "LATIN_SMALL_LETTER_B";
+    charset[charset["LATIN_SMALL_LETTER_C"] = 99] = "LATIN_SMALL_LETTER_C";
+    charset[charset["LATIN_SMALL_LETTER_D"] = 100] = "LATIN_SMALL_LETTER_D";
+    charset[charset["LATIN_SMALL_LETTER_E"] = 101] = "LATIN_SMALL_LETTER_E";
+    charset[charset["LATIN_SMALL_LETTER_F"] = 102] = "LATIN_SMALL_LETTER_F";
+    charset[charset["LATIN_SMALL_LETTER_G"] = 103] = "LATIN_SMALL_LETTER_G";
+    charset[charset["LATIN_SMALL_LETTER_H"] = 104] = "LATIN_SMALL_LETTER_H";
+    charset[charset["LATIN_SMALL_LETTER_I"] = 105] = "LATIN_SMALL_LETTER_I";
+    charset[charset["LATIN_SMALL_LETTER_J"] = 106] = "LATIN_SMALL_LETTER_J";
+    charset[charset["LATIN_SMALL_LETTER_K"] = 107] = "LATIN_SMALL_LETTER_K";
+    charset[charset["LATIN_SMALL_LETTER_L"] = 108] = "LATIN_SMALL_LETTER_L";
+    charset[charset["LATIN_SMALL_LETTER_M"] = 109] = "LATIN_SMALL_LETTER_M";
+    charset[charset["LATIN_SMALL_LETTER_N"] = 110] = "LATIN_SMALL_LETTER_N";
+    charset[charset["LATIN_SMALL_LETTER_O"] = 111] = "LATIN_SMALL_LETTER_O";
+    charset[charset["LATIN_SMALL_LETTER_P"] = 112] = "LATIN_SMALL_LETTER_P";
+    charset[charset["LATIN_SMALL_LETTER_Q"] = 113] = "LATIN_SMALL_LETTER_Q";
+    charset[charset["LATIN_SMALL_LETTER_R"] = 114] = "LATIN_SMALL_LETTER_R";
+    charset[charset["LATIN_SMALL_LETTER_S"] = 115] = "LATIN_SMALL_LETTER_S";
+    charset[charset["LATIN_SMALL_LETTER_T"] = 116] = "LATIN_SMALL_LETTER_T";
+    charset[charset["LATIN_SMALL_LETTER_U"] = 117] = "LATIN_SMALL_LETTER_U";
+    charset[charset["LATIN_SMALL_LETTER_V"] = 118] = "LATIN_SMALL_LETTER_V";
+    charset[charset["LATIN_SMALL_LETTER_W"] = 119] = "LATIN_SMALL_LETTER_W";
+    charset[charset["LATIN_SMALL_LETTER_X"] = 120] = "LATIN_SMALL_LETTER_X";
+    charset[charset["LATIN_SMALL_LETTER_Y"] = 121] = "LATIN_SMALL_LETTER_Y";
+    charset[charset["LATIN_SMALL_LETTER_Z"] = 122] = "LATIN_SMALL_LETTER_Z";
+    charset[charset["LEFT_CURLY_BRACKET"] = 123] = "LEFT_CURLY_BRACKET";
+    charset[charset["VERTICAL_LINE"] = 124] = "VERTICAL_LINE";
+    charset[charset["RIGHT_CURLY_BRACKET"] = 125] = "RIGHT_CURLY_BRACKET";
+    charset[charset["TILDE"] = 126] = "TILDE";
+})(charset || (charset = {
+}));
+const escapedSequences = {
+    [charset.QUOTATION_MARK]: charset.QUOTATION_MARK,
+    [charset.REVERSE_SOLIDUS]: charset.REVERSE_SOLIDUS,
+    [charset.SOLIDUS]: charset.SOLIDUS,
+    [charset.LATIN_SMALL_LETTER_B]: charset.BACKSPACE,
+    [charset.LATIN_SMALL_LETTER_F]: charset.FORM_FEED,
+    [charset.LATIN_SMALL_LETTER_N]: charset.NEWLINE,
+    [charset.LATIN_SMALL_LETTER_R]: charset.CARRIAGE_RETURN,
+    [charset.LATIN_SMALL_LETTER_T]: charset.TAB
+};
+class NonBufferedString {
+    decoder = new TextDecoder("utf-8");
+    string = "";
+    byteLength = 0;
+    appendChar(__char) {
+        this.string += String.fromCharCode(__char);
+        this.byteLength += 1;
+    }
+    appendBuf(buf, start = 0, end = buf.length) {
+        this.string += this.decoder.decode(buf.subarray(start, end));
+        this.byteLength += end - start;
+    }
+    reset() {
+        this.string = "";
+        this.byteLength = 0;
+    }
+    toString() {
+        return this.string;
+    }
+}
+class BufferedString {
+    decoder = new TextDecoder("utf-8");
+    buffer;
+    bufferOffset = 0;
+    string = "";
+    byteLength = 0;
+    constructor(bufferSize){
+        this.buffer = new Uint8Array(bufferSize);
+    }
+    appendChar(__char) {
+        if (this.bufferOffset >= this.buffer.length) this.flushStringBuffer();
+        this.buffer[this.bufferOffset++] = __char;
+        this.byteLength += 1;
+    }
+    appendBuf(buf, start = 0, end = buf.length) {
+        const size = end - start;
+        if (this.bufferOffset + size > this.buffer.length) this.flushStringBuffer();
+        this.buffer.set(buf.subarray(start, end), this.bufferOffset);
+        this.bufferOffset += size;
+        this.byteLength += size;
+    }
+    flushStringBuffer() {
+        this.string += this.decoder.decode(this.buffer.subarray(0, this.bufferOffset));
+        this.bufferOffset = 0;
+    }
+    reset() {
+        this.string = "";
+        this.bufferOffset = 0;
+        this.byteLength = 0;
+    }
+    toString() {
+        this.flushStringBuffer();
+        return this.string;
+    }
+}
+var TokenType;
+(function(TokenType) {
+    TokenType[TokenType["LEFT_BRACE"] = 1] = "LEFT_BRACE";
+    TokenType[TokenType["RIGHT_BRACE"] = 2] = "RIGHT_BRACE";
+    TokenType[TokenType["LEFT_BRACKET"] = 3] = "LEFT_BRACKET";
+    TokenType[TokenType["RIGHT_BRACKET"] = 4] = "RIGHT_BRACKET";
+    TokenType[TokenType["COLON"] = 5] = "COLON";
+    TokenType[TokenType["COMMA"] = 6] = "COMMA";
+    TokenType[TokenType["TRUE"] = 7] = "TRUE";
+    TokenType[TokenType["FALSE"] = 8] = "FALSE";
+    TokenType[TokenType["NULL"] = 9] = "NULL";
+    TokenType[TokenType["STRING"] = 10] = "STRING";
+    TokenType[TokenType["NUMBER"] = 11] = "NUMBER";
+})(TokenType || (TokenType = {
+}));
+const { LEFT_BRACE , RIGHT_BRACE , LEFT_BRACKET , RIGHT_BRACKET , COLON , COMMA , TRUE , FALSE , NULL , STRING , NUMBER ,  } = TokenType;
+var TokenizerStates;
+(function(TokenizerStates) {
+    TokenizerStates[TokenizerStates["START"] = 0] = "START";
+    TokenizerStates[TokenizerStates["ENDED"] = 1] = "ENDED";
+    TokenizerStates[TokenizerStates["ERROR"] = 2] = "ERROR";
+    TokenizerStates[TokenizerStates["TRUE1"] = 3] = "TRUE1";
+    TokenizerStates[TokenizerStates["TRUE2"] = 4] = "TRUE2";
+    TokenizerStates[TokenizerStates["TRUE3"] = 5] = "TRUE3";
+    TokenizerStates[TokenizerStates["FALSE1"] = 6] = "FALSE1";
+    TokenizerStates[TokenizerStates["FALSE2"] = 7] = "FALSE2";
+    TokenizerStates[TokenizerStates["FALSE3"] = 8] = "FALSE3";
+    TokenizerStates[TokenizerStates["FALSE4"] = 9] = "FALSE4";
+    TokenizerStates[TokenizerStates["NULL1"] = 10] = "NULL1";
+    TokenizerStates[TokenizerStates["NULL2"] = 11] = "NULL2";
+    TokenizerStates[TokenizerStates["NULL3"] = 12] = "NULL3";
+    TokenizerStates[TokenizerStates["STRING_DEFAULT"] = 13] = "STRING_DEFAULT";
+    TokenizerStates[TokenizerStates["STRING_AFTER_BACKSLASH"] = 14] = "STRING_AFTER_BACKSLASH";
+    TokenizerStates[TokenizerStates["STRING_UNICODE_DIGIT_1"] = 15] = "STRING_UNICODE_DIGIT_1";
+    TokenizerStates[TokenizerStates["STRING_UNICODE_DIGIT_2"] = 16] = "STRING_UNICODE_DIGIT_2";
+    TokenizerStates[TokenizerStates["STRING_UNICODE_DIGIT_3"] = 17] = "STRING_UNICODE_DIGIT_3";
+    TokenizerStates[TokenizerStates["STRING_UNICODE_DIGIT_4"] = 18] = "STRING_UNICODE_DIGIT_4";
+    TokenizerStates[TokenizerStates["STRING_INCOMPLETE_CHAR"] = 19] = "STRING_INCOMPLETE_CHAR";
+    TokenizerStates[TokenizerStates["NUMBER_AFTER_INITIAL_MINUS"] = 20] = "NUMBER_AFTER_INITIAL_MINUS";
+    TokenizerStates[TokenizerStates["NUMBER_AFTER_INITIAL_ZERO"] = 21] = "NUMBER_AFTER_INITIAL_ZERO";
+    TokenizerStates[TokenizerStates["NUMBER_AFTER_INITIAL_NON_ZERO"] = 22] = "NUMBER_AFTER_INITIAL_NON_ZERO";
+    TokenizerStates[TokenizerStates["NUMBER_AFTER_FULL_STOP"] = 23] = "NUMBER_AFTER_FULL_STOP";
+    TokenizerStates[TokenizerStates["NUMBER_AFTER_DECIMAL"] = 24] = "NUMBER_AFTER_DECIMAL";
+    TokenizerStates[TokenizerStates["NUMBER_AFTER_E"] = 25] = "NUMBER_AFTER_E";
+    TokenizerStates[TokenizerStates["NUMBER_AFTER_E_AND_SIGN"] = 26] = "NUMBER_AFTER_E_AND_SIGN";
+    TokenizerStates[TokenizerStates["NUMBER_AFTER_E_AND_DIGIT"] = 27] = "NUMBER_AFTER_E_AND_DIGIT";
+})(TokenizerStates || (TokenizerStates = {
+}));
+const defaultOpts = {
+    stringBufferSize: 0,
+    numberBufferSize: 0
+};
+class TokenizerError extends Error {
+    constructor(message){
+        super(message);
+        Object.setPrototypeOf(this, TokenizerError.prototype);
+    }
+}
+class Tokenizer {
+    state = TokenizerStates.START;
+    bufferedString;
+    bufferedNumber;
+    unicode = undefined;
+    highSurrogate = undefined;
+    bytes_remaining = 0;
+    bytes_in_sequence = 0;
+    char_split_buffer = new Uint8Array(4);
+    encoder = new TextEncoder();
+    offset = -1;
+    constructor(opts){
+        opts = {
+            ...defaultOpts,
+            ...opts
+        };
+        this.bufferedString = opts.stringBufferSize && opts.stringBufferSize > 4 ? new BufferedString(opts.stringBufferSize) : new NonBufferedString();
+        this.bufferedNumber = opts.numberBufferSize && opts.numberBufferSize > 0 ? new BufferedString(opts.numberBufferSize) : new NonBufferedString();
+    }
+    write(input) {
+        let buffer;
+        if (input instanceof Uint8Array) {
+            buffer = input;
+        } else if (typeof input === "string") {
+            buffer = this.encoder.encode(input);
+        } else if (input.buffer || Array.isArray(input)) {
+            buffer = Uint8Array.from(input);
+        } else {
+            this.error(new TypeError("Unexpected type. The `write` function only accepts TypeArrays and Strings."));
+        }
+        for(var i = 0; i < buffer.length; i += 1){
+            const n = buffer[i];
+            switch(this.state){
+                case TokenizerStates.START:
+                    this.offset += 1;
+                    if (n === charset.SPACE || n === charset.NEWLINE || n === charset.CARRIAGE_RETURN || n === charset.TAB) {
+                        continue;
+                    }
+                    if (n === charset.LEFT_CURLY_BRACKET) {
+                        this.onToken(LEFT_BRACE, "{", this.offset);
+                        continue;
+                    }
+                    if (n === charset.RIGHT_CURLY_BRACKET) {
+                        this.onToken(RIGHT_BRACE, "}", this.offset);
+                        continue;
+                    }
+                    if (n === charset.LEFT_SQUARE_BRACKET) {
+                        this.onToken(LEFT_BRACKET, "[", this.offset);
+                        continue;
+                    }
+                    if (n === charset.RIGHT_SQUARE_BRACKET) {
+                        this.onToken(RIGHT_BRACKET, "]", this.offset);
+                        continue;
+                    }
+                    if (n === charset.COLON) {
+                        this.onToken(COLON, ":", this.offset);
+                        continue;
+                    }
+                    if (n === charset.COMMA) {
+                        this.onToken(COMMA, ",", this.offset);
+                        continue;
+                    }
+                    if (n === charset.LATIN_SMALL_LETTER_T) {
+                        this.state = TokenizerStates.TRUE1;
+                        continue;
+                    }
+                    if (n === charset.LATIN_SMALL_LETTER_F) {
+                        this.state = TokenizerStates.FALSE1;
+                        continue;
+                    }
+                    if (n === charset.LATIN_SMALL_LETTER_N) {
+                        this.state = TokenizerStates.NULL1;
+                        continue;
+                    }
+                    if (n === charset.QUOTATION_MARK) {
+                        this.bufferedString.reset();
+                        this.state = TokenizerStates.STRING_DEFAULT;
+                        continue;
+                    }
+                    if (n >= charset.DIGIT_ONE && n <= charset.DIGIT_NINE) {
+                        this.bufferedNumber.reset();
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_INITIAL_NON_ZERO;
+                        continue;
+                    }
+                    if (n === charset.DIGIT_ZERO) {
+                        this.bufferedNumber.reset();
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_INITIAL_ZERO;
+                        continue;
+                    }
+                    if (n === charset.HYPHEN_MINUS) {
+                        this.bufferedNumber.reset();
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_INITIAL_MINUS;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.STRING_DEFAULT:
+                    if (n === charset.QUOTATION_MARK) {
+                        const string = this.bufferedString.toString();
+                        this.state = TokenizerStates.START;
+                        this.onToken(STRING, string, this.offset);
+                        this.offset += this.bufferedString.byteLength + 1;
+                        continue;
+                    }
+                    if (n === charset.REVERSE_SOLIDUS) {
+                        this.state = TokenizerStates.STRING_AFTER_BACKSLASH;
+                        continue;
+                    }
+                    if (n >= 128) {
+                        if (n >= 194 && n <= 223) {
+                            this.bytes_in_sequence = 2;
+                        } else if (n <= 239) {
+                            this.bytes_in_sequence = 3;
+                        } else {
+                            this.bytes_in_sequence = 4;
+                        }
+                        if (this.bytes_in_sequence <= buffer.length - i) {
+                            this.bufferedString.appendBuf(buffer, i, i + this.bytes_in_sequence);
+                            i += this.bytes_in_sequence - 1;
+                            continue;
+                        }
+                        this.bytes_remaining = i + this.bytes_in_sequence - buffer.length;
+                        this.char_split_buffer.set(buffer.subarray(i));
+                        i = buffer.length - 1;
+                        this.state = TokenizerStates.STRING_INCOMPLETE_CHAR;
+                        continue;
+                    }
+                    if (n >= charset.SPACE) {
+                        this.bufferedString.appendChar(n);
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.STRING_INCOMPLETE_CHAR:
+                    this.char_split_buffer.set(buffer.subarray(i, i + this.bytes_remaining), this.bytes_in_sequence - this.bytes_remaining);
+                    this.bufferedString.appendBuf(this.char_split_buffer, 0, this.bytes_in_sequence);
+                    i = this.bytes_remaining - 1;
+                    this.state = TokenizerStates.STRING_DEFAULT;
+                    continue;
+                case TokenizerStates.STRING_AFTER_BACKSLASH:
+                    const controlChar = escapedSequences[n];
+                    if (controlChar) {
+                        this.bufferedString.appendChar(controlChar);
+                        this.state = TokenizerStates.STRING_DEFAULT;
+                        continue;
+                    }
+                    if (n === charset.LATIN_SMALL_LETTER_U) {
+                        this.unicode = "";
+                        this.state = TokenizerStates.STRING_UNICODE_DIGIT_1;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.STRING_UNICODE_DIGIT_1:
+                case TokenizerStates.STRING_UNICODE_DIGIT_2:
+                case TokenizerStates.STRING_UNICODE_DIGIT_3:
+                    if (n >= charset.DIGIT_ZERO && n <= charset.DIGIT_NINE || n >= charset.LATIN_CAPITAL_LETTER_A && n <= charset.LATIN_CAPITAL_LETTER_F || n >= charset.LATIN_SMALL_LETTER_A && n <= charset.LATIN_SMALL_LETTER_F) {
+                        this.unicode += String.fromCharCode(n);
+                        this.state += 1;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.STRING_UNICODE_DIGIT_4:
+                    if (n >= charset.DIGIT_ZERO && n <= charset.DIGIT_NINE || n >= charset.LATIN_CAPITAL_LETTER_A && n <= charset.LATIN_CAPITAL_LETTER_F || n >= charset.LATIN_SMALL_LETTER_A && n <= charset.LATIN_SMALL_LETTER_F) {
+                        const intVal = parseInt(this.unicode + String.fromCharCode(n), 16);
+                        if (this.highSurrogate === undefined) {
+                            if (intVal >= 55296 && intVal <= 56319) {
+                                this.highSurrogate = intVal;
+                            } else {
+                                this.bufferedString.appendBuf(this.encoder.encode(String.fromCharCode(intVal)));
+                            }
+                        } else {
+                            if (intVal >= 56320 && intVal <= 57343) {
+                                this.bufferedString.appendBuf(this.encoder.encode(String.fromCharCode(this.highSurrogate, intVal)));
+                            } else {
+                                this.bufferedString.appendBuf(this.encoder.encode(String.fromCharCode(this.highSurrogate)));
+                            }
+                            this.highSurrogate = undefined;
+                        }
+                        this.state = TokenizerStates.STRING_DEFAULT;
+                        continue;
+                    }
+                case TokenizerStates.NUMBER_AFTER_INITIAL_MINUS:
+                    if (n === charset.DIGIT_ZERO) {
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_INITIAL_ZERO;
+                        continue;
+                    }
+                    if (n >= charset.DIGIT_ONE && n <= charset.DIGIT_NINE) {
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_INITIAL_NON_ZERO;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.NUMBER_AFTER_INITIAL_ZERO:
+                    if (n === charset.FULL_STOP) {
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_FULL_STOP;
+                        continue;
+                    }
+                    if (n === charset.LATIN_SMALL_LETTER_E || n === charset.LATIN_CAPITAL_LETTER_E) {
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_E;
+                        continue;
+                    }
+                    i -= 1;
+                    this.state = TokenizerStates.START;
+                    this.emitNumber();
+                    continue;
+                case TokenizerStates.NUMBER_AFTER_INITIAL_NON_ZERO:
+                    if (n >= charset.DIGIT_ZERO && n <= charset.DIGIT_NINE) {
+                        this.bufferedNumber.appendChar(n);
+                        continue;
+                    }
+                    if (n === charset.FULL_STOP) {
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_FULL_STOP;
+                        continue;
+                    }
+                    if (n === charset.LATIN_SMALL_LETTER_E || n === charset.LATIN_CAPITAL_LETTER_E) {
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_E;
+                        continue;
+                    }
+                    i -= 1;
+                    this.state = TokenizerStates.START;
+                    this.emitNumber();
+                    continue;
+                case TokenizerStates.NUMBER_AFTER_FULL_STOP:
+                    if (n >= charset.DIGIT_ZERO && n <= charset.DIGIT_NINE) {
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_DECIMAL;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.NUMBER_AFTER_DECIMAL:
+                    if (n >= charset.DIGIT_ZERO && n <= charset.DIGIT_NINE) {
+                        this.bufferedNumber.appendChar(n);
+                        continue;
+                    }
+                    if (n === charset.LATIN_SMALL_LETTER_E || n === charset.LATIN_CAPITAL_LETTER_E) {
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_E;
+                        continue;
+                    }
+                    i -= 1;
+                    this.state = TokenizerStates.START;
+                    this.emitNumber();
+                    continue;
+                case TokenizerStates.NUMBER_AFTER_E:
+                    if (n === charset.PLUS_SIGN || n === charset.HYPHEN_MINUS) {
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_E_AND_SIGN;
+                        continue;
+                    }
+                case TokenizerStates.NUMBER_AFTER_E_AND_SIGN:
+                    if (n >= charset.DIGIT_ZERO && n <= charset.DIGIT_NINE) {
+                        this.bufferedNumber.appendChar(n);
+                        this.state = TokenizerStates.NUMBER_AFTER_E_AND_DIGIT;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.NUMBER_AFTER_E_AND_DIGIT:
+                    if (n >= charset.DIGIT_ZERO && n <= charset.DIGIT_NINE) {
+                        this.bufferedNumber.appendChar(n);
+                        continue;
+                    }
+                    i -= 1;
+                    this.state = TokenizerStates.START;
+                    this.emitNumber();
+                    continue;
+                case TokenizerStates.TRUE1:
+                    if (n === charset.LATIN_SMALL_LETTER_R) {
+                        this.state = TokenizerStates.TRUE2;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.TRUE2:
+                    if (n === charset.LATIN_SMALL_LETTER_U) {
+                        this.state = TokenizerStates.TRUE3;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.TRUE3:
+                    if (n === charset.LATIN_SMALL_LETTER_E) {
+                        this.state = TokenizerStates.START;
+                        this.onToken(TRUE, true, this.offset);
+                        this.offset += 3;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.FALSE1:
+                    if (n === charset.LATIN_SMALL_LETTER_A) {
+                        this.state = TokenizerStates.FALSE2;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.FALSE2:
+                    if (n === charset.LATIN_SMALL_LETTER_L) {
+                        this.state = TokenizerStates.FALSE3;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.FALSE3:
+                    if (n === charset.LATIN_SMALL_LETTER_S) {
+                        this.state = TokenizerStates.FALSE4;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.FALSE4:
+                    if (n === charset.LATIN_SMALL_LETTER_E) {
+                        this.state = TokenizerStates.START;
+                        this.onToken(FALSE, false, this.offset);
+                        this.offset += 4;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.NULL1:
+                    if (n === charset.LATIN_SMALL_LETTER_U) {
+                        this.state = TokenizerStates.NULL2;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.NULL2:
+                    if (n === charset.LATIN_SMALL_LETTER_L) {
+                        this.state = TokenizerStates.NULL3;
+                        continue;
+                    }
+                    break;
+                case TokenizerStates.NULL3:
+                    if (n === charset.LATIN_SMALL_LETTER_L) {
+                        this.state = TokenizerStates.START;
+                        this.onToken(NULL, null, this.offset);
+                        this.offset += 3;
+                        continue;
+                    }
+                    break;
+            }
+            this.error(new TokenizerError(`Unexpected "${String.fromCharCode(n)}" at position "${i}" in state ${TokenizerStates[this.state]}`));
+        }
+    }
+    emitNumber() {
+        this.onToken(NUMBER, this.parseNumber(this.bufferedNumber.toString()), this.offset);
+        this.offset += this.bufferedNumber.byteLength - 1;
+    }
+    parseNumber(numberStr) {
+        return Number(numberStr);
+    }
+    error(err) {
+        this.state = TokenizerStates.ERROR;
+        throw err;
+    }
+    end() {
+        if (this.state !== TokenizerStates.START) {
+            this.error(new TokenizerError(`Tokenizer ended in the middle of a token (state: ${TokenizerStates[this.state]}). Either not all the data was received or the data was invalid.`));
+        }
+        this.state = TokenizerStates.ENDED;
+    }
+    onToken(token, value, offset) {
+    }
+}
+const { LEFT_BRACE: LEFT_BRACE1 , RIGHT_BRACE: RIGHT_BRACE1 , LEFT_BRACKET: LEFT_BRACKET1 , RIGHT_BRACKET: RIGHT_BRACKET1 , COLON: COLON1 , COMMA: COMMA1 , TRUE: TRUE1 , FALSE: FALSE1 , NULL: NULL1 , STRING: STRING1 , NUMBER: NUMBER1 ,  } = TokenType;
+var ParserState;
+(function(ParserState) {
+    ParserState[ParserState["VALUE"] = 0] = "VALUE";
+    ParserState[ParserState["KEY"] = 1] = "KEY";
+    ParserState[ParserState["COLON"] = 2] = "COLON";
+    ParserState[ParserState["COMMA"] = 3] = "COMMA";
+    ParserState[ParserState["ENDED"] = 4] = "ENDED";
+    ParserState[ParserState["ERROR"] = 5] = "ERROR";
+})(ParserState || (ParserState = {
+}));
+var ParserMode;
+(function(ParserMode) {
+    ParserMode[ParserMode["OBJECT"] = 0] = "OBJECT";
+    ParserMode[ParserMode["ARRAY"] = 1] = "ARRAY";
+})(ParserMode || (ParserMode = {
+}));
+const defaultOpts1 = {
+    paths: undefined,
+    keepStack: true
+};
+class TokenParserError extends Error {
+    constructor(message){
+        super(message);
+        Object.setPrototypeOf(this, TokenParserError.prototype);
+    }
+}
+class Parser {
+    paths;
+    keepStack;
+    state = ParserState.VALUE;
+    mode = undefined;
+    key = undefined;
+    value = undefined;
+    stack = [];
+    constructor(opts){
+        opts = {
+            ...defaultOpts1,
+            ...opts
+        };
+        if (opts.paths) {
+            this.paths = opts.paths.map((path)=>{
+                if (path === undefined || path === '$*') return undefined;
+                if (!path.startsWith('$')) throw new TokenParserError(`Invalid selector "${path}". Should start with "$".`);
+                const pathParts = path.split('.').slice(1);
+                if (pathParts.includes('')) throw new TokenParserError(`Invalid selector "${path}". ".." syntax not supported.`);
+                return pathParts;
+            });
+        }
+        this.keepStack = opts.keepStack;
+    }
+    shouldEmit() {
+        if (!this.paths) return true;
+        return this.paths.some((path)=>{
+            if (path === undefined) return true;
+            if (path.length !== this.stack.length) return false;
+            for(let i = 0; i < path.length - 1; i++){
+                const selector = path[i];
+                const key = this.stack[i + 1].key;
+                if (selector === '*') continue;
+                if (selector !== key) return false;
+            }
+            const selector = path[path.length - 1];
+            if (selector === '*') return true;
+            return selector === this.key?.toString();
+        });
+    }
+    push() {
+        this.stack.push({
+            key: this.key,
+            value: this.value,
+            mode: this.mode,
+            emit: this.shouldEmit()
+        });
+    }
+    pop() {
+        const value = this.value;
+        let emit;
+        ({ key: this.key , value: this.value , mode: this.mode , emit  } = this.stack.pop());
+        this.emit(value, emit);
+        this.state = this.mode !== undefined ? ParserState.COMMA : ParserState.VALUE;
+    }
+    emit(value, emit) {
+        if (this.value && !this.keepStack && this.stack.every((item)=>!item.emit
+        )) {
+            delete this.value[this.key];
+        }
+        if (emit) {
+            this.onValue(value, this.key, this.value, this.stack);
+        }
+    }
+    write(token, value) {
+        if (this.state === ParserState.VALUE) {
+            if (token === STRING1 || token === NUMBER1 || token === TRUE1 || token === FALSE1 || token === NULL1) {
+                if (this.mode === ParserMode.OBJECT) {
+                    this.value[this.key] = value;
+                    this.state = ParserState.COMMA;
+                } else if (this.mode === ParserMode.ARRAY) {
+                    this.value.push(value);
+                    this.state = ParserState.COMMA;
+                }
+                this.emit(value, this.shouldEmit());
+                return;
+            }
+            if (token === LEFT_BRACE1) {
+                this.push();
+                if (this.mode === ParserMode.OBJECT) {
+                    this.value = this.value[this.key] = {
+                    };
+                } else if (this.mode === ParserMode.ARRAY) {
+                    const val = {
+                    };
+                    this.value.push(val);
+                    this.value = val;
+                } else {
+                    this.value = {
+                    };
+                }
+                this.mode = ParserMode.OBJECT;
+                this.state = ParserState.KEY;
+                this.key = undefined;
+                return;
+            }
+            if (token === LEFT_BRACKET1) {
+                this.push();
+                if (this.mode === ParserMode.OBJECT) {
+                    this.value = this.value[this.key] = [];
+                } else if (this.mode === ParserMode.ARRAY) {
+                    const val = [];
+                    this.value.push(val);
+                    this.value = val;
+                } else {
+                    this.value = [];
+                }
+                this.mode = ParserMode.ARRAY;
+                this.state = ParserState.VALUE;
+                this.key = 0;
+                return;
+            }
+            if (this.mode === ParserMode.ARRAY && token === RIGHT_BRACKET1 && this.value.length === 0) {
+                this.pop();
+                return;
+            }
+        }
+        if (this.state === ParserState.KEY) {
+            if (token === STRING1) {
+                this.key = value;
+                this.state = ParserState.COLON;
+                return;
+            }
+            if (token === RIGHT_BRACE1 && Object.keys(this.value).length === 0) {
+                this.pop();
+                return;
+            }
+        }
+        if (this.state === ParserState.COLON) {
+            if (token === COLON1) {
+                this.state = ParserState.VALUE;
+                return;
+            }
+        }
+        if (this.state === ParserState.COMMA) {
+            if (token === COMMA1) {
+                if (this.mode === ParserMode.ARRAY) {
+                    this.state = ParserState.VALUE;
+                    this.key += 1;
+                    return;
+                }
+                if (this.mode === ParserMode.OBJECT) {
+                    this.state = ParserState.KEY;
+                    return;
+                }
+            }
+            if (token === RIGHT_BRACE1 && this.mode === ParserMode.OBJECT || token === RIGHT_BRACKET1 && this.mode === ParserMode.ARRAY) {
+                this.pop();
+                return;
+            }
+        }
+        this.error(new TokenParserError(`Unexpected ${TokenType[token]} (${JSON.stringify(value)}) in state ${ParserState[this.state]}`));
+    }
+    error(err) {
+        this.state = ParserState.ERROR;
+        throw err;
+    }
+    end() {
+        if (this.state !== ParserState.VALUE || this.stack.length > 0) {
+            this.error(new TokenParserError(`Parser ended in mid-parsing (state: ${ParserState[this.state]}). Either not all the data was received or the data was invalid.`));
+        }
+        this.state = ParserState.ENDED;
+    }
+    onValue(value, key, parent, stack) {
+    }
+}
+class JSONParser {
+    tokenizer;
+    parser;
+    constructor(opts = {
+    }){
+        this.tokenizer = new Tokenizer(opts);
+        this.parser = new Parser(opts);
+        this.tokenizer.onToken = this.parser.write.bind(this.parser);
+    }
+    write(input) {
+        try {
+            this.tokenizer.write(input);
+        } catch (err) {
+            if (err instanceof TokenParserError) {
+                this.tokenizer.error(err);
+            }
+            throw err;
+        }
+    }
+    set onToken(cb) {
+        this.tokenizer.onToken = cb;
+    }
+    set onValue(cb) {
+        this.parser.onValue = cb;
+    }
+    end() {
+        this.parser.end();
+        this.tokenizer.end();
+    }
+}
+function isMessage(data) {
+    return Array.isArray(data) && data.length === 2 && typeof data[0] === "number" && typeof data[1] !== "undefined";
+}
+class Indexer1 {
+    #max;
+    #val;
+    constructor(max){
+        if (max != null && max < 2) {
+            throw new Error(`The attribute 'max' must be greater than 1 but ${max} has specified`);
+        }
+        this.#max = max ?? Number.MAX_SAFE_INTEGER;
+        this.#val = -1;
+    }
+    next() {
+        if (this.#val >= this.#max) {
+            this.#val = -1;
+        }
+        this.#val += 1;
+        return this.#val;
+    }
+}
+class TimeoutError1 extends Error {
+    constructor(){
+        super("the process didn't complete in time");
+        this.name = "TimeoutError";
+    }
+}
+class ResponseWaiter1 {
+    #waiters;
+    #timeout;
+    constructor(timeout = 10000){
+        this.#waiters = new Map();
+        this.#timeout = timeout;
+    }
+    get waiterCount() {
+        return this.#waiters.size;
+    }
+    wait(msgid, timeout) {
+        let response = this.#waiters.get(msgid)?.response;
+        if (!response) {
+            response = deferred3();
+            const timer = setTimeout(()=>{
+                const response = this.#waiters.get(msgid)?.response;
+                if (!response) {
+                    return;
+                }
+                response.reject(new TimeoutError1());
+                this.#waiters.delete(msgid);
+            }, timeout ?? this.#timeout);
+            this.#waiters.set(msgid, {
+                timer,
+                response
+            });
+        }
+        return response;
+    }
+    provide(message) {
+        const [msgid, _data] = message;
+        const waiter = this.#waiters.get(msgid);
+        if (!waiter) {
+            return false;
+        }
+        this.#waiters.delete(msgid);
+        const { timer , response  } = waiter;
+        clearTimeout(timer);
+        response.resolve(message);
+        return true;
+    }
+}
+const MSGID_THRESHOLD1 = 2 ** 32;
+const BUFFER_SIZE = 32 * 1024;
+const utf8Encoder = new TextEncoder();
+class Session1 {
+    #indexer;
+    #waiter;
+    #reader;
+    #writer;
+    #callback;
+    #listener;
+    #closed;
+    #closedSignal;
+    constructor(reader, writer, callback = ()=>undefined
+    , options = {
+    }){
+        this.#indexer = new Indexer1(MSGID_THRESHOLD1);
+        this.#waiter = new ResponseWaiter1(options.responseTimeout);
+        this.#reader = reader;
+        this.#writer = writer;
+        this.#callback = callback;
+        this.#closed = false;
+        this.#closedSignal = deferred3();
+        this.#listener = this.listen().catch((e)=>{
+            if (options.errorCallback) {
+                options.errorCallback(e);
+            } else {
+                console.error(`Unexpected error occured in session: ${e}`);
+            }
+        });
+    }
+    nextMsgid() {
+        const msgid = this.#indexer.next() * -1;
+        return msgid;
+    }
+    async send(data) {
+        await mod4.writeAll(this.#writer, utf8Encoder.encode(JSON.stringify(data)));
+    }
+    async listen() {
+        const parser = new JSONParser();
+        parser.onValue = (data, _key, _parent, stack)=>{
+            if (stack.length > 0) {
+                return;
+            }
+            if (!isMessage(data)) {
+                console.warn(`Unexpected data received: ${data}`);
+                return;
+            }
+            if (!this.#waiter.provide(data)) {
+                this.#callback.apply(this, [
+                    data
+                ]);
+                return;
+            }
+        };
+        try {
+            const buf = new Uint8Array(BUFFER_SIZE);
+            while(!this.#closed){
+                const n = await Promise.race([
+                    this.#closedSignal,
+                    this.#reader.read(buf), 
+                ]);
+                if (n == null) {
+                    break;
+                }
+                parser.write(buf.subarray(0, n));
+            }
+        } catch (e) {
+            if (e instanceof SessionClosedError1) {
+                return;
+            }
+            if (e instanceof Deno.errors.BadResource) {
+                return;
+            }
+            throw e;
+        }
+    }
+    dispose() {
+        this.close();
+    }
+    close() {
+        this.#closed = true;
+        this.#closedSignal.reject(new SessionClosedError1());
+    }
+    waitClosed() {
+        return this.#listener;
+    }
+    async reply(msgid, expr) {
+        if (this.#closed) {
+            throw new SessionClosedError1();
+        }
+        const data = [
+            msgid,
+            expr
+        ];
+        await this.send(data);
+    }
+    async redraw(force = false) {
+        if (this.#closed) {
+            throw new SessionClosedError1();
+        }
+        const data = [
+            "redraw",
+            force ? "force" : ""
+        ];
+        await this.send(data);
+    }
+    async ex(expr) {
+        if (this.#closed) {
+            throw new SessionClosedError1();
+        }
+        const data = [
+            "ex",
+            expr
+        ];
+        await this.send(data);
+    }
+    async normal(expr) {
+        if (this.#closed) {
+            throw new SessionClosedError1();
+        }
+        const data = [
+            "normal",
+            expr
+        ];
+        await this.send(data);
+    }
+    async expr(expr) {
+        if (this.#closed) {
+            throw new SessionClosedError1();
+        }
+        const msgid = this.nextMsgid();
+        const data = [
+            "expr",
+            expr,
+            msgid
+        ];
+        const [_, response] = await Promise.all([
+            this.send(data),
+            this.#waiter.wait(msgid), 
+        ]);
+        return response[1];
+    }
+    async exprNoReply(expr) {
+        if (this.#closed) {
+            throw new SessionClosedError1();
+        }
+        const data = [
+            "expr",
+            expr
+        ];
+        await this.send(data);
+    }
+    async call(fn, ...args) {
+        if (this.#closed) {
+            throw new SessionClosedError1();
+        }
+        const msgid = this.nextMsgid();
+        const data = [
+            "call",
+            fn,
+            args,
+            msgid
+        ];
+        const [_, response] = await Promise.all([
+            this.send(data),
+            this.#waiter.wait(msgid), 
+        ]);
+        return response[1];
+    }
+    async callNoReply(fn, ...args) {
+        if (this.#closed) {
+            throw new SessionClosedError1();
+        }
+        const data = [
+            "call",
+            fn,
+            args
+        ];
+        await this.send(data);
+    }
+    replaceCallback(callback) {
+        this.#callback = callback;
+    }
+}
+class SessionClosedError1 extends Error {
+    constructor(){
+        super("The session is closed");
+        this.name = "SessionClosedError";
+    }
+}
+async function using(resource, fn) {
+    try {
+        return await fn(resource);
+    } finally{
+        await resource.dispose();
+    }
+}
+const responseTimeout = 60 * 60 * 24 * 7;
+class Invoker {
+    #service;
+    constructor(service){
+        this.#service = service;
+    }
+    register(name, script, meta, options) {
+        this.#service.register(name, script, meta, options);
+    }
+    dispatch(name, fn, args) {
+        return this.#service.dispatch(name, fn, args);
+    }
+    dispatchAsync(name, fn, args, success, failure) {
+        this.#service.dispatch(name, fn, args).then(async (r)=>{
+            try {
+                await this.#service.call("denops#callback#call", success, r);
+            } catch (e) {
+                console.error(`${e.stack ?? e.toString()}`);
+            }
+        }).catch(async (e)=>{
+            try {
+                await this.#service.call("denops#callback#call", failure, toErrorObject(e));
+            } catch (e1) {
+                console.error(`${e1.stack ?? e1.toString()}`);
+            }
+        });
+        return Promise.resolve();
+    }
+}
+function isInvokerMethod(value) {
+    return value in Invoker.prototype;
+}
+function toErrorObject(err) {
+    if (err instanceof Error) {
+        return {
+            name: err.name,
+            message: err.message,
+            stack: err.stack
+        };
+    }
+    return {
+        name: typeof err,
+        message: `${err}`
+    };
+}
+const workerScript = "./worker/script.bundle.js";
+class Service {
+    #plugins;
+    #host;
+    constructor(host){
+        this.#plugins = new Map();
+        this.#host = host;
+        this.#host.register(new Invoker(this));
+    }
+    register(name, script, meta, options) {
+        const plugin = this.#plugins.get(name);
+        if (plugin) {
+            if (options.mode === "reload") {
+                if (meta.mode === "debug") {
+                    console.log(`A denops plugin '${name}' is already registered. Reload`);
+                }
+                plugin.worker.terminate();
+            } else if (options.mode === "skip") {
+                if (meta.mode === "debug") {
+                    console.log(`A denops plugin '${name}' is already registered. Skip`);
+                }
+                return;
+            } else {
+                throw new Error(`A denops plugin '${name}' is already registered`);
+            }
+        }
+        const worker = new Worker(new URL(workerScript, Deno.mainModule).href, {
+            name,
+            type: "module",
+            deno: {
+                namespace: true
+            }
+        });
+        worker.postMessage({
+            name,
+            script,
+            meta
+        });
+        const reader = new WorkerReader(worker);
+        const writer = new WorkerWriter(worker);
+        const session = new Session(reader, writer, {
+            call: async (fn, ...args)=>{
+                ensureString(fn);
+                ensureArray(args);
+                return await this.call(fn, ...args);
+            },
+            batch: async (...calls)=>{
+                const isCall = (call)=>isArray(call) && call.length > 0 && isString(call[0])
+                ;
+                ensureArray(calls, isCall);
+                return await this.batch(...calls);
+            },
+            dispatch: async (name, fn, ...args)=>{
+                ensureString(name);
+                ensureString(fn);
+                ensureArray(args);
+                return await this.dispatch(name, fn, args);
+            }
+        }, {
+            responseTimeout
+        });
+        this.#plugins.set(name, {
+            session,
+            worker
+        });
+    }
+    async call(fn, ...args) {
+        return await this.#host.call(fn, ...args);
+    }
+    async batch(...calls) {
+        return await this.#host.batch(...calls);
+    }
+    async dispatch(name, fn, args) {
+        try {
+            const plugin = this.#plugins.get(name);
+            if (!plugin) {
+                throw new Error(`No plugin '${name}' is registered`);
+            }
+            return await plugin.session.call(fn, ...args);
+        } catch (e) {
+            throw `${e.stack ?? e.toString()}`;
+        }
+    }
+    waitClosed() {
+        return this.#host.waitClosed();
+    }
+}
+class Vim {
+    #session;
+    constructor(reader, writer){
+        this.#session = new Session1(reader, writer, undefined, {
+            responseTimeout
+        });
+    }
+    async call(fn, ...args) {
+        const [ret, err] = await this.#session.call("denops#api#vim#call", fn, args);
+        if (err !== "") {
+            throw new Error(`Failed to call '${fn}(${args.join(", ")})': ${err}`);
+        }
+        return ret;
+    }
+    async batch(...calls) {
+        return await this.#session.call("denops#api#vim#batch", calls);
+    }
+    register(invoker) {
+        this.#session.replaceCallback(async (message)=>{
+            const [msgid, expr] = message;
+            let ok = null;
+            let err = null;
+            try {
+                ok = await dispatch(invoker, expr);
+            } catch (e) {
+                err = e;
+            }
+            if (msgid !== 0) {
+                await this.#session.reply(msgid, [
+                    ok,
+                    err
+                ]);
+            } else if (err !== null) {
+                console.error(err);
+            }
+        });
+    }
+    waitClosed() {
+        return this.#session.waitClosed();
+    }
+    dispose() {
+        this.#session.dispose();
+    }
+}
+async function dispatch(invoker, expr) {
+    if (isInvokeMessage(expr)) {
+        const [_, method, args] = expr;
+        if (!isInvokerMethod(method)) {
+            throw new Error(`Method '${method}' is not defined in the invoker`);
+        }
+        return await invoker[method](...args);
+    } else {
+        throw new Error(`Unexpected JSON channel message is received: ${JSON.stringify(expr)}`);
+    }
+}
+function isInvokeMessage(data) {
+    return Array.isArray(data) && data.length === 3 && data[0] === "invoke" && typeof data[1] === "string" && Array.isArray(data[2]);
+}
+class Neovim {
+    #session;
+    constructor(reader, writer){
+        this.#session = new Session(reader, writer, undefined, {
+            responseTimeout
+        });
+    }
+    call(fn, ...args) {
+        return this.#session.call("nvim_call_function", fn, args);
+    }
+    async batch(...calls) {
+        const [ret, err] = await this.#session.call("nvim_call_atomic", calls.map(([fn, ...args])=>[
+                "nvim_call_function",
+                [
+                    fn,
+                    args
+                ]
+            ]
+        ));
+        if (err) {
+            return [
+                ret,
+                err[2]
+            ];
+        }
+        return [
+            ret,
+            ""
+        ];
+    }
+    register(invoker) {
+        this.#session.dispatcher = {
+            async invoke (method, args) {
+                ensureString(method);
+                ensureArray(args);
+                if (!isInvokerMethod(method)) {
+                    throw new Error(`Method '${method}' is not defined in the invoker`);
+                }
+                return await invoker[method](...args);
+            }
+        };
+    }
+    waitClosed() {
+        return this.#session.waitClosed();
+    }
+    dispose() {
+        this.#session.dispose();
+    }
+}
+const textDecoder = new TextDecoder();
+class TraceReader {
+    #reader;
+    constructor(reader){
+        this.#reader = reader;
+    }
+    close() {
+        this.#reader.close();
+    }
+    async read(p) {
+        const n = await this.#reader.read(p);
+        if (n) {
+            const value = p.subarray(0, n);
+            try {
+                console.log("r:", textDecoder.decode(value));
+            } catch  {
+                console.log("r:", value);
+            }
+        }
+        return n;
+    }
+}
+class TraceWriter {
+    #writer;
+    constructor(writer){
+        this.#writer = writer;
+    }
+    async write(p) {
+        const n = await this.#writer.write(p);
+        const value = p.subarray(0, n);
+        try {
+            console.log("w:", textDecoder.decode(value));
+        } catch  {
+            console.log("w:", value);
+        }
+        return n;
+    }
+}
+const opts = mod.parse(Deno.args);
+if (!opts.mode) {
+    throw new Error("No `--mode` option is specified.");
+}
+const listener = Deno.listen({
+    hostname: "127.0.0.1",
+    port: 0
+});
+const addr = listener.addr;
+console.log(`${addr.hostname}:${addr.port}`);
+for await (const conn of listener){
+    const reader = opts.trace ? new TraceReader(conn) : conn;
+    const writer = opts.trace ? new TraceWriter(conn) : conn;
+    const hostClass = opts.mode === "vim" ? Vim : Neovim;
+    await using(new hostClass(reader, writer), async (host)=>{
+        const service = new Service(host);
+        await service.waitClosed();
+    });
+    break;
+}
