@@ -51,7 +51,7 @@ export class Service {
         throw new Error(`A denops plugin '${name}' is already registered`);
       }
     }
-    const worker = new Worker(new URL(workerScript, import.meta.url).href, {
+    const worker = new Worker(new URL(workerScript, Deno.mainModule).href, {
       name,
       type: "module",
       deno: {
