@@ -162,8 +162,8 @@ denops#plugin#wait_async({plugin}, {callback})
 denops#plugin#register({plugin}[, {script}[, {options}]])
 	Register denops plugin. Use this function to register denops plugins
 	which is not discovered by |denops#plugin#discover()|.
-	When a {script} is omitted, a "denops/{plugin}/main.ts" file is
-	searched from |runtimepath| like discover.
+	When a {script} is omitted, "main.bundle.js", "main.js", or "main.ts"
+	under "denops/{plugin}" is searched from |runtimepath| like discover.
 	The following attributes are available on {options}.
 
 	"mode"		|String| to regulate the behavior of registration when
@@ -181,8 +181,9 @@ denops#plugin#register({plugin}[, {script}[, {options}]])
 						*denops#plugin#discover()*
 denops#plugin#discover([{options}])
 	Discover denops plugins from |runtimepath| and register.
-	It gathers "main.ts" under "denops/*" directories under |runtimepath|
-	if the middle directory does not starts from "@".
+	It gathers "main.bundle.js", "main.js", or "main.ts" under "denops/*"
+	directories under |runtimepath| if the middle directory does not
+	starts from "@".
 	This is automatically called on |User| |DenopsReady| autocmd invoked by
 	|denops#server#start()|.
 	It uses same {options} as |denops#plugin#register()| except that the

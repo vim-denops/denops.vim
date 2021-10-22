@@ -59,7 +59,11 @@ function! denops#plugin#discover(...) abort
 endfunction
 
 function! s:gather_plugins(plugins) abort
-  for script in globpath(&runtimepath, denops#util#join_path('denops', '*', 'main.ts'), 1, 1, 1)
+  let scripts = []
+  let scripts += globpath(&runtimepath, denops#util#join_path('denops', '*', 'main.bundle.js'), 1, 1, 1)
+  let scripts += globpath(&runtimepath, denops#util#join_path('denops', '*', 'main.js'), 1, 1, 1)
+  let scripts += globpath(&runtimepath, denops#util#join_path('denops', '*', 'main.ts'), 1, 1, 1)
+  for script in scripts
     let plugin = fnamemodify(script, ':h:t')
     if plugin[:0] ==# '@' || has_key(a:plugins, plugin)
       continue
@@ -83,7 +87,11 @@ function! s:register(plugin, script, meta, options) abort
 endfunction
 
 function! s:find_plugin(plugin) abort
-  for script in globpath(&runtimepath, denops#util#join_path('denops', a:plugin, 'main.ts'), 1, 1, 1)
+  let scripts = []
+  let scripts += globpath(&runtimepath, denops#util#join_path('denops', '*', 'main.bundle.js'), 1, 1, 1)
+  let scripts += globpath(&runtimepath, denops#util#join_path('denops', '*', 'main.js'), 1, 1, 1)
+  let scripts += globpath(&runtimepath, denops#util#join_path('denops', '*', 'main.ts'), 1, 1, 1)
+  for script in scripts
     let plugin = fnamemodify(script, ':h:t')
     if plugin[:0] ==# '@' || !filereadable(script)
       continue
