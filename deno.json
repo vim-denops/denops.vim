@@ -1,0 +1,20 @@
+{
+  "lint": {
+    "files": {
+      "exclude": [
+        ".deno",
+        "denops/@denops-private/cli.bundle.js",
+        "denops/@denops-private/worker/script.bundle.js"
+      ]
+    }
+  },
+  "fmt": {
+    "files": {
+      "exclude": [
+        ".deno",
+        "denops/@denops-private/cli.bundle.js",
+        "denops/@denops-private/worker/script.bundle.js"
+      ]
+    }
+  }
+}
