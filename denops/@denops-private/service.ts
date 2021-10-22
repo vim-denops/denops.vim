@@ -12,7 +12,7 @@ import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions } from "./host/invoker.ts";
 import { Meta } from "../@denops/denops.ts";
 
-const workerScript = "./worker/script.ts";
+const workerScript = "./worker/script.bundle.js";
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
@@ -51,42 +51,44 @@ export class Service {
         throw new Error(`A denops plugin '${name}' is already registered`);
       }
     }
-    const worker = new Worker(
-      new URL(workerScript, import.meta.url).href,
-      {
-        name,
-        type: "module",
-        deno: {
-          namespace: true,
-        },
+    const worker = new Worker(new URL(workerScript, import.meta.url).href, {
+      name,
+      type: "module",
+      deno: {
+        namespace: true,
       },
-    );
+    });
     worker.postMessage({ name, script, meta });
     const reader = new WorkerReader(worker);
     const writer = new WorkerWriter(worker);
-    const session = new Session(reader, writer, {
-      call: async (fn, ...args) => {
-        ensureString(fn);
-        ensureArray(args);
-        return await this.call(fn, ...args);
-      },
+    const session = new Session(
+      reader,
+      writer,
+      {
+        call: async (fn, ...args) => {
+          ensureString(fn);
+          ensureArray(args);
+          return await this.call(fn, ...args);
+        },
 
-      batch: async (...calls) => {
-        const isCall = (call: unknown): call is [string, ...unknown[]] =>
-          isArray(call) && call.length > 0 && isString(call[0]);
-        ensureArray(calls, isCall);
-        return await this.batch(...calls);
-      },
+        batch: async (...calls) => {
+          const isCall = (call: unknown): call is [string, ...unknown[]] =>
+            isArray(call) && call.length > 0 && isString(call[0]);
+          ensureArray(calls, isCall);
+          return await this.batch(...calls);
+        },
 
-      dispatch: async (name, fn, ...args) => {
-        ensureString(name);
-        ensureString(fn);
-        ensureArray(args);
-        return await this.dispatch(name, fn, args);
+        dispatch: async (name, fn, ...args) => {
+          ensureString(name);
+          ensureString(fn);
+          ensureArray(args);
+          return await this.dispatch(name, fn, args);
+        },
       },
-    }, {
-      responseTimeout,
-    });
+      {
+        responseTimeout,
+      },
+    );
     this.#plugins.set(name, {
       session,
       worker,

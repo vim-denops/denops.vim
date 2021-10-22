@@ -45,6 +45,7 @@ jobs:
       - uses: denoland/setup-deno@v1
         with:
           deno-version: "${{ matrix.version }}"
+      - uses: actions/setup-node@v2
       - uses: actions/cache@v2
         with:
           path: ${{ env.DENO_DIR }}
@@ -58,6 +59,10 @@ jobs:
         run: make fmt-check
       - name: Type check
         run: make type-check
+      - name: Build check
+        run: |
+          make build
+          git diff --exit-code
 
   test:
     strategy:
