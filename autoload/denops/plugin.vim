@@ -83,8 +83,7 @@ function! s:register(plugin, script, meta, options) abort
 endfunction
 
 function! s:find_plugin(plugin) abort
-  for runtimepath in split(&runtimepath, ',')
-    let script = denops#util#join_path(expand(runtimepath), 'denops', a:plugin, 'main.ts')
+  for script in globpath(&runtimepath, denops#util#join_path('denops', a:plugin, 'main.ts'), 1, 1, 1)
     let plugin = fnamemodify(script, ':h:t')
     if plugin[:0] ==# '@' || !filereadable(script)
       continue
