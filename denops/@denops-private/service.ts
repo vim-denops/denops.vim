@@ -1,26 +1,14 @@
-import {
-  ensureArray,
-  ensureString,
-  isArray,
-  isString,
-} from "https://deno.land/x/unknownutil@v1.1.4/mod.ts#^";
-import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
-import {
-  WorkerReader,
-  WorkerWriter,
-} from "https://deno.land/x/workerio@v1.4.3/mod.ts#^";
-import { responseTimeout } from "./defs.ts";
+import { toFileUrl } from "https://deno.land/std@0.111.0/path/mod.ts";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions } from "./host/invoker.ts";
-import { Meta } from "../@denops/types.ts";
-
-const workerScript = "./worker/script.ts";
+import type { Denops, Meta } from "../@denops/types.ts";
+import { DenopsImpl } from "./impl.ts";
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service {
-  #plugins: Map<string, { worker: Worker; session: Session }>;
+  #plugins: Map<string, { denops: Denops }>;
   #host: Host;
   #meta?: Meta;
 
@@ -50,7 +38,6 @@ export class Service {
             `A denops plugin '${name}' is already registered. Reload`,
           );
         }
-        plugin.worker.terminate();
       } else if (options.mode === "skip") {
         if (this.#meta.mode === "debug") {
           console.log(`A denops plugin '${name}' is already registered. Skip`);
@@ -61,46 +48,26 @@ export class Service {
       }
     }
     const meta = this.#meta;
-    const worker = new Worker(
-      new URL(workerScript, import.meta.url).href,
-      {
-        name,
-        type: "module",
-        deno: {
-          namespace: true,
-        },
-      },
+    const runner = async () => {
+      const { main } = await import(toFileUrl(script).href);
+      const denops = new DenopsImpl(name, meta, this);
+      denops.cmd(`doautocmd <nomodeline> User DenopsPluginPre:${name}`)
+        .catch((e) =>
+          console.error(`Failed to emit DenopsPluginPre:${name}: ${e}`)
+        );
+      await main(denops);
+      denops.cmd(`doautocmd <nomodeline> User DenopsPluginPost:${name}`)
+        .catch((e) =>
+          console.error(`Failed to emit DenopsPluginPost:${name}: ${e}`)
+        );
+      this.#plugins.set(name, {
+        denops,
+      });
+      return denops;
+    };
+    runner().catch((e) =>
+      console.error(`Failed to initialize plugin ${name}: ${e}`)
     );
-    worker.postMessage({ name, script, meta });
-    const reader = new WorkerReader(worker);
-    const writer = new WorkerWriter(worker);
-    const session = new Session(reader, writer, {
-      call: async (fn, ...args) => {
-        ensureString(fn);
-        ensureArray(args);
-        return await this.call(fn, ...args);
-      },
-
-      batch: async (...calls) => {
-        const isCall = (call: unknown): call is [string, ...unknown[]] =>
-          isArray(call) && call.length > 0 && isString(call[0]);
-        ensureArray(calls, isCall);
-        return await this.batch(...calls);
-      },
-
-      dispatch: async (name, fn, ...args) => {
-        ensureString(name);
-        ensureString(fn);
-        ensureArray(args);
-        return await this.dispatch(name, fn, args);
-      },
-    }, {
-      responseTimeout,
-    });
-    this.#plugins.set(name, {
-      session,
-      worker,
-    });
   }
 
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
@@ -109,7 +76,7 @@ export class Service {
 
   async batch(
     ...calls: [string, ...unknown[]][]
-  ): Promise<[unknown[], unknown]> {
+  ): Promise<[unknown[], string]> {
     return await this.#host.batch(...calls);
   }
 
@@ -119,7 +86,11 @@ export class Service {
       if (!plugin) {
         throw new Error(`No plugin '${name}' is registered`);
       }
-      return await plugin.session.call(fn, ...args);
+      const dispatcher = plugin.denops.dispatcher;
+      if (!dispatcher[fn]) {
+        throw new Error(`No method '${fn}' exists in plugin '${name}'`);
+      }
+      return await dispatcher[fn](...args);
     } catch (e) {
       // NOTE:
       // Vim/Neovim does not handle JavaScript Error instance thus use string instead
