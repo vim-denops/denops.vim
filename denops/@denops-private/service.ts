@@ -3,10 +3,12 @@ import {
   ensureString,
   isArray,
   isString,
-  Session,
+} from "https://deno.land/x/unknownutil@v1.1.4/mod.ts#^";
+import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
+import {
   WorkerReader,
   WorkerWriter,
-} from "./deps.ts";
+} from "https://deno.land/x/workerio@v1.4.3/mod.ts#^";
 import { responseTimeout } from "./defs.ts";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions } from "./host/invoker.ts";
