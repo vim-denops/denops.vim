@@ -1,21 +1,62 @@
 import { toFileUrl } from "https://deno.land/std@0.111.0/path/mod.ts";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions } from "./host/invoker.ts";
+import { bulkImport } from "./utils.ts";
 import type { Denops, Meta } from "../@denops/types.ts";
 import { DenopsImpl } from "./impl.ts";
+
+type Module = {
+  main(denops: Denops): void | Promise<void>;
+};
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service {
+  #reserves: [string, string][];
+  #delayer?: number;
   #plugins: Map<string, { denops: Denops }>;
   #host: Host;
   #meta?: Meta;
 
   constructor(host: Host) {
+    this.#reserves = [];
+    this.#delayer = undefined;
     this.#plugins = new Map();
     this.#host = host;
     this.#host.register(new Invoker(this));
+  }
+
+  async #registerAll(): Promise<void> {
+    if (!this.#meta) {
+      throw new Error("Service has not initialized yet");
+    }
+    const reserves = this.#reserves.map((
+      [name, script],
+    ) => [name, toFileUrl(script).href]);
+    const mods = await bulkImport<Module>(
+      reserves.map(([_, script]) => script),
+    );
+    const meta = this.#meta;
+    for (const [name, script] of reserves) {
+      const denops = new DenopsImpl(name, meta, this);
+      const { main } = mods[script];
+      denops.cmd(`doautocmd <nomodeline> User DenopsPluginPre:${name}`)
+        .catch((e) =>
+          console.error(`Failed to emit DenopsPluginPre:${name}: ${e}`)
+        );
+      try {
+        await main(denops);
+        denops.cmd(`doautocmd <nomodeline> User DenopsPluginPost:${name}`)
+          .catch((e) =>
+            console.error(`Failed to emit DenopsPluginPost:${name}: ${e}`)
+          );
+        this.#plugins.set(name, { denops });
+      } catch (e) {
+        console.error(`Failed to initialize plugin ${name}: ${e}`);
+      }
+    }
+    this.#reserves = [];
   }
 
   init(meta: Meta): void {
@@ -47,27 +88,11 @@ export class Service {
         throw new Error(`A denops plugin '${name}' is already registered`);
       }
     }
-    const meta = this.#meta;
-    const runner = async () => {
-      const { main } = await import(toFileUrl(script).href);
-      const denops = new DenopsImpl(name, meta, this);
-      denops.cmd(`doautocmd <nomodeline> User DenopsPluginPre:${name}`)
-        .catch((e) =>
-          console.error(`Failed to emit DenopsPluginPre:${name}: ${e}`)
-        );
-      await main(denops);
-      denops.cmd(`doautocmd <nomodeline> User DenopsPluginPost:${name}`)
-        .catch((e) =>
-          console.error(`Failed to emit DenopsPluginPost:${name}: ${e}`)
-        );
-      this.#plugins.set(name, {
-        denops,
-      });
-      return denops;
-    };
-    runner().catch((e) =>
-      console.error(`Failed to initialize plugin ${name}: ${e}`)
-    );
+    this.#reserves.push([name, script]);
+    if (this.#delayer) {
+      clearTimeout(this.#delayer);
+    }
+    this.#delayer = setTimeout(() => this.#registerAll(), 50);
   }
 
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
