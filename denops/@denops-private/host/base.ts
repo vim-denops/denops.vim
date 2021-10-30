@@ -1,4 +1,4 @@
-import { Disposable } from "../deps.ts";
+import type { Disposable } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
 import { Invoker } from "./invoker.ts";
 
 /**

@@ -1,4 +1,8 @@
-import { copy, WorkerReader, WorkerWriter } from "../../deps.ts";
+import { copy } from "https://deno.land/std@0.111.0/streams/conversion.ts";
+import {
+  WorkerReader,
+  WorkerWriter,
+} from "https://deno.land/x/workerio@v1.4.3/mod.ts#^";
 
 // deno-lint-ignore no-explicit-any
 const worker = self as any;

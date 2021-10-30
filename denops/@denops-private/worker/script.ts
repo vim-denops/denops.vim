@@ -1,25 +1,25 @@
+import { toFileUrl } from "https://deno.land/std@0.111.0/path/mod.ts";
 import {
   ensureObject,
   ensureString,
   isObject,
   isString,
-  path,
-  Session,
-  using,
+} from "https://deno.land/x/unknownutil@v1.1.4/mod.ts#^";
+import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
+import { using } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
+import {
   WorkerReader,
   WorkerWriter,
-} from "../deps.ts";
+} from "https://deno.land/x/workerio@v1.4.3/mod.ts#^";
 import { responseTimeout } from "../defs.ts";
-import { Denops, Meta } from "../../@denops/denops.ts";
-import { DenopsImpl } from "../../@denops/denops.ts";
+import { Denops, DenopsImpl, Meta } from "../../@denops/denops.ts";
 
-// deno-lint-ignore no-explicit-any
-const worker = self as any as Worker;
+const worker = self as unknown as Worker;
 
 async function main(name: string, script: string, meta: Meta): Promise<void> {
   const reader = new WorkerReader(worker);
   const writer = new WorkerWriter(worker);
-  const mod = await import(path.toFileUrl(script).href);
+  const mod = await import(toFileUrl(script).href);
   await using(
     new Session(reader, writer, {}, {
       responseTimeout,

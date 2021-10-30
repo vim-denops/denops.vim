@@ -1,4 +1,4 @@
-import { assertEquals } from "../deps_test.ts";
+import { assertEquals } from "https://deno.land/std@0.111.0/testing/asserts.ts";
 import { test } from "./tester.ts";
 
 test(
