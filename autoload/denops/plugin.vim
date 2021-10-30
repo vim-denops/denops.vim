@@ -79,7 +79,7 @@ endfunction
 function! s:register(plugin, script, meta, options) abort
   let args = [a:plugin, a:script, a:meta, a:options]
   call denops#util#debug(printf('register plugin: %s', args))
-  return denops#server#notify('invoke', ['register', args])
+  return denops#server#request('invoke', ['register', args])
 endfunction
 
 function! s:find_plugin(plugin) abort
