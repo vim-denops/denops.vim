@@ -21,6 +21,7 @@ function! s:define(name, default) abort
 endfunction
 
 " Configuration
+call s:define('denops#disabled', 0)
 call s:define('denops#deno', 'deno')
 call s:define('denops#debug', 0)
 call s:define('denops#trace', 0)

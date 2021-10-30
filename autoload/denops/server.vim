@@ -1,5 +1,6 @@
 let s:script = denops#util#script_path('@denops-private', 'cli.ts')
 let s:engine = has('nvim') ? 'nvim' : 'vim'
+let s:lastinfo = {}
 let s:vim_exiting = 0
 let s:stopped_on_purpose = 0
 let s:job = v:null
@@ -9,7 +10,9 @@ let s:STATUS_STARTING = 'starting'
 let s:STATUS_RUNNING = 'running'
 
 function! denops#server#start() abort
-  if denops#server#status() isnot# s:STATUS_STOPPED
+  if g:denops#disabled
+    return
+  elseif denops#server#status() isnot# s:STATUS_STOPPED
     call denops#util#debug('Server is already starting or running. Skip')
     return
   endif
@@ -27,6 +30,10 @@ function! denops#server#start() abort
         \ : { 'mode': 'nl' }
   let s:stopped_on_purpose = 0
   let s:chan = v:null
+  let s:lastinfo = {
+        \ 'count': get(s:lastinfo, 'count', 0) + 1,
+        \ 'time': get(s:lastinfo, 'time', reltime()),
+        \}
   let s:job = denops#job#start(args, {
         \ 'env': {
         \   'NO_COLOR': 1,
@@ -63,14 +70,18 @@ function! denops#server#status() abort
 endfunction
 
 function! denops#server#notify(method, params) abort
-  if denops#server#status() isnot# s:STATUS_RUNNING
+  if g:denops#disabled
+    return
+  elseif denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
   return s:notify(s:chan, a:method, a:params)
 endfunction
 
 function! denops#server#request(method, params) abort
-  if denops#server#status() isnot# s:STATUS_RUNNING
+  if g:denops#disabled
+    return
+  elseif denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
   return s:request(s:chan, a:method, a:params)
@@ -111,6 +122,18 @@ function! s:on_exit(status, ...) abort dict
   doautocmd <nomodeline> User DenopsStopped
   if s:stopped_on_purpose || v:dying || v:exiting || s:vim_exiting
     return
+  endif
+  if s:lastinfo.count >= g:denops#server#restart_threshold
+    call denops#util#warn(printf(
+          \ 'Server stopped %d times within %f seconds so denops become disabled.',
+          \ g:denops#server#restart_threshold,
+          \ g:denops#server#restart_interval,
+          \))
+    let g:denops#disabled = 1
+    return
+  endif
+  if reltimefloat(reltime(s:lastinfo.time)) * 1000 > g:denops#server#restart_interval
+    let s:lastinfo = {}
   endif
   " Restart asynchronously to avoid #136
   call timer_start(g:denops#server#restart_delay, { -> s:restart(a:status) })
@@ -186,3 +209,5 @@ let g:denops#server#deno_args = get(g:, 'denops#server#deno_args', filter([
       \ '-A',
       \], { _, v -> !empty(v) }))
 let g:denops#server#restart_delay = get(g:, 'denops#server#restart_delay', 100)
+let g:denops#server#restart_interval = get(g:, 'denops#server#restart_interval', 1000)
+let g:denops#server#restart_threshold = get(g:, 'denops#server#restart_threshold', 3)

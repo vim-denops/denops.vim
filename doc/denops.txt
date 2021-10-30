@@ -36,6 +36,10 @@ VARIABLE						*denops-variable*
 	occurred on non supported versions.
 	Default: 0
 
+*g:denops#disabled*
+	Set 1 to disable denops.
+	Default: 0
+
 *g:denops#deno*
 	Executable program of Deno. Use it to specify executable program of
 	Deno if 'deno' is not in PATH.
@@ -77,6 +81,16 @@ VARIABLE						*denops-variable*
 	Restart delay in milliseconds to avoid #136.
 	https://github.com/vim-denops/denops.vim/issues/136
 	Default: 100
+
+*g:denops#server#restart_interval*
+	Interval in milliseconds to avoid infinity errors. Denops will reset
+	internal counter when the process keeps running more than this
+	interval.
+	Default: 1000
+
+*g:denops#server#restart_threshold*
+	The number of restart count within |g:denops#server#restart_interval|.
+	Default: 3
 
 *g:denops#plugin#wait_interval*
 	Interval in milliseconds for |denops#plugin#wait()|.
