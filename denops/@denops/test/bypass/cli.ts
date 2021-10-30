@@ -1,18 +1,27 @@
-import { copy } from "https://deno.land/std@0.111.0/streams/conversion.ts";
-import {
-  WorkerReader,
-  WorkerWriter,
-} from "https://deno.land/x/workerio@v1.4.3/mod.ts#^";
+import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
+import { Denops } from "../../types.ts";
+import { BatchError } from "../../errors.ts";
 
-// deno-lint-ignore no-explicit-any
-const worker = self as any;
-const reader = new WorkerReader(worker);
-const writer = new WorkerWriter(worker);
+export async function main(denops: Denops): Promise<void> {
+  const addr = JSON.parse(Deno.env.get("DENOPS_TEST_ADDRESS") || "");
+  const conn = await Deno.connect(addr);
+  const session = new Session(conn, conn, {
+    call: async (fn: unknown, ...args: unknown[]): Promise<unknown> => {
+      // deno-lint-ignore no-explicit-any
+      return await denops.call(fn as any, ...args);
+    },
 
-const addr = JSON.parse(Deno.env.get("DENOPS_TEST_ADDRESS") || "");
-const conn = await Deno.connect(addr);
-
-await Promise.race([
-  copy(conn, writer).finally(() => conn.close()),
-  copy(reader, conn),
-]);
+    batch: async (...calls: unknown[]): Promise<unknown> => {
+      try {
+        // deno-lint-ignore no-explicit-any
+        return [await denops.batch(...calls as any), ""];
+      } catch (e) {
+        if (e instanceof BatchError) {
+          return [e.results, e.message];
+        }
+        return [[], `${e}`];
+      }
+    },
+  });
+  await session.waitClosed();
+}
