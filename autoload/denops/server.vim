@@ -9,7 +9,9 @@ let s:STATUS_STARTING = 'starting'
 let s:STATUS_RUNNING = 'running'
 
 function! denops#server#start() abort
-  if denops#server#status() isnot# s:STATUS_STOPPED
+  if g:denops#disabled
+    return
+  elseif denops#server#status() isnot# s:STATUS_STOPPED
     call denops#util#debug('Server is already starting or running. Skip')
     return
   endif
@@ -63,14 +65,18 @@ function! denops#server#status() abort
 endfunction
 
 function! denops#server#notify(method, params) abort
-  if denops#server#status() isnot# s:STATUS_RUNNING
+  if g:denops#disabled
+    return
+  elseif denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
   return s:notify(s:chan, a:method, a:params)
 endfunction
 
 function! denops#server#request(method, params) abort
-  if denops#server#status() isnot# s:STATUS_RUNNING
+  if g:denops#disabled
+    return
+  elseif denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
   return s:request(s:chan, a:method, a:params)

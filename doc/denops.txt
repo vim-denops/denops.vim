@@ -36,6 +36,10 @@ VARIABLE						*denops-variable*
 	occurred on non supported versions.
 	Default: 0
 
+*g:denops#disabled*
+	Set 1 to disable denops.
+	Default: 0
+
 *g:denops#deno*
 	Executable program of Deno. Use it to specify executable program of
 	Deno if 'deno' is not in PATH.
