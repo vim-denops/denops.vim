@@ -1,5 +1,11 @@
-import type { Dispatcher } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
 import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
+
+/**
+ * Method dispatcher
+ */
+export interface Dispatcher {
+  [key: string]: (...args: unknown[]) => Promise<unknown>;
+}
 
 /**
  * Context which is expanded to the local namespace (l:)
