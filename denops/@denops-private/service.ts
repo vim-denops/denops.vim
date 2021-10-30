@@ -1,26 +1,14 @@
-import {
-  ensureArray,
-  ensureString,
-  isArray,
-  isString,
-} from "https://deno.land/x/unknownutil@v1.1.4/mod.ts#^";
-import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
-import {
-  WorkerReader,
-  WorkerWriter,
-} from "https://deno.land/x/workerio@v1.4.3/mod.ts#^";
-import { responseTimeout } from "./defs.ts";
+import { toFileUrl } from "https://deno.land/std@0.111.0/path/mod.ts";
+import type { Dispatcher } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions } from "./host/invoker.ts";
-import { Meta } from "../@denops/denops.ts";
-
-const workerScript = "./worker/script.ts";
+import { Context, Denops, Meta } from "../@denops/denops.ts";
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service {
-  #plugins: Map<string, { worker: Worker; session: Session }>;
+  #plugins: Map<string, { denops: Denops; promise: Promise<void> }>;
   #host: Host;
 
   constructor(host: Host) {
@@ -29,12 +17,12 @@ export class Service {
     this.#host.register(new Invoker(this));
   }
 
-  register(
+  async register(
     name: string,
     script: string,
     meta: Meta,
     options: RegisterOptions,
-  ): void {
+  ): Promise<void> {
     const plugin = this.#plugins.get(name);
     if (plugin) {
       if (options.mode === "reload") {
@@ -43,7 +31,6 @@ export class Service {
             `A denops plugin '${name}' is already registered. Reload`,
           );
         }
-        plugin.worker.terminate();
       } else if (options.mode === "skip") {
         if (meta.mode === "debug") {
           console.log(`A denops plugin '${name}' is already registered. Skip`);
@@ -58,50 +45,47 @@ export class Service {
       `doautocmd <nomodeline> User DenopsWorkerPre:${name}`,
       "",
     );
-    const worker = new Worker(
-      new URL(workerScript, import.meta.url).href,
-      {
-        name,
-        type: "module",
-        deno: {
-          namespace: true,
-        },
-      },
-    );
-    worker.postMessage({ name, script, meta });
     this.#host.call(
       "execute",
       `doautocmd <nomodeline> User DenopsWorkerPost:${name}`,
       "",
     );
-    const reader = new WorkerReader(worker);
-    const writer = new WorkerWriter(worker);
-    const session = new Session(reader, writer, {
-      call: async (fn, ...args) => {
-        ensureString(fn);
-        ensureArray(args);
-        return await this.call(fn, ...args);
+    const mod = await import(toFileUrl(script).href);
+    const denops: Denops = {
+      dispatcher: {},
+
+      get name(): string {
+        return name;
       },
 
-      batch: async (...calls) => {
-        const isCall = (call: unknown): call is [string, ...unknown[]] =>
-          isArray(call) && call.length > 0 && isString(call[0]);
-        ensureArray(calls, isCall);
-        return await this.batch(...calls);
+      get meta(): Meta {
+        return meta;
       },
 
-      dispatch: async (name, fn, ...args) => {
-        ensureString(name);
-        ensureString(fn);
-        ensureArray(args);
-        return await this.dispatch(name, fn, args);
+      call: (fn: string, ...args: unknown[]) => {
+        return this.call(fn, ...args);
       },
-    }, {
-      responseTimeout,
-    });
+
+      batch: (...calls: [string, ...unknown[]][]) => {
+        return this.batch(...calls);
+      },
+
+      cmd: (cmd: string, ctx: Context = {}) => {
+        return this.call("denops#api#cmd", cmd, ctx);
+      },
+
+      eval: (expr: string, ctx: Context = {}) => {
+        return this.call("denops#api#eval", expr, ctx);
+      },
+
+      dispatch: (name: string, fn: string, ...args: unknown[]) => {
+        return this.dispatch(name, fn, args);
+      },
+    };
+    const promise = mod.main(denops);
     this.#plugins.set(name, {
-      session,
-      worker,
+      denops,
+      promise,
     });
   }
 
@@ -121,7 +105,7 @@ export class Service {
       if (!plugin) {
         throw new Error(`No plugin '${name}' is registered`);
       }
-      return await plugin.session.call(fn, ...args);
+      return await (plugin.denops.dispatcher as any)[fn](...args);
     } catch (e) {
       // NOTE:
       // Vim/Neovim does not handle JavaScript Error instance thus use string instead
