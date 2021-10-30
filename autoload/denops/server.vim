@@ -104,6 +104,7 @@ function! s:on_stdout(data) abort
     call s:on_stderr(a:data)
     return
   endtry
+  call denops#server#request('invoke', ['init', [denops#util#meta()]])
   doautocmd <nomodeline> User DenopsReady
 endfunction
 

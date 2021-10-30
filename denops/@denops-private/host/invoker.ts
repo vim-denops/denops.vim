@@ -19,13 +19,16 @@ export class Invoker {
     this.#service = service;
   }
 
+  init(meta: Meta): void {
+    this.#service.init(meta);
+  }
+
   register(
     name: string,
     script: string,
-    meta: Meta,
     options: RegisterOptions,
   ): void {
-    this.#service.register(name, script, meta, options);
+    this.#service.register(name, script, options);
   }
 
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {

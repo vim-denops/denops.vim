@@ -22,6 +22,7 @@ const workerScript = "./worker/script.ts";
 export class Service {
   #plugins: Map<string, { worker: Worker; session: Session }>;
   #host: Host;
+  #meta?: Meta;
 
   constructor(host: Host) {
     this.#plugins = new Map();
@@ -29,23 +30,29 @@ export class Service {
     this.#host.register(new Invoker(this));
   }
 
+  init(meta: Meta): void {
+    this.#meta = meta;
+  }
+
   register(
     name: string,
     script: string,
-    meta: Meta,
     options: RegisterOptions,
   ): void {
+    if (!this.#meta) {
+      throw new Error("Service has not initialized yet");
+    }
     const plugin = this.#plugins.get(name);
     if (plugin) {
       if (options.mode === "reload") {
-        if (meta.mode === "debug") {
+        if (this.#meta.mode === "debug") {
           console.log(
             `A denops plugin '${name}' is already registered. Reload`,
           );
         }
         plugin.worker.terminate();
       } else if (options.mode === "skip") {
-        if (meta.mode === "debug") {
+        if (this.#meta.mode === "debug") {
           console.log(`A denops plugin '${name}' is already registered. Skip`);
         }
         return;
@@ -53,6 +60,7 @@ export class Service {
         throw new Error(`A denops plugin '${name}' is already registered`);
       }
     }
+    const meta = this.#meta;
     const worker = new Worker(
       new URL(workerScript, import.meta.url).href,
       {

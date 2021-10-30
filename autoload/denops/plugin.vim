@@ -39,22 +39,20 @@ function! denops#plugin#register(plugin, ...) abort
     let script = a:1
     let options = a:0 > 1 ? a:2 : {}
   endif
-  let meta = denops#util#meta()
   let options = s:options(options, {
         \ 'mode': 'error',
         \})
-  return s:register(a:plugin, script, meta, options)
+  return s:register(a:plugin, script, options)
 endfunction
 
 function! denops#plugin#discover(...) abort
-  let meta = denops#util#meta()
   let options = s:options(a:0 > 0 ? a:1 : {}, {
         \ 'mode': 'skip',
         \})
   let plugins = {}
   call s:gather_plugins(plugins)
   for [plugin, script] in items(plugins)
-    call s:register(plugin, script, meta, options)
+    call s:register(plugin, script, options)
   endfor
 endfunction
 
@@ -76,8 +74,8 @@ function! s:options(base, default) abort
   return options
 endfunction
 
-function! s:register(plugin, script, meta, options) abort
-  let args = [a:plugin, a:script, a:meta, a:options]
+function! s:register(plugin, script, options) abort
+  let args = [a:plugin, a:script, a:options]
   call denops#util#debug(printf('register plugin: %s', args))
   return denops#server#request('invoke', ['register', args])
 endfunction
