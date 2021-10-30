@@ -53,6 +53,11 @@ export class Service {
         throw new Error(`A denops plugin '${name}' is already registered`);
       }
     }
+    this.#host.call(
+      "execute",
+      `doautocmd <nomodeline> User DenopsWorkerPre:${name}`,
+      "",
+    );
     const worker = new Worker(
       new URL(workerScript, import.meta.url).href,
       {
@@ -64,6 +69,11 @@ export class Service {
       },
     );
     worker.postMessage({ name, script, meta });
+    this.#host.call(
+      "execute",
+      `doautocmd <nomodeline> User DenopsWorkerPost:${name}`,
+      "",
+    );
     const reader = new WorkerReader(worker);
     const writer = new WorkerWriter(worker);
     const session = new Session(reader, writer, {

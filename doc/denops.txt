@@ -233,6 +233,12 @@ DenopsReady						*DenopsReady*
 	Invoked when a denops become ready. Note that it is not mean that all
 	of denops plugins are ready.
 
+DenopsWorkerPre:{plugin}				*DenopsWorkerPre*
+	Invoked just before denops starts a Worker thread for a {plugin}.
+
+DenopsWorkerPost:{plugin}				*DenopsWorkerPost*
+	Invoked just after denops started a Worker thread for a {plugin}.
+
 DenopsPluginPre:{plugin}				*DenopsPluginPre*
 	Invoked just before denops import the plugin itself and call a "main"
 	function of a plugin {plugin}.
