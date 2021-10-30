@@ -16,10 +16,9 @@ import { Denops, DenopsImpl, Meta } from "../../@denops/denops.ts";
 
 const worker = self as unknown as Worker;
 
-async function main(name: string, script: string, meta: Meta): Promise<void> {
+async function runner(name: string, script: string, meta: Meta): Promise<void> {
   const reader = new WorkerReader(worker);
   const writer = new WorkerWriter(worker);
-  const mod = await import(toFileUrl(script).href);
   await using(
     new Session(reader, writer, {}, {
       responseTimeout,
@@ -32,17 +31,10 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
     }),
     async (session) => {
       const denops: Denops = new DenopsImpl(name, meta, session);
-      await denops.call(
-        "execute",
-        `doautocmd <nomodeline> User DenopsPluginPre:${name}`,
-        "",
-      );
-      await mod.main(denops);
-      await denops.call(
-        "execute",
-        `doautocmd <nomodeline> User DenopsPluginPost:${name}`,
-        "",
-      );
+      denops.cmd(`doautocmd <nomodeline> User DenopsPluginPre:${name}`);
+      const { main } = await import(toFileUrl(script).href);
+      await main(denops);
+      denops.cmd(`doautocmd <nomodeline> User DenopsPluginPost:${name}`);
       await session.waitClosed();
     },
   );
@@ -79,7 +71,7 @@ worker.addEventListener("message", (event: MessageEvent<unknown>) => {
     throw new Error(`Invalid 'meta' is passed: ${event.data.meta}`);
   }
   const { name, script, meta } = event.data;
-  main(name, script, meta).catch((e) => {
+  runner(name, script, meta).catch((e) => {
     console.error(`Unexpected error occured in '${name}' (${script}): ${e}`);
   });
 }, { once: true });

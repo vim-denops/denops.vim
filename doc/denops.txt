@@ -234,10 +234,12 @@ DenopsReady						*DenopsReady*
 	of denops plugins are ready.
 
 DenopsPluginPre:{plugin}				*DenopsPluginPre*
-	Invoked just before denops call a "main" function of a plugin {plugin}.
+	Invoked just before denops import the plugin itself and call a "main"
+	function of a plugin {plugin}.
 
 DenopsPluginPost:{plugin}				*DenopsPluginPost*
-	Invoked just after denops called a "main" function of a plugin {plugin}.
+	Invoked just after denops import the plugin itself and called a "main"
+	function of a plugin {plugin}.
 
 DenopsStarted						*DenopsStarted*
 	Invoked when a denops server is started.
