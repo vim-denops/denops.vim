@@ -33,17 +33,20 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
     }),
     async (session) => {
       const denops: Denops = new DenopsImpl(name, meta, session);
-      await denops.call(
-        "execute",
-        `doautocmd <nomodeline> User DenopsPluginPre:${name}`,
-        "",
-      );
-      await mod.main(denops);
-      await denops.call(
-        "execute",
-        `doautocmd <nomodeline> User DenopsPluginPost:${name}`,
-        "",
-      );
+      denops.cmd(`doautocmd <nomodeline> User DenopsPluginPre:${name}`)
+        .catch((e) =>
+          console.error(`Failed to emit DenopsPluginPre:${name}: ${e}`)
+        );
+      try {
+        await mod.main(denops);
+      } catch (e) {
+        console.error(`Failed to initialize plugin ${name}: ${e}`);
+        return;
+      }
+      denops.cmd(`doautocmd <nomodeline> User DenopsPluginPost:${name}`)
+        .catch((e) =>
+          console.error(`Failed to emit DenopsPluginPost:${name}: ${e}`)
+        );
       await session.waitClosed();
     },
   );
