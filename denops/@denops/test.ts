@@ -4,7 +4,7 @@ import {
   assertThrowsAsync,
 } from "https://deno.land/std@0.111.0/testing/asserts.ts";
 import { test } from "./test/tester.ts";
-import { BatchError } from "./denops.ts";
+import { BatchError } from "./errors.ts";
 
 test({
   mode: "all",

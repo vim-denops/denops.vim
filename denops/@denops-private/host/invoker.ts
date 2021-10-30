@@ -1,5 +1,5 @@
 import { Service } from "../service.ts";
-import { Meta } from "../../@denops/denops.ts";
+import type { Meta } from "../../@denops/types.ts";
 
 export type RegisterOptions = {
   /**

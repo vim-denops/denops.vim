@@ -12,7 +12,8 @@ import {
   WorkerWriter,
 } from "https://deno.land/x/workerio@v1.4.3/mod.ts#^";
 import { responseTimeout } from "../defs.ts";
-import { Denops, DenopsImpl, Meta } from "../../@denops/denops.ts";
+import { Denops, Meta } from "../../@denops/types.ts";
+import { DenopsImpl } from "./impl.ts";
 
 const worker = self as unknown as Worker;
 
