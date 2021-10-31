@@ -17,9 +17,12 @@ import { Denops, DenopsImpl, Meta } from "../../@denops/denops.ts";
 const worker = self as unknown as Worker;
 
 async function main(name: string, script: string, meta: Meta): Promise<void> {
+  // The dynamic import costs a bit so we immediately import the script but
+  // continue without waiting here.
+  // https://github.com/denoland/deno/issues/12519
+  const importer = import(toFileUrl(script).href);
   const reader = new WorkerReader(worker);
   const writer = new WorkerWriter(worker);
-  const mod = await import(toFileUrl(script).href);
   await using(
     new Session(reader, writer, {}, {
       responseTimeout,
@@ -36,6 +39,8 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
         .catch((e) =>
           console.warn(`Failed to emit DenopsPluginPre:${name}: ${e}`)
         );
+      // Await dynamic import here to complete
+      const mod = await importer;
       await mod.main(denops);
       await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPost:${name}`)
         .catch((e) =>
