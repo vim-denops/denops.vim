@@ -46,7 +46,7 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
       await session.waitClosed();
     },
   );
-  worker.terminate();
+  self.close();
 }
 
 function isMeta(v: unknown): v is Meta {
