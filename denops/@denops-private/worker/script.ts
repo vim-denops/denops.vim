@@ -1,4 +1,4 @@
-import { toFileUrl } from "https://deno.land/std@0.111.0/path/mod.ts";
+import { toFileUrl } from "https://deno.land/std@0.113.0/path/mod.ts";
 import {
   ensureObject,
   ensureString,
