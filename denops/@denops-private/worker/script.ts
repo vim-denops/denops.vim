@@ -39,13 +39,19 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
         .catch((e) =>
           console.warn(`Failed to emit DenopsPluginPre:${name}: ${e}`)
         );
-      // Await dynamic import here to complete
-      const mod = await importer;
-      await mod.main(denops);
-      await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPost:${name}`)
-        .catch((e) =>
-          console.warn(`Failed to emit DenopsPluginPost:${name}: ${e}`)
-        );
+      try {
+        // Await dynamic import here to complete
+        const mod = await importer;
+        await mod.main(denops);
+      } catch (e) {
+        console.error(`Failed to initialize plugin ${name}: ${e}`);
+        return;
+      } finally {
+        await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPost:${name}`)
+          .catch((e) =>
+            console.warn(`Failed to emit DenopsPluginPost:${name}: ${e}`)
+          );
+      }
       await session.waitClosed();
     },
   );
