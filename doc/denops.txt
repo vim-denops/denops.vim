@@ -86,7 +86,7 @@ VARIABLE						*denops-variable*
 	Interval in milliseconds to avoid infinity errors. Denops will reset
 	internal counter when the process keeps running more than this
 	interval.
-	Default: 1000
+	Default: 10000
 
 *g:denops#server#restart_threshold*
 	The number of restart count within |g:denops#server#restart_interval|.
