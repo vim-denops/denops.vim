@@ -4,7 +4,11 @@ import {
   isArray,
   isString,
 } from "https://deno.land/x/unknownutil@v1.1.4/mod.ts#^";
-import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
+import {
+  Dispatcher as SessionDispatcher,
+  Session,
+  SessionOptions,
+} from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
 import {
   WorkerReader,
   WorkerWriter,
@@ -19,7 +23,7 @@ const workerScript = "./worker/script.ts";
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
-export class Service {
+export class Service implements ServiceApi {
   #plugins: Map<string, { worker: Worker; session: Session }>;
   #host: Host;
 
@@ -64,31 +68,14 @@ export class Service {
       },
     );
     worker.postMessage({ name, script, meta });
-    const reader = new WorkerReader(worker);
-    const writer = new WorkerWriter(worker);
-    const session = new Session(reader, writer, {
-      call: async (fn, ...args) => {
-        ensureString(fn);
-        ensureArray(args);
-        return await this.call(fn, ...args);
+    const session = buildServiceSession(
+      new WorkerReader(worker),
+      new WorkerWriter(worker),
+      this,
+      {
+        responseTimeout,
       },
-
-      batch: async (...calls) => {
-        const isCall = (call: unknown): call is [string, ...unknown[]] =>
-          isArray(call) && call.length > 0 && isString(call[0]);
-        ensureArray(calls, isCall);
-        return await this.batch(...calls);
-      },
-
-      dispatch: async (name, fn, ...args) => {
-        ensureString(name);
-        ensureString(fn);
-        ensureArray(args);
-        return await this.dispatch(name, fn, args);
-      },
-    }, {
-      responseTimeout,
-    });
+    );
     this.#plugins.set(name, {
       session,
       worker,
@@ -101,7 +88,7 @@ export class Service {
 
   async batch(
     ...calls: [string, ...unknown[]][]
-  ): Promise<[unknown[], unknown]> {
+  ): Promise<[unknown[], string]> {
     return await this.#host.batch(...calls);
   }
 
@@ -122,4 +109,47 @@ export class Service {
   waitClosed(): Promise<void> {
     return this.#host.waitClosed();
   }
+}
+
+/**
+ * Service API interface visible through Msgpack RPC
+ */
+interface ServiceApi {
+  call(fn: string, ...args: unknown[]): Promise<unknown>;
+
+  batch(...calls: [string, ...unknown[]][]): Promise<[unknown[], string]>;
+
+  dispatch(name: string, fn: string, args: unknown[]): Promise<unknown>;
+}
+
+function buildServiceSession(
+  reader: Deno.Reader & Deno.Closer,
+  writer: Deno.Writer,
+  service: Service,
+  options?: SessionOptions,
+) {
+  const dispatcher: SessionDispatcher = {
+    call: async (fn, ...args) => {
+      ensureString(fn);
+      ensureArray(args);
+      return await service.call(fn, ...args);
+    },
+
+    batch: async (...calls) => {
+      ensureArray(calls, isCall);
+      return await service.batch(...calls);
+    },
+
+    dispatch: async (name, fn, ...args) => {
+      ensureString(name);
+      ensureString(fn);
+      ensureArray(args);
+      return await service.dispatch(name, fn, args);
+    },
+  };
+  return new Session(reader, writer, dispatcher, options);
+}
+
+function isCall(call: unknown): call is [string, ...unknown[]] {
+  return isArray(call) && call.length > 0 && isString(call[0]);
 }
