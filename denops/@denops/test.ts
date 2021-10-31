@@ -199,6 +199,11 @@ test({
   mode: "all",
   name: "denops.dispatch() invokes APIs of the plugin",
   fn: async (denops) => {
+    denops.dispatcher = {
+      hello(name: unknown): Promise<unknown> {
+        return Promise.resolve(`Hello ${name}`);
+      },
+    };
     assertEquals(
       await denops.dispatch(denops.name, "hello", "denops"),
       "Hello denops",
