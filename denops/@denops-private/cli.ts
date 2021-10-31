@@ -1,10 +1,11 @@
-import { flags, using } from "./deps.ts";
+import { parse } from "https://deno.land/std@0.113.0/flags/mod.ts";
+import { using } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
 import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
 import { TraceReader, TraceWriter } from "./tracer.ts";
 
-const opts = flags.parse(Deno.args);
+const opts = parse(Deno.args);
 
 // Check opts
 if (!opts.mode) {

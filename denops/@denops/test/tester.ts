@@ -1,6 +1,9 @@
-import { path, Session, using } from "../deps.ts";
-import { deadline } from "../deps_test.ts";
-import { Denops, DenopsImpl, Meta } from "../denops.ts";
+import * as path from "https://deno.land/std@0.113.0/path/mod.ts";
+import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
+import { using } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
+import { deadline } from "https://deno.land/std@0.113.0/async/mod.ts";
+import type { Denops, Meta } from "../mod.ts";
+import { DenopsImpl } from "../impl.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
 
 const DEFAULT_TIMEOUT = 1000;

@@ -1,7 +1,10 @@
-import { assertEquals, assertThrowsAsync } from "./deps_test.ts";
+import * as path from "https://deno.land/std@0.113.0/path/mod.ts";
+import {
+  assertEquals,
+  assertThrowsAsync,
+} from "https://deno.land/std@0.113.0/testing/asserts.ts";
 import { test } from "./test/tester.ts";
-import { BatchError } from "./denops.ts";
-import { path } from "./deps.ts";
+import { BatchError } from "./mod.ts";
 
 test({
   mode: "all",

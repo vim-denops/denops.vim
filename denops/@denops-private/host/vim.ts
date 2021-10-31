@@ -1,4 +1,9 @@
-import { VimMessage, VimSession } from "../deps.ts";
+import {
+  Session as VimSession,
+} from "https://deno.land/x/vim_channel_command@v0.7.1/mod.ts#^";
+import type {
+  Message as VimMessage,
+} from "https://deno.land/x/vim_channel_command@v0.7.1/mod.ts#^";
 import { responseTimeout } from "../defs.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";

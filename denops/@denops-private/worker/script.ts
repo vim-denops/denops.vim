@@ -1,25 +1,29 @@
+import { toFileUrl } from "https://deno.land/std@0.113.0/path/mod.ts";
 import {
   ensureObject,
   ensureString,
   isObject,
   isString,
-  path,
-  Session,
-  using,
+} from "https://deno.land/x/unknownutil@v1.1.4/mod.ts#^";
+import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
+import { using } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
+import {
   WorkerReader,
   WorkerWriter,
-} from "../deps.ts";
+} from "https://deno.land/x/workerio@v1.4.3/mod.ts#^";
 import { responseTimeout } from "../defs.ts";
-import { Denops, Meta } from "../../@denops/denops.ts";
-import { DenopsImpl } from "../../@denops/denops.ts";
+import type { Denops, Meta } from "../../@denops/mod.ts";
+import { DenopsImpl } from "../../@denops/impl.ts";
 
-// deno-lint-ignore no-explicit-any
-const worker = self as any as Worker;
+const worker = self as unknown as Worker;
 
 async function main(name: string, script: string, meta: Meta): Promise<void> {
+  // The dynamic import costs a bit so we immediately import the script but
+  // continue without waiting here.
+  // https://github.com/denoland/deno/issues/12519
+  const importer = import(toFileUrl(script).href);
   const reader = new WorkerReader(worker);
   const writer = new WorkerWriter(worker);
-  const mod = await import(path.toFileUrl(script).href);
   await using(
     new Session(reader, writer, {}, {
       responseTimeout,
@@ -32,21 +36,27 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
     }),
     async (session) => {
       const denops: Denops = new DenopsImpl(name, meta, session);
-      await denops.call(
-        "execute",
-        `doautocmd <nomodeline> User DenopsPluginPre:${name}`,
-        "",
-      );
-      await mod.main(denops);
-      await denops.call(
-        "execute",
-        `doautocmd <nomodeline> User DenopsPluginPost:${name}`,
-        "",
-      );
+      await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPre:${name}`)
+        .catch((e) =>
+          console.warn(`Failed to emit DenopsPluginPre:${name}: ${e}`)
+        );
+      try {
+        // Await dynamic import here to complete
+        const mod = await importer;
+        await mod.main(denops);
+      } catch (e) {
+        console.error(`Failed to initialize plugin ${name}: ${e}`);
+        return;
+      } finally {
+        await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPost:${name}`)
+          .catch((e) =>
+            console.warn(`Failed to emit DenopsPluginPost:${name}: ${e}`)
+          );
+      }
       await session.waitClosed();
     },
   );
-  worker.terminate();
+  self.close();
 }
 
 function isMeta(v: unknown): v is Meta {
