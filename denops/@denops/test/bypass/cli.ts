@@ -6,6 +6,11 @@ function unimplemented(): never {
 }
 
 export async function main(denops: Denops): Promise<void> {
+  denops.dispatcher = {
+    hello(name: unknown): Promise<unknown> {
+      return Promise.resolve(`Hello ${name}`);
+    },
+  };
   const addr = JSON.parse(Deno.env.get("DENOPS_TEST_ADDRESS") || "");
   const conn = await Deno.connect(addr);
   // Build a service session defined in `@denops-private/service.ts` MANUALLY here
@@ -28,8 +33,13 @@ export async function main(denops: Denops): Promise<void> {
       }
     },
 
-    dispatch(_name: unknown, _fn: unknown, _args: unknown): Promise<unknown> {
-      unimplemented();
+    async dispatch(
+      name: unknown,
+      fn: unknown,
+      args: unknown,
+    ): Promise<unknown> {
+      // deno-lint-ignore no-explicit-any
+      return await denops.dispatch(name as any, fn as any, args as any);
     },
   });
   await session.waitClosed();

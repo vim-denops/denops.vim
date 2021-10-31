@@ -194,3 +194,14 @@ test({
     ]);
   },
 });
+
+test({
+  mode: "all",
+  name: "denops.dispatch() invokes APIs of the plugin",
+  fn: async (denops) => {
+    assertEquals(
+      await denops.dispatch(denops.name, "hello", "denops"),
+      "Hello denops",
+    );
+  },
+});
