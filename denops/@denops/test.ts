@@ -1,7 +1,7 @@
 import * as path from "https://deno.land/std@0.119.0/path/mod.ts";
 import {
   assertEquals,
-  assertThrowsAsync,
+  assertRejects,
 } from "https://deno.land/std@0.119.0/testing/asserts.ts";
 import { test } from "./test/tester.ts";
 import { BatchError } from "./mod.ts";
@@ -21,7 +21,7 @@ test({
   mode: "all",
   name: "denops.call() calls a Vim/Neovim function and throw an error",
   fn: async (denops) => {
-    await assertThrowsAsync(
+    await assertRejects(
       async () => {
         await denops.call("no-such-function");
       },
@@ -78,7 +78,7 @@ test({
   mode: "all",
   name: "denops.cmd() invoke a Vim/Neovim command and throw an error",
   fn: async (denops) => {
-    await assertThrowsAsync(
+    await assertRejects(
       async () => {
         await denops.cmd("NoSuchCommand");
       },
@@ -107,7 +107,7 @@ test({
   mode: "all",
   name: "denops.eval() evaluate a Vim/Neovim expression and throw an error",
   fn: async (denops) => {
-    await assertThrowsAsync(
+    await assertRejects(
       async () => {
         await denops.eval("g:no_such_variable");
       },
@@ -137,7 +137,7 @@ test({
   name:
     "denops.batch() calls multiple Vim/Neovim functions and throws an error with results",
   fn: async (denops) => {
-    await assertThrowsAsync(async () => {
+    await assertRejects(async () => {
       await denops.batch(
         ["range", 1],
         ["no-such-function", 2],
