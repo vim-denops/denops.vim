@@ -17,7 +17,7 @@ INTERFACE				|denops-interface|
 INTRODUCTION					*denops-introduction*
 
 *denops.vim* (denops) is an eco-system to write plugins for Vim or Neovim in
-Deno. 
+Deno.
 
 See denops.vim Wiki for learning how to write denops plugins.
 
@@ -104,6 +104,8 @@ denops#notify({plugin}, {method}, {params})
 	Call API {method} of {plugin} with {params} and return immediately
 	without waiting a result.
 	Use |denops#request()| instead if you need a result.
+        Note: It does not redraw in Vim environment.  You need to execute
+        |:redraw| manually if it is needed.
 
 						*denops#request()*
 denops#request({plugin}, {method}, {params})
