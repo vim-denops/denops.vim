@@ -1,4 +1,4 @@
-let s:deno_version = '1.14.0'
+let s:deno_version = '1.17.1'
 let s:vim_version = '8.2.3081'
 let s:neovim_version = '0.5.0'
 
