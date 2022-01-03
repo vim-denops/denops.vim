@@ -88,32 +88,31 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-deno-${{ matrix.version }}-
             ${{ runner.os }}-deno-
-      - uses: thinca/action-setup-vim@v1
+      - uses: rhysd/action-setup-vim@v1
         id: vim
         with:
-          vim_type: "Vim"
-          vim_version: "${{ matrix.host_version.vim }}"
-          download: "never"
+          neovim: false
+          version: "${{ matrix.host_version.vim }}"
       - name: Check Vim
         run: |
           echo ${DENOPS_TEST_VIM}
           ${DENOPS_TEST_VIM} --version
         env:
-          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable_path }}
-      - uses: thinca/action-setup-vim@v1
+          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
+      - uses: rhysd/action-setup-vim@v1
         id: nvim
         with:
-          vim_type: "Neovim"
-          vim_version: "${{ matrix.host_version.nvim }}"
+          neovim: true
+          version: "${{ matrix.host_version.nvim }}"
       - name: Check Neovim
         run: |
           echo ${DENOPS_TEST_NVIM}
           ${DENOPS_TEST_NVIM} --version
         env:
-          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable_path }}
+          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
       - name: Test
         run: make test
         env:
-          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable_path }}
-          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable_path }}
+          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
+          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
         timeout-minutes: 5
