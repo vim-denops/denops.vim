@@ -90,6 +90,6 @@ worker.addEventListener("message", (event: MessageEvent<unknown>) => {
   }
   const { name, script, meta } = event.data;
   main(name, script, meta).catch((e) => {
-    console.error(`Unexpected error occured in '${name}' (${script}): ${e}`);
+    console.error(`Unexpected error occurred in '${name}' (${script}): ${e}`);
   });
 }, { once: true });

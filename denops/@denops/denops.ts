@@ -65,7 +65,7 @@ export interface Denops {
    * @param fn: A function name of Vim/Neovim.
    * @param args: Arguments of the function.
    *
-   * Note that aruguments after `undefined` in `args` will be dropped for convenience.
+   * Note that arguments after `undefined` in `args` will be dropped for convenience.
    */
   call(fn: string, ...args: unknown[]): Promise<unknown>;
 
@@ -74,12 +74,12 @@ export interface Denops {
    * return the results.
    *
    * It throw a BatchError when one of a function fails. The `results` attribute
-   * of the error instance holds successed results of functions prior to the
+   * of the error instance holds succeeded results of functions prior to the
    * error.
    *
    * @param calls: A list of tuple ([fn, args]) to call Vim/Neovim functions.
    *
-   * Note that aruguments after `undefined` in `args` will be dropped for convenience.
+   * Note that arguments after `undefined` in `args` will be dropped for convenience.
    */
   batch(...calls: [string, ...unknown[]][]): Promise<unknown[]>;
 
