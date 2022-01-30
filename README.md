@@ -3,9 +3,9 @@
 <strong>Denops</strong><br>
 <sup>An ecosystem of Vim/Neovim which allows developers to write plugins in Deno.</sup>
 
-[![Deno 1.14.0 or above](https://img.shields.io/badge/Deno-Support%201.14.0-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v1.14.0)
-[![Vim 8.2.3081 or above](https://img.shields.io/badge/Vim-Support%208.2.3081-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v8.2.3081)
-[![Neovim 0.5.0 or above](https://img.shields.io/badge/Neovim-Support%200.5.0-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.5.0)
+[![Deno 1.17.1 or above](https://img.shields.io/badge/Deno-Support%201.17.1-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v1.17.1)
+[![Vim 8.2.3452 or above](https://img.shields.io/badge/Vim-Support%208.2.3452-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v8.2.3452)
+[![Neovim 0.6.0 or above](https://img.shields.io/badge/Neovim-Support%200.6.0-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.6.0)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![deno land](http://img.shields.io/badge/available%20on-deno.land/x/denops__core-lightgrey.svg?logo=deno)](https://deno.land/x/denops_core)

@@ -1,8 +1,8 @@
-import * as path from "https://deno.land/std@0.119.0/path/mod.ts";
+import * as path from "https://deno.land/std@0.123.0/path/mod.ts";
 import {
   assertEquals,
   assertRejects,
-} from "https://deno.land/std@0.119.0/testing/asserts.ts";
+} from "https://deno.land/std@0.123.0/testing/asserts.ts";
 import { test } from "./test/tester.ts";
 import { BatchError } from "./mod.ts";
 
@@ -29,7 +29,6 @@ test({
       "E117: Unknown function: no-such-function",
     );
   },
-  prelude: ["let g:denops#enable_workaround_vim_before_8_2_3081 = 1"],
 });
 
 test({
@@ -86,7 +85,6 @@ test({
       "E492: Not an editor command: NoSuchCommand",
     );
   },
-  prelude: ["let g:denops#enable_workaround_vim_before_8_2_3081 = 1"],
 });
 
 test({
@@ -117,7 +115,6 @@ test({
       // Neovim: "E121: Undefined variable: g:no_such_variable",
     );
   },
-  prelude: ["let g:denops#enable_workaround_vim_before_8_2_3081 = 1"],
 });
 
 test({
@@ -145,7 +142,6 @@ test({
       );
     }, BatchError);
   },
-  prelude: ["let g:denops#enable_workaround_vim_before_8_2_3081 = 1"],
 });
 
 test({

@@ -35,7 +35,7 @@ jobs:
         runner:
           - ubuntu-latest
         version:
-          - "1.14.0"
+          - "1.17.1"
           - "1.x"
     runs-on: ${{ matrix.runner }}
     steps:
@@ -67,11 +67,11 @@ jobs:
           - macos-latest
           - ubuntu-latest
         version:
-          - "1.14.0"
+          - "1.17.1"
           - "1.x"
         host_version:
-          - vim: "v8.2.3081"
-            nvim: "v0.5.0"
+          - vim: "v8.2.3452"
+            nvim: "v0.6.0"
     runs-on: ${{ matrix.runner }}
     steps:
       - run: git config --global core.autocrlf false
