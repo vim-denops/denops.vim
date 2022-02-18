@@ -6,7 +6,13 @@ function! denops#plugin#is_loaded(plugin) abort
 endfunction
 
 function! denops#plugin#wait(plugin, ...) abort
-  if has_key(s:loaded_plugins, a:plugin)
+  let value = get(s:loaded_plugins, a:plugin, v:null)
+  if value isnot# v:null
+    if type(value) is# v:t_string
+      echohl Error
+      echomsg value
+      echohl None
+    endif
     return
   endif
   let options = extend({
@@ -20,7 +26,13 @@ function! denops#plugin#wait(plugin, ...) abort
 endfunction
 
 function! denops#plugin#wait_async(plugin, callback) abort
-  if has_key(s:loaded_plugins, a:plugin)
+  let value = get(s:loaded_plugins, a:plugin, v:null)
+  if value isnot# v:null
+    if type(value) is# v:t_string
+      echohl Error
+      echomsg value
+      echohl None
+    endif
     " Some features behave differently in functions invoked from timer_start()
     " so use it even for immediate execution to keep consistent behavior.
     call timer_start(0, { -> a:callback() })
@@ -109,9 +121,21 @@ function! s:DenopsPluginPost() abort
   endfor
 endfunction
 
+function! s:DenopsPluginFail() abort
+  let m = matchlist(expand('<amatch>'), 'DenopsPluginFail:\([^:]\+\):\(.*\)')
+  let plugin = m[1]
+  let err = m[2]
+  let s:loaded_plugins[plugin] = err
+  if !has_key(s:load_callbacks, plugin)
+    return
+  endif
+  let callbacks = remove(s:load_callbacks, plugin)
+endfunction
+
 augroup denops_autoload_plugin_internal
   autocmd!
   autocmd User DenopsPluginPost:* call s:DenopsPluginPost()
+  autocmd User DenopsPluginFail:* call s:DenopsPluginFail()
   autocmd User DenopsStopped let s:loaded_plugins = {}
 augroup END
 

@@ -20,7 +20,6 @@ const worker = self as unknown as Worker;
 async function main(name: string, script: string, meta: Meta): Promise<void> {
   const reader = new WorkerReader(worker);
   const writer = new WorkerWriter(worker);
-  const mod = await import(toFileUrl(script).href);
   await using(
     new Session(reader, writer, {}, {
       responseTimeout,
@@ -33,22 +32,27 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
     }),
     async (session) => {
       const denops: Denops = new DenopsImpl(name, meta, session);
-      await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPre:${name}`)
-        .catch((e) =>
-          console.warn(`Failed to emit DenopsPluginPre:${name}: ${e}`)
-        );
       try {
+        const mod = await import(toFileUrl(script).href);
+        await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPre:${name}`)
+          .catch((e) =>
+            console.warn(`Failed to emit DenopsPluginPre:${name}: ${e}`)
+          );
         await mod.main(denops);
-      } catch (e) {
-        console.error(`Failed to initialize plugin ${name}: ${e}`);
-        return;
-      } finally {
         await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPost:${name}`)
           .catch((e) =>
             console.warn(`Failed to emit DenopsPluginPost:${name}: ${e}`)
           );
+      } catch (e) {
+        await denops.cmd(
+          `doautocmd <nomodeline> User DenopsPluginFail:${name}:${e}`,
+        )
+          .catch((e) =>
+            console.warn(`Failed to emit DenopsPluginFail:${name}: ${e}`)
+          );
+      } finally {
+        await session.waitClosed();
       }
-      await session.waitClosed();
     },
   );
   self.close();
