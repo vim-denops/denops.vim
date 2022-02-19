@@ -96,6 +96,10 @@ VARIABLE						*denops-variable*
 	Interval in milliseconds for |denops#plugin#wait()|.
 	Default: 10
 
+*g:denops#plugin#wait_timeout*
+	Timeout in milliseconds for |denops#plugin#wait()|.
+	Default: 5000
+
 -----------------------------------------------------------------------------
 FUNCTION						*denops-function*
 
@@ -160,10 +164,18 @@ denops#plugin#is_loaded({plugin})
 denops#plugin#wait({plugin}[, {options}])
 	Wait synchronously until a {plugin} plugin is loaded. It returns
 	immediately when the {plugin} plugin is already loaded.
+	It returns -1 if it timed out, -2 if the server is not yet ready, or
+	-3 if the plugin initialization failed.
+	Developers need to consider this return value to decide whether to
+	continue with the subsequent process.
 	The following attributes are available on {options}.
 
 	"interval"	Interval in milliseconds for |sleep| in internal loop.
 			Default: |g:denops#plugin#wait_interval|
+	"timeout"	Timeout in milliseconds to block.
+			Default: |g:denops#plugin#wait_timeout|
+	"silent"	1 to silence error messages.
+			Default: 0
 
 						*denops#plugin#wait_async()*
 denops#plugin#wait_async({plugin}, {callback})

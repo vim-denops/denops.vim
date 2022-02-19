@@ -6,32 +6,45 @@ function! denops#plugin#is_loaded(plugin) abort
 endfunction
 
 function! denops#plugin#wait(plugin, ...) abort
-  let value = get(s:loaded_plugins, a:plugin, v:null)
-  if value isnot# v:null
-    if type(value) is# v:t_string
-      echohl Error
-      echomsg value
-      echohl None
-    endif
-    return
-  endif
   let options = extend({
         \ 'interval': g:denops#plugin#wait_interval,
+        \ 'timeout': g:denops#plugin#wait_timeout,
+        \ 'silent': 0,
         \}, a:0 ? a:1 : {},
         \)
-  let expr = printf('sleep %dm', options.interval)
-  while !has_key(s:loaded_plugins, a:plugin)
-    execute expr
-  endwhile
+  if !denops#server#status() ==# 'running'
+    if !options.silent
+      call denops#util#error(printf(
+            \ 'Failed to wait for "%s" to start. Denops server itself is not ready yet.',
+            \ a:plugin,
+            \))
+    endif
+    return -2
+  endif
+  if has_key(s:loaded_plugins, a:plugin)
+    return s:loaded_plugins[a:plugin]
+  endif
+  let ret = denops#util#wait(
+        \ options.timeout,
+        \ { -> !has_key(s:loaded_plugins, a:plugin) },
+        \ options.interval,
+        \)
+  if ret is# -1
+    if !options.silent
+      call denops#util#error(printf(
+            \ 'Failed to wait for "%s" to start. It took more than %d milliseconds and timed out.',
+            \ a:plugin,
+            \ options.timeout,
+            \))
+    endif
+    return -1
+  endif
 endfunction
 
 function! denops#plugin#wait_async(plugin, callback) abort
-  let value = get(s:loaded_plugins, a:plugin, v:null)
-  if value isnot# v:null
-    if type(value) is# v:t_string
-      echohl Error
-      echomsg value
-      echohl None
+  if has_key(s:loaded_plugins, a:plugin)
+    if s:loaded_plugins[a:plugin] isnot# 0
+      return
     endif
     " Some features behave differently in functions invoked from timer_start()
     " so use it even for immediate execution to keep consistent behavior.
@@ -65,6 +78,7 @@ function! denops#plugin#discover(...) abort
         \})
   let plugins = {}
   call s:gather_plugins(plugins)
+  call denops#util#debug(printf('%d plugins are discovered', len(plugins)))
   for [plugin, script] in items(plugins)
     call s:register(plugin, script, meta, options)
   endfor
@@ -107,7 +121,7 @@ endfunction
 
 function! s:DenopsPluginPost() abort
   let plugin = matchstr(expand('<amatch>'), 'DenopsPluginPost:\zs.*')
-  let s:loaded_plugins[plugin] = 1
+  let s:loaded_plugins[plugin] = 0
   if !has_key(s:load_callbacks, plugin)
     return
   endif
@@ -122,14 +136,12 @@ function! s:DenopsPluginPost() abort
 endfunction
 
 function! s:DenopsPluginFail() abort
-  let m = matchlist(expand('<amatch>'), 'DenopsPluginFail:\([^:]\+\):\(.*\)')
-  let plugin = m[1]
-  let err = m[2]
-  let s:loaded_plugins[plugin] = err
+  let plugin = matchstr(expand('<amatch>'), 'DenopsPluginPost:\zs.*')
+  let s:loaded_plugins[plugin] = -3
   if !has_key(s:load_callbacks, plugin)
     return
   endif
-  let callbacks = remove(s:load_callbacks, plugin)
+  call remove(s:load_callbacks, plugin)
 endfunction
 
 augroup denops_autoload_plugin_internal
@@ -140,3 +152,4 @@ augroup denops_autoload_plugin_internal
 augroup END
 
 let g:denops#plugin#wait_interval = get(g:, 'denops#plugin#wait_interval', 10)
+let g:denops#plugin#wait_timeout = get(g:, 'denops#plugin#wait_timeout', 5000)
