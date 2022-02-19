@@ -63,6 +63,25 @@ function! denops#util#join_path(...) abort
   return join(a:000, s:sep)
 endfunction
 
+function! denops#util#wait(timeout, condition, interval) abort
+  return s:wait(a:timeout, a:condition, a:interval)
+endfunction
+
+if exists('*wait')
+  let s:wait = function('wait')
+else
+  function! s:wait(timeout, condition, interval) abort
+    let waiter = printf('sleep %dm', a:interval)
+    let s = reltime()
+    while a:condition()
+      if reltimefloat(reltime(s)) * 1000 > a:timeout
+        return -1
+      endif
+      execute waiter
+    endwhile
+  endfunction
+endif
+
 if has('nvim')
   function! s:get_host_version() abort
     let output = execute('version')
