@@ -44,8 +44,9 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
             console.warn(`Failed to emit DenopsPluginPost:${name}: ${e}`)
           );
       } catch (e) {
+        console.error(`${name}: ${e}`);
         await denops.cmd(
-          `doautocmd <nomodeline> User DenopsPluginFail:${name}:${e}`,
+          `doautocmd <nomodeline> User DenopsPluginFail:${name}`,
         )
           .catch((e) =>
             console.warn(`Failed to emit DenopsPluginFail:${name}: ${e}`)
