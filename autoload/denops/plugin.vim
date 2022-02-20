@@ -26,7 +26,7 @@ function! denops#plugin#wait(plugin, ...) abort
   endif
   let ret = denops#util#wait(
         \ options.timeout,
-        \ { -> !has_key(s:loaded_plugins, a:plugin) },
+        \ { -> has_key(s:loaded_plugins, a:plugin) },
         \ options.interval,
         \)
   if ret is# -1

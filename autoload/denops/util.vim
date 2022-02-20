@@ -73,7 +73,7 @@ else
   function! s:wait(timeout, condition, interval) abort
     let waiter = printf('sleep %dm', a:interval)
     let s = reltime()
-    while a:condition()
+    while !a:condition()
       if reltimefloat(reltime(s)) * 1000 > a:timeout
         return -1
       endif
