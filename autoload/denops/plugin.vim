@@ -136,7 +136,7 @@ function! s:DenopsPluginPost() abort
 endfunction
 
 function! s:DenopsPluginFail() abort
-  let plugin = matchstr(expand('<amatch>'), 'DenopsPluginPost:\zs.*')
+  let plugin = matchstr(expand('<amatch>'), 'DenopsPluginFail:\zs.*')
   let s:loaded_plugins[plugin] = -3
   if !has_key(s:load_callbacks, plugin)
     return
