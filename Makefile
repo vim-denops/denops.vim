@@ -1,4 +1,4 @@
-TOOLS := ${CURDIR}/.tools
+TARGETS := $$(find . \( -name '*.ts' -or -name '*.md' \) -not -path './.deno/*')
 
 .DEFAULT_GOAL := help
 
@@ -6,10 +6,6 @@ help:
 	@cat $(MAKEFILE_LIST) | \
 	    perl -ne 'print if /^\w+.*##/;' | \
 	    perl -pe 's/(.*):.*##\s*/sprintf("%-20s",$$1)/eg;'
-
-tools: FORCE	## Install development tools
-	@mkdir -p ${TOOLS}
-	@deno install -A -f -n udd --root ${TOOLS} https://deno.land/x/udd@0.7.2/main.ts
 
 fmt: FORCE	## Format code
 	@deno fmt --config deno.jsonc
@@ -21,13 +17,13 @@ lint: FORCE	## Lint code
 	@deno lint --config deno.jsonc
 
 type-check: FORCE	## Type check
-	@deno test --unstable --no-run $$(find . -name '*.ts' -not -name '.deno')
+	@deno test --unstable --no-run ${TARGETS}
 
 test: FORCE	## Test
 	@deno test --unstable -A --no-check --jobs
 
-update: FORCE	## Update dependencies
-	@${TOOLS}/bin/udd $$(find . -name '*.ts' -not -name '.deno')
+deps: FORCE	## Update dependencies
+	@deno run -A https://deno.land/x/udd@0.7.2/main.ts ${TARGETS}
 	@make fmt
 
 FORCE:
