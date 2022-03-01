@@ -1,10 +1,10 @@
 import { toFileUrl } from "https://deno.land/std@0.127.0/path/mod.ts";
 import {
-  ensureObject,
-  ensureString,
+  assertObject,
+  assertString,
   isObject,
   isString,
-} from "https://deno.land/x/unknownutil@v1.2.1/mod.ts#^";
+} from "https://deno.land/x/unknownutil@v2.0.0/mod.ts#^";
 import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
 import { using } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
 import {
@@ -82,9 +82,9 @@ function isMeta(v: unknown): v is Meta {
 
 // Wait startup arguments and start 'main'
 worker.addEventListener("message", (event: MessageEvent<unknown>) => {
-  ensureObject(event.data);
-  ensureString(event.data.name);
-  ensureString(event.data.script);
+  assertObject(event.data);
+  assertString(event.data.name);
+  assertString(event.data.script);
   if (!isMeta(event.data.meta)) {
     throw new Error(`Invalid 'meta' is passed: ${event.data.meta}`);
   }

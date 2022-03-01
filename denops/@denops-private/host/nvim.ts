@@ -1,7 +1,7 @@
 import {
-  ensureArray,
-  ensureString,
-} from "https://deno.land/x/unknownutil@v1.2.1/mod.ts#^";
+  assertArray,
+  assertString,
+} from "https://deno.land/x/unknownutil@v2.0.0/mod.ts#^";
 import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
 import { responseTimeout } from "../defs.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
@@ -39,8 +39,8 @@ export class Neovim implements Host {
   register(invoker: Invoker): void {
     this.#session.dispatcher = {
       async invoke(method: unknown, args: unknown): Promise<unknown> {
-        ensureString(method);
-        ensureArray(args);
+        assertString(method);
+        assertArray(args);
         if (!isInvokerMethod(method)) {
           throw new Error(`Method '${method}' is not defined in the invoker`);
         }
