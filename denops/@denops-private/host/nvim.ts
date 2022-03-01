@@ -1,7 +1,7 @@
 import {
   ensureArray,
   ensureString,
-} from "https://deno.land/x/unknownutil@v1.1.4/mod.ts#^";
+} from "https://deno.land/x/unknownutil@v1.2.1/mod.ts#^";
 import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
 import { responseTimeout } from "../defs.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";

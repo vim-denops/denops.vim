@@ -1,10 +1,10 @@
-import { toFileUrl } from "https://deno.land/std@0.123.0/path/mod.ts";
+import { toFileUrl } from "https://deno.land/std@0.127.0/path/mod.ts";
 import {
   ensureObject,
   ensureString,
   isObject,
   isString,
-} from "https://deno.land/x/unknownutil@v1.1.4/mod.ts#^";
+} from "https://deno.land/x/unknownutil@v1.2.1/mod.ts#^";
 import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
 import { using } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
 import {

@@ -3,7 +3,7 @@ import {
   ensureString,
   isArray,
   isString,
-} from "https://deno.land/x/unknownutil@v1.1.4/mod.ts#^";
+} from "https://deno.land/x/unknownutil@v1.2.1/mod.ts#^";
 import {
   Dispatcher as SessionDispatcher,
   Session,
