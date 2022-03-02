@@ -152,4 +152,4 @@ augroup denops_autoload_plugin_internal
 augroup END
 
 let g:denops#plugin#wait_interval = get(g:, 'denops#plugin#wait_interval', 10)
-let g:denops#plugin#wait_timeout = get(g:, 'denops#plugin#wait_timeout', 5000)
+let g:denops#plugin#wait_timeout = get(g:, 'denops#plugin#wait_timeout', 30000)

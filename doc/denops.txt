@@ -98,7 +98,7 @@ VARIABLE						*denops-variable*
 
 *g:denops#plugin#wait_timeout*
 	Timeout in milliseconds for |denops#plugin#wait()|.
-	Default: 5000
+	Default: 30000
 
 -----------------------------------------------------------------------------
 FUNCTION						*denops-function*
