@@ -1,9 +1,9 @@
 import {
-  ensureArray,
-  ensureString,
+  assertArray,
+  assertString,
   isArray,
   isString,
-} from "https://deno.land/x/unknownutil@v1.1.4/mod.ts#^";
+} from "https://deno.land/x/unknownutil@v2.0.0/mod.ts#^";
 import {
   Dispatcher as SessionDispatcher,
   Session,
@@ -130,20 +130,20 @@ function buildServiceSession(
 ) {
   const dispatcher: SessionDispatcher = {
     call: async (fn, ...args) => {
-      ensureString(fn);
-      ensureArray(args);
+      assertString(fn);
+      assertArray(args);
       return await service.call(fn, ...args);
     },
 
     batch: async (...calls) => {
-      ensureArray(calls, isCall);
+      assertArray(calls, isCall);
       return await service.batch(...calls);
     },
 
     dispatch: async (name, fn, ...args) => {
-      ensureString(name);
-      ensureString(fn);
-      ensureArray(args);
+      assertString(name);
+      assertString(fn);
+      assertArray(args);
       return await service.dispatch(name, fn, args);
     },
   };
