@@ -12,10 +12,10 @@ function! denops#plugin#wait(plugin, ...) abort
         \ 'silent': 0,
         \}, a:0 ? a:1 : {},
         \)
-  if denops#server#status() !=# 'running'
+  if denops#server#status() ==# 'stopped'
     if !options.silent
       call denops#util#error(printf(
-            \ 'Failed to wait for "%s" to start. Denops server itself is not ready yet.',
+            \ 'Failed to wait for "%s" to start. Denops server itself is not started.',
             \ a:plugin,
             \))
     endif
