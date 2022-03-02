@@ -164,8 +164,8 @@ denops#plugin#is_loaded({plugin})
 denops#plugin#wait({plugin}[, {options}])
 	Wait synchronously until a {plugin} plugin is loaded. It returns
 	immediately when the {plugin} plugin is already loaded.
-	It returns -1 if it timed out, -2 if the server is not yet ready, or
-	-3 if the plugin initialization failed.
+	It returns -1 if it timed out, -2 if the server is not yet ready or
+	interrupted, or -3 if the plugin initialization failed.
 	Developers need to consider this return value to decide whether to
 	continue with the subsequent process.
 	The following attributes are available on {options}.
