@@ -1,5 +1,6 @@
 let s:sep = has('win32') ? '\' : '/'
 let s:root = expand('<sfile>:h:h:h')
+let s:wait_warning_time = 5000
 
 function! denops#util#meta() abort
   let mode = g:denops#_test ? 'test' : g:denops#debug ? 'debug' : 'release'
@@ -67,18 +68,46 @@ function! denops#util#wait(timeout, condition, interval) abort
   return s:wait(a:timeout, a:condition, a:interval)
 endfunction
 
+function! s:warn_wait() abort
+  let m = printf(
+        \ 'It tooks more than %d ms. Use Ctrl-C to cancel.',
+        \ s:wait_warning_time,
+        \)
+  call denops#util#warn(m)
+endfunction
+
 if exists('*wait')
-  let s:wait = function('wait')
+  function! s:wait(timeout, condition, interval) abort
+    let t = timer_start(
+          \ s:wait_warning_time,
+          \ { -> s:warn_wait() },
+          \)
+    try
+      return wait(a:timeout, a:condition, a:interval)
+    finally
+      silent! call timer_stop(t)
+    endtry
+  endfunction
 else
   function! s:wait(timeout, condition, interval) abort
+    let t = timer_start(
+          \ s:wait_warning_time,
+          \ { -> s:warn_wait() },
+          \)
     let waiter = printf('sleep %dm', a:interval)
     let s = reltime()
-    while !a:condition()
-      if reltimefloat(reltime(s)) * 1000 > a:timeout
-        return -1
-      endif
-      execute waiter
-    endwhile
+    try
+      while !a:condition()
+        if reltimefloat(reltime(s)) * 1000 > a:timeout
+          return -1
+        endif
+        execute waiter
+      endwhile
+    catch /^Vim:Interrupt$/
+      return -2
+    finally
+      silent! call timer_stop(t)
+    endtry
   endfunction
 endif
 
