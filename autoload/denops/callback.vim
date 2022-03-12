@@ -5,7 +5,7 @@ function! denops#callback#register(callback, ...) abort
         \ 'once': v:false,
         \}, a:0 ? a:1 : {},
         \)
-  let id = sha256(string(get(a:callback, 'func')))
+  let id = sha256(string(a:callback))
   let s:registry[id] = {
         \ 'callback': a:callback,
         \ 'options': options,
