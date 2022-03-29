@@ -16,7 +16,7 @@ jobs:
   vimlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: reviewdog/action-vint@v1
         with:
           github_token: ${{ secrets.github_token }}
