@@ -72,9 +72,9 @@ of the code in the `denops/@denops` directory that is published to deno.land as
 `denops_core`. That's why we won't bump versions when there are no changes on
 code in that directory.
 
-## Developpers
+## Developers
 
-Denops is mainly developped by members of [vim-jp][vim-jp].
+Denops is mainly developed by members of [vim-jp][vim-jp].
 
 ## Inspired by
 
