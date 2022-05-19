@@ -1,4 +1,4 @@
-import type { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
+import type { Session } from "https://deno.land/x/msgpack_rpc@v3.1.5/mod.ts#^";
 import { BatchError, Context, Denops, Dispatcher, Meta } from "./mod.ts";
 
 export class DenopsImpl implements Denops {

@@ -8,11 +8,11 @@ import {
   Dispatcher as SessionDispatcher,
   Session,
   SessionOptions,
-} from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
+} from "https://deno.land/x/msgpack_rpc@v3.1.5/mod.ts#^";
 import {
   WorkerReader,
   WorkerWriter,
-} from "https://deno.land/x/workerio@v1.4.3/mod.ts#^";
+} from "https://deno.land/x/workerio@v1.4.4/mod.ts#^";
 import { responseTimeout } from "./defs.ts";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions } from "./host/invoker.ts";

@@ -2,7 +2,7 @@ import {
   assertArray,
   assertString,
 } from "https://deno.land/x/unknownutil@v2.0.0/mod.ts#^";
-import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
+import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.5/mod.ts#^";
 import { responseTimeout } from "../defs.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";

@@ -1,16 +1,16 @@
-import { toFileUrl } from "https://deno.land/std@0.127.0/path/mod.ts";
+import { toFileUrl } from "https://deno.land/std@0.140.0/path/mod.ts";
 import {
   assertObject,
   assertString,
   isObject,
   isString,
 } from "https://deno.land/x/unknownutil@v2.0.0/mod.ts#^";
-import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.4/mod.ts#^";
+import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.5/mod.ts#^";
 import { using } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
 import {
   WorkerReader,
   WorkerWriter,
-} from "https://deno.land/x/workerio@v1.4.3/mod.ts#^";
+} from "https://deno.land/x/workerio@v1.4.4/mod.ts#^";
 import { responseTimeout } from "../defs.ts";
 import type { Denops, Meta } from "../../@denops/mod.ts";
 import { DenopsImpl } from "../../@denops/impl.ts";
