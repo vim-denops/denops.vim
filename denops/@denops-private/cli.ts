@@ -38,6 +38,7 @@ for await (const conn of listener) {
 
   // Detect host from payload
   const hostClass = await detectHost(r1);
+  r1.close();
 
   // Create host and service
   using(new hostClass(r2, writer), async (host) => {
