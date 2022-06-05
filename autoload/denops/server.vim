@@ -178,7 +178,7 @@ else
           \ 'mode': 'json',
           \ 'drop': 'auto',
           \ 'noblock': 1,
-          \ 'timeout': 60 * 60 * 24 * 7,
+          \ 'timeout': 1000 * 60 * 60 * 24 * 7,
           \})
     if ch_status(chan) !=# 'open'
       throw printf('Failed to connect `%s`', a:address)
