@@ -4,13 +4,22 @@ import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
 import { TraceReader, TraceWriter } from "./tracer.ts";
+import { tee } from "./tee.ts";
+
+type Host = typeof Vim | typeof Neovim;
+
+async function detectHost(reader: Deno.Reader): Promise<Host> {
+  const marks = new TextEncoder().encode('[{tf"0123456789');
+  const chunk = new Uint8Array(1);
+  await reader.read(chunk);
+  const mark = chunk.at(0);
+  if (mark && marks.includes(mark)) {
+    return Vim;
+  }
+  return Neovim;
+}
 
 const opts = parse(Deno.args);
-
-// Check opts
-if (!opts.mode) {
-  throw new Error("No `--mode` option is specified.");
-}
 
 const listener = Deno.listen({
   hostname: "127.0.0.1",
@@ -25,8 +34,12 @@ for await (const conn of listener) {
   const reader = opts.trace ? new TraceReader(conn) : conn;
   const writer = opts.trace ? new TraceWriter(conn) : conn;
 
+  const [r1, r2] = tee(reader);
+
+  // Detect host from payload
+  const hostClass = await detectHost(r1);
+
   // Create host and service
-  const hostClass = opts.mode === "vim" ? Vim : Neovim;
   await using(new hostClass(reader, writer), async (host) => {
     const service = new Service(host);
     await service.waitClosed();

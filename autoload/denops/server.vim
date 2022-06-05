@@ -17,10 +17,7 @@ function! denops#server#start() abort
   endif
   let args = [g:denops#server#deno, 'run']
   let args += g:denops#server#deno_args
-  let args += [
-        \ s:script,
-        \ '--mode=' . s:engine,
-        \]
+  let args += [s:script]
   if g:denops#trace
     let args += ['--trace']
   endif
