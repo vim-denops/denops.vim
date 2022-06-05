@@ -22,8 +22,8 @@ async function detectHost(reader: Deno.Reader): Promise<Host> {
 const opts = parse(Deno.args);
 
 const listener = Deno.listen({
-  hostname: "127.0.0.1",
-  port: 0, // Automatically select free port
+  hostname: opts.hostname ?? "127.0.0.1",
+  port: opts.port ?? 0, // Automatically select free port
 });
 
 // Let host know the address
