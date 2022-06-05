@@ -7,6 +7,8 @@ License: MIT license
 CONTENTS					*denops-contents*
 
 INTRODUCTION					|denops-introduction|
+USAGE					|denops-usage|
+  GLOBAL SERVER				|denops-global-server|
 INTERFACE				|denops-interface|
   VARIABLE				|denops-variable|
   FUNCTION				|denops-function|
@@ -25,6 +27,31 @@ https://github.com/vim-denops/denops.vim/wiki
 
 
 =============================================================================
+USAGE							*denops-usage*
+
+-----------------------------------------------------------------------------
+GLOBAL SERVER					*denops-global-server*
+
+Normally, a Denops server is started for each Vim/Neovim instance, but there 
+are cases where the process startup becomes a bottleneck and impairs usability.
+
+In such cases, launching a "global Denops server" and connecting to it will
+allow all Vim/Neovim instances to use a common Denops server, thus avoiding
+the bottleneck of process launches and possibly improving usability.
+
+To start the global Denops server, execute the following command in the 
+denops.vim repository top
+>
+	deno run -A --unstable --no-check \
+	      ./denops/@denops-private/cli.ts \
+	      --hostname 127.0.0.1 --port 32123
+<
+Then specify the server address in |g:denops_server_addr| as follows
+>
+	let g:denops_server_addr = '127.0.0.1:32123'
+<
+
+=============================================================================
 INTERFACE						*denops-interface*
 
 -----------------------------------------------------------------------------
@@ -34,6 +61,12 @@ VARIABLE						*denops-variable*
 	Disable version check on startup. Use it to forcibly enable denops on
 	non supported versions of Vim/Neovim. Do not report any errors/issues
 	occurred on non supported versions.
+	Default: 0
+
+*g:denops_server_addr*
+	Global denops server address in "{hostname}:{port}" format.
+	If the value is not specified or invalid, denops starts a local denops
+	server for each Vim/Neovim instance.
 	Default: 0
 
 *g:denops#disabled*

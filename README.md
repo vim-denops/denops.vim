@@ -57,6 +57,30 @@ Once you've confirmed that denops is working, you can remove
 [deno]: https://deno.land/
 [vim-plug]: https://github.com/junegunn/vim-plug
 
+### Global server
+
+Normally, a Denops server is started for each Vim/Neovim instance, but there are
+cases where the process startup becomes a bottleneck and impairs usability.
+
+In such cases, launching a "global Denops server" and connecting to it will
+allow all Vim/Neovim instances to use a common Denops server, thus avoiding the
+bottleneck of process launches and possibly improving usability.
+
+To start the global Denops server, execute the following command in the
+denops.vim repository top
+
+```
+deno run -A --unstable --no-check \
+	./denops/@denops-private/cli.ts \
+	--hostname 127.0.0.1 --port 32123
+```
+
+Then specify the server address in `g:denops_server_addr` as follows
+
+```vim
+let g:denops_server_addr = '127.0.0.1:32123'
+```
+
 ## Documentations
 
 To learn how to write Vim/Neovim plugins by denops, see
