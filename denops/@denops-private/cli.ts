@@ -42,7 +42,8 @@ for await (const conn of listener) {
 
   // Create host and service
   using(new hostClass(r2, writer), async (host) => {
-    const service = new Service(host);
-    await service.waitClosed();
+    await using(new Service(host), async (service) => {
+      await service.waitClosed();
+    });
   });
 }
