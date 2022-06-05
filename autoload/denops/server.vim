@@ -8,6 +8,18 @@ let s:STATUS_STOPPED = 'stopped'
 let s:STATUS_STARTING = 'starting'
 let s:STATUS_RUNNING = 'running'
 
+function! denops#server#connect(addr) abort
+  call denops#util#debug(printf('Connecting to `%s`', a:addr))
+  try
+    let s:chan = s:connect(a:addr)
+  catch
+    call denops#util#error(printf('Failed to connect denops server (%s): %s', a:addr, v:exception))
+    return
+  endtry
+  doautocmd <nomodeline> User DenopsReady
+  return v:true
+endfunction
+
 function! denops#server#start() abort
   if g:denops#disabled
     return
@@ -52,7 +64,7 @@ function! denops#server#restart() abort
 endfunction
 
 function! denops#server#status() abort
-  if s:job isnot# v:null && s:chan isnot# v:null
+  if s:chan isnot# v:null
     return s:STATUS_RUNNING
   elseif s:job isnot# v:null
     return s:STATUS_STARTING
@@ -87,16 +99,11 @@ function! s:on_stdout(data) abort
     return
   endif
   let addr = substitute(a:data, '\r\?\n$', '', 'g')
-  call denops#util#debug(printf('Connecting to `%s`', addr))
-  try
-    let s:chan = s:connect(addr)
-  catch
-    call denops#util#error(printf('Failed to connect denops server: %s', v:exception))
+  if !denops#server#connect(addr)
     call denops#server#stop()
     call s:on_stderr(a:data)
     return
-  endtry
-  doautocmd <nomodeline> User DenopsReady
+  endif
 endfunction
 
 function! s:on_stderr(data) abort

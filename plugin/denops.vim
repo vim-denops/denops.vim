@@ -24,11 +24,22 @@ augroup denops_plugin_internal
   autocmd User DenopsPluginPost:* :
 augroup END
 
+function! s:init() abort
+  let addr = get(g:, 'denops_server_addr')
+  if !empty(addr)
+    if denops#server#connect(addr)
+      return
+    endif
+    " Fallback to a local denops server
+  endif
+  call denops#server#start()
+endfunction
+
 if has('vim_starting')
   augroup denops_plugin_internal_startup
     autocmd!
-    autocmd VimEnter * call denops#server#start()
+    autocmd VimEnter * call s:init()
   augroup END
 else
-  call denops#server#start()
+  call s:init()
 endif
