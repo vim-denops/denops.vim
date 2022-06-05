@@ -30,6 +30,7 @@ const listener = Deno.listen({
 const addr = listener.addr as Deno.NetAddr;
 console.log(`${addr.hostname}:${addr.port}`);
 
+const handlers: Promise<void>[] = [];
 for await (const conn of listener) {
   const reader = opts.trace ? new TraceReader(conn) : conn;
   const writer = opts.trace ? new TraceWriter(conn) : conn;
@@ -40,11 +41,11 @@ for await (const conn of listener) {
   const hostClass = await detectHost(r1);
 
   // Create host and service
-  await using(new hostClass(reader, writer), async (host) => {
+  const handler = using(new hostClass(r2, writer), async (host) => {
     const service = new Service(host);
     await service.waitClosed();
   });
-
-  // Allow only single client
-  break;
+  handlers.push(handler);
 }
+// Wait all
+await Promise.all(handlers);
