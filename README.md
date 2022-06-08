@@ -70,9 +70,7 @@ To start the shared server, execute the following command in the denops.vim
 repository top
 
 ```
-deno run -A --unstable --no-check \
-	./denops/@denops-private/cli.ts \
-	--hostname 127.0.0.1 --port 32123
+deno run -A --no-check ./denops/@denops-private/cli.ts
 ```
 
 Then specify the server address in `g:denops_server_addr` as follows

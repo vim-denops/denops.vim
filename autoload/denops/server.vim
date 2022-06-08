@@ -29,7 +29,12 @@ function! denops#server#start() abort
   endif
   let args = [g:denops#server#deno, 'run']
   let args += g:denops#server#deno_args
-  let args += [s:script]
+  let args += [
+        \ s:script,
+        \ '--quiet',
+        \ '--identity',
+        \ '--port', '0',
+        \]
   if g:denops#trace
     let args += ['--trace']
   endif
@@ -41,6 +46,7 @@ function! denops#server#start() abort
   let s:job = denops#job#start(args, {
         \ 'env': {
         \   'NO_COLOR': 1,
+        \   'DENO_NO_PROMPT': 1,
         \ },
         \ 'on_stdout': funcref('s:on_stdout'),
         \ 'on_stderr': funcref('s:on_stderr'),
