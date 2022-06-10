@@ -70,7 +70,15 @@ function! denops#server#notify(method, params) abort
   elseif denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
-  return s:notify(s:chan, a:method, a:params)
+  try
+    return s:notify(s:chan, a:method, a:params)
+  catch
+    call denops#util#error(
+          \ printf('Failed to notify: chan=%s, method=%s, params=%s',
+          \        string(s:chan), a:method, string(a:params)))
+    call denops#util#error(v:exception)
+    call denops#util#error(v:throwpoint)
+  endtry
 endfunction
 
 function! denops#server#request(method, params) abort
@@ -79,7 +87,15 @@ function! denops#server#request(method, params) abort
   elseif denops#server#status() isnot# s:STATUS_RUNNING
     throw printf('The server is not ready yet')
   endif
-  return s:request(s:chan, a:method, a:params)
+  try
+    return s:request(s:chan, a:method, a:params)
+  catch
+    call denops#util#error(
+          \ printf('Failed to request: chan=%s, method=%s, params=%s',
+          \        string(s:chan), a:method, string(a:params)))
+    call denops#util#error(v:exception)
+    call denops#util#error(v:throwpoint)
+  endtry
 endfunction
 
 function! s:on_stdout(data) abort
