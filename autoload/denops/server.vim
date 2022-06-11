@@ -76,8 +76,8 @@ function! denops#server#notify(method, params) abort
     call denops#util#error(
           \ printf('Failed to notify: chan=%s, method=%s, params=%s',
           \        string(s:chan), a:method, string(a:params)))
-    call denops#util#error(v:exception)
     call denops#util#error(v:throwpoint)
+    throw v:exception
   endtry
 endfunction
 
@@ -93,8 +93,8 @@ function! denops#server#request(method, params) abort
     call denops#util#error(
           \ printf('Failed to request: chan=%s, method=%s, params=%s',
           \        string(s:chan), a:method, string(a:params)))
-    call denops#util#error(v:exception)
     call denops#util#error(v:throwpoint)
+    throw v:exception
   endtry
 endfunction
 
