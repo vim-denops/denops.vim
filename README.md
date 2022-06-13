@@ -57,6 +57,28 @@ Once you've confirmed that denops is working, you can remove
 [deno]: https://deno.land/
 [vim-plug]: https://github.com/junegunn/vim-plug
 
+### Shared server
+
+Normally, a Denops server is started for each Vim/Neovim instance, but there are
+cases where the process startup becomes a bottleneck and impairs usability.
+
+In such cases, launching a "Shared server" and connecting to it will allow all
+Vim/Neovim instances to use a shared server, thus avoiding the bottleneck of
+process launches and possibly improving usability.
+
+To start the shared server, execute the following command in the denops.vim
+repository top
+
+```
+deno run -A --no-check ./denops/@denops-private/cli.ts
+```
+
+Then specify the server address in `g:denops_server_addr` as follows
+
+```vim
+let g:denops_server_addr = '127.0.0.1:32123'
+```
+
 ## Documentations
 
 To learn how to write Vim/Neovim plugins by denops, see

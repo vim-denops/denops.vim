@@ -4,34 +4,72 @@ import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
 import { TraceReader, TraceWriter } from "./tracer.ts";
+import { tee } from "./tee.ts";
 
-const opts = parse(Deno.args);
+type Opts = {
+  hostname?: string;
+  port?: number;
+  trace?: boolean;
+  quiet?: boolean;
+  identity?: boolean;
+};
 
-// Check opts
-if (!opts.mode) {
-  throw new Error("No `--mode` option is specified.");
+type Host = typeof Vim | typeof Neovim;
+
+async function detectHost(reader: Deno.Reader): Promise<Host> {
+  const marks = new TextEncoder().encode('[{tf"0123456789');
+  const chunk = new Uint8Array(1);
+  await reader.read(chunk);
+  const mark = chunk.at(0);
+  if (mark && marks.includes(mark)) {
+    return Vim;
+  }
+  return Neovim;
 }
 
-const listener = Deno.listen({
-  hostname: "127.0.0.1",
-  port: 0, // Automatically select free port
-});
+const { hostname, port, trace, quiet, identity } = parse(Deno.args) as Opts;
 
-// Let host know the address
-const addr = listener.addr as Deno.NetAddr;
-console.log(`${addr.hostname}:${addr.port}`);
+const listener = Deno.listen({
+  hostname: hostname ?? "127.0.0.1",
+  port: port ?? 32123,
+});
+const localAddr = listener.addr as Deno.NetAddr;
+
+if (identity) {
+  console.log(`${localAddr.hostname}:${localAddr.port}`);
+}
+if (!quiet) {
+  console.log(
+    `Listen denops clients on ${localAddr.hostname}:${localAddr.port}`,
+  );
+}
 
 for await (const conn of listener) {
-  const reader = opts.trace ? new TraceReader(conn) : conn;
-  const writer = opts.trace ? new TraceWriter(conn) : conn;
+  const remoteAddr = conn.remoteAddr as Deno.NetAddr;
+  const reader = trace ? new TraceReader(conn) : conn;
+  const writer = trace ? new TraceWriter(conn) : conn;
+
+  const [r1, r2] = tee(reader);
+
+  // Detect host from payload
+  const hostClass = await detectHost(r1);
+  r1.close();
+
+  if (!quiet) {
+    console.log(
+      `${remoteAddr.hostname}:${remoteAddr.port} (${hostClass.name}) is connected`,
+    );
+  }
 
   // Create host and service
-  const hostClass = opts.mode === "vim" ? Vim : Neovim;
-  await using(new hostClass(reader, writer), async (host) => {
-    const service = new Service(host);
-    await service.waitClosed();
+  using(new hostClass(r2, writer), async (host) => {
+    await using(new Service(host), async (service) => {
+      await service.waitClosed();
+      if (!quiet) {
+        console.log(
+          `${remoteAddr.hostname}:${remoteAddr.port} (${hostClass.name}) is closed`,
+        );
+      }
+    });
   });
-
-  // Allow only single client
-  break;
 }

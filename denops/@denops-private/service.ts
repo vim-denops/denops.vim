@@ -14,6 +14,7 @@ import {
   WorkerReader,
   WorkerWriter,
 } from "https://deno.land/x/workerio@v1.4.4/mod.ts#^";
+import { Disposable } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
 import { responseTimeout } from "./defs.ts";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions } from "./host/invoker.ts";
@@ -31,7 +32,7 @@ const workerOptions: any = compareVersions(Deno.version.deno, "1.22.0") === -1
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
-export class Service implements ServiceApi {
+export class Service implements ServiceApi, Disposable {
   #plugins: Map<string, { worker: Worker; session: Session }>;
   #host: Host;
 
@@ -114,6 +115,17 @@ export class Service implements ServiceApi {
 
   waitClosed(): Promise<void> {
     return this.#host.waitClosed();
+  }
+
+  dispose(): void {
+    // Dispose all sessions
+    for (const plugin of this.#plugins.values()) {
+      plugin.session.dispose();
+    }
+    // Terminate all workers
+    for (const plugin of this.#plugins.values()) {
+      plugin.worker.terminate();
+    }
   }
 }
 
