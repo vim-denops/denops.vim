@@ -59,14 +59,16 @@ endfunction
 
 function! denops#server#stop() abort
   if s:job isnot# v:null
-    let s:stopped_on_purpose = 1
-    call denops#job#stop(s:job)
+    call s:stop(v:false)
   endif
 endfunction
 
 function! denops#server#restart() abort
-  call denops#server#stop()
-  call denops#server#start()
+  if s:job isnot# v:null
+    call s:stop(v:true)
+  else
+    call denops#server#start()
+  endif
 endfunction
 
 function! denops#server#status() abort
@@ -130,6 +132,11 @@ function! s:on_exit(status, ...) abort dict
   endif
   " Restart asynchronously to avoid #136
   call timer_start(g:denops#server#restart_delay, { -> s:restart(a:status) })
+endfunction
+
+function! s:stop(restart) abort
+  let s:stopped_on_purpose = a:restart ? 0 : 1
+  call denops#job#stop(s:job)
 endfunction
 
 function! s:restart(status) abort
