@@ -4,6 +4,7 @@ import { BatchError, Context, Denops, Dispatcher, Meta } from "./mod.ts";
 export class DenopsImpl implements Denops {
   readonly name: string;
   readonly meta: Meta;
+  readonly context: Record<string | number | symbol, unknown>;
   #session: Session;
 
   constructor(
@@ -13,6 +14,7 @@ export class DenopsImpl implements Denops {
   ) {
     this.name = name;
     this.meta = meta;
+    this.context = {};
     this.#session = session;
   }
 
