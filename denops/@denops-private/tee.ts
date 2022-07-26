@@ -1,5 +1,5 @@
-import { Buffer } from "https://deno.land/std@0.142.0/io/mod.ts";
-import { writeAll } from "https://deno.land/std@0.142.0/streams/mod.ts";
+import { Buffer } from "https://deno.land/std@0.149.0/io/mod.ts";
+import { writeAll } from "https://deno.land/std@0.149.0/streams/mod.ts";
 
 type Reader = Deno.Reader;
 type ReadCloser = Reader & Deno.Closer;

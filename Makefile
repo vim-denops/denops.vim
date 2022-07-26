@@ -17,7 +17,7 @@ lint: FORCE	## Lint code
 	@deno lint --config deno.jsonc
 
 type-check: FORCE	## Type check
-	@deno test --unstable --no-run ${TARGETS}
+	@deno test --unstable --no-run --no-check=remote ${TARGETS}
 
 test: FORCE	## Test
 	@deno test --unstable -A --no-check --jobs

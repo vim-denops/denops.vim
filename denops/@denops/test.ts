@@ -1,8 +1,8 @@
-import * as path from "https://deno.land/std@0.140.0/path/mod.ts";
+import * as path from "https://deno.land/std@0.149.0/path/mod.ts";
 import {
   assertEquals,
   assertRejects,
-} from "https://deno.land/std@0.140.0/testing/asserts.ts";
+} from "https://deno.land/std@0.149.0/testing/asserts.ts";
 import { test } from "./test/tester.ts";
 import { BatchError } from "./mod.ts";
 
@@ -25,7 +25,6 @@ test({
       async () => {
         await denops.call("no-such-function");
       },
-      undefined,
       "E117: Unknown function: no-such-function",
     );
   },
@@ -81,7 +80,6 @@ test({
       async () => {
         await denops.cmd("NoSuchCommand");
       },
-      undefined,
       "E492: Not an editor command: NoSuchCommand",
     );
   },
@@ -109,7 +107,6 @@ test({
       async () => {
         await denops.eval("g:no_such_variable");
       },
-      undefined,
       "g:no_such_variable",
       // Vim:    "E15: Invalid expression: g:no_such_variable",
       // Neovim: "E121: Undefined variable: g:no_such_variable",
