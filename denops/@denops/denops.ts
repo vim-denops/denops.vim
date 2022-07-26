@@ -55,6 +55,11 @@ export interface Denops {
   readonly meta: Meta;
 
   /**
+   * Context object for plugins.
+   */
+  readonly context: Record<string | number | symbol, unknown>;
+
+  /**
    * User defined API name and method map which is used to dispatch API request
    */
   dispatcher: Dispatcher;
