@@ -56,9 +56,23 @@ function! denops#util#error(...) abort
   echohl None
 endfunction
 
-function! denops#util#script_path(...) abort
-  return call('denops#util#join_path', [s:root, 'denops'] + a:000)
-endfunction
+if has('win32unix')
+  function! denops#util#normalize_path(path) abort
+    return trim(system(printf("cygpath -m '%s'", a:path)))
+  endfunction
+
+  function! denops#util#script_path(...) abort
+    return denops#util#normalize_path(call('denops#util#join_path', [s:root, 'denops'] + a:000))
+  endfunction
+else
+  function! denops#util#normalize_path(path) abort
+    return a:path
+  endfunction
+
+  function! denops#util#script_path(...) abort
+    return call('denops#util#join_path', [s:root, 'denops'] + a:000)
+  endfunction
+endif
 
 function! denops#util#join_path(...) abort
   return join(a:000, s:sep)

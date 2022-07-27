@@ -103,7 +103,8 @@ function! s:options(base, default) abort
 endfunction
 
 function! s:register(plugin, script, meta, options) abort
-  let args = [a:plugin, a:script, a:meta, a:options]
+  let script = denops#util#normalize_path(a:script)
+  let args = [a:plugin, script, a:meta, a:options]
   call denops#util#debug(printf('register plugin: %s', args))
   return denops#server#request('invoke', ['register', args])
 endfunction
