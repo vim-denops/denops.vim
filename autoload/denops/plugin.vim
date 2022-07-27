@@ -105,7 +105,7 @@ endfunction
 function! s:register(plugin, script, meta, options) abort
   let script = a:script
   if has('win32unix')
-    let script = substitute(trim(system(printf("cygpath -w '%s'", script))), '\', '/', 'g')
+    let script = trim(system(printf("cygpath -m '%s'", script)))
   endif
   let args = [a:plugin, script, a:meta, a:options]
   call denops#util#debug(printf('register plugin: %s', args))
