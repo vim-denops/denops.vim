@@ -57,7 +57,11 @@ function! denops#util#error(...) abort
 endfunction
 
 function! denops#util#script_path(...) abort
-  return call('denops#util#join_path', [s:root, 'denops'] + a:000)
+  let script_path = call('denops#util#join_path', [s:root, 'denops'] + a:000)
+  if has('win32unix')
+    let script_path = substitute(trim(system(printf("cygpath -w '%s'", script_path))), '\', '/', 'g')
+  endif
+  return script_path
 endfunction
 
 function! denops#util#join_path(...) abort
