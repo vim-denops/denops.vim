@@ -138,3 +138,11 @@ else
     return printf('%s.%s', major, patch)
   endfunction
 endif
+
+function! denops#util#render(template, context) abort
+  let content = join(a:template, "\n")
+  for [key, value] in items(a:context)
+    let content = substitute(content, printf('{{%s}}', key), value, 'g')
+  endfor
+  return split(content, "\n", v:true)
+endfunction

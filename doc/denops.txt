@@ -56,6 +56,13 @@ command arguments as follows
 		--hostname=0.0.0.0 \
 		--port 12345
 <
+If you'd like to start denops-shared-server when you logged in, install it by
+the following command
+>
+	call denops#shared_server#install()
+<
+See |denops#shared_server#install()| for more details.
+
 
 =============================================================================
 INTERFACE						*denops-interface*
@@ -194,6 +201,22 @@ denops#server#status()
 	"stopped"	Server is stopped.
 	"starting"	Server is starting.
 	"running"	Server is running (ready).
+
+					*denops#shared_server#install()*
+denops#shared_server#install()
+	Install |denops-shared-server| on the system in a manner appropriate
+	for each platform, so that it starts automatically when a user logs
+	in.
+	Note that if you update denops.vim you will need to run it again.
+
+	Platform	Method~
+	macOS		launchctl (launchd)
+
+	Use |denops#shared_server#uninstall()| to uninstall it.
+
+					*denops#shared_server#uninstall()*
+denops#shared_server#uninstall()
+	Uninstall denops-shared-server.
 
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({plugin})

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>{{name}}</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>{{deno}}</string>
+      <string>run</string>
+      <string>-A</string>
+      <string>--no-check</string>
+      <string>{{denops}}/denops/@denops-private/cli.ts</string>
+      <string>--hostname</string>
+      <string>{{hostname}}</string>
+      <string>--port</string>
+      <string>{{port}}</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>{{home}}/.cache/denops/denops-shared-server-stdout.txt</string>
+    <key>StandardErrorPath</key>
+    <string>{{home}}/.cache/denops/denops-shared-server-stderr.txt</string>
+  </dict>
+</plist>
