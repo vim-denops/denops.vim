@@ -211,6 +211,7 @@ denops#shared_server#install()
 
 	Platform	Method~
 	macOS		launchctl (launchd)
+	Linux		systemctl (systemd)
 
 	Use |denops#shared_server#uninstall()| to uninstall it.
 

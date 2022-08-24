@@ -15,6 +15,8 @@ function! denops#shared_server#install() abort
         \}
   if executable('launchctl')
     call denops#shared_server#launchctl#install(options)
+  elseif executable('systemctl')
+    call denops#shared_server#systemctl#install(options)
   else
     call denops#util#error('This platform is not supported. Please configure denops-shared-server manually.')
     return
@@ -24,6 +26,8 @@ endfunction
 function! denops#shared_server#uninstall() abort
   if executable('launchctl')
     call denops#shared_server#launchctl#uninstall()
+  elseif executable('systemctl')
+    call denops#shared_server#systemctl#uninstall()
   else
     call denops#util#error('This platform is not supported. Please configure denops-shared-server manually.')
     return
