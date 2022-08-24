@@ -79,6 +79,16 @@ Then specify the server address in `g:denops_server_addr` as follows
 let g:denops_server_addr = '127.0.0.1:32123'
 ```
 
+If you'd like to specify hostname and port, use `--hostname` and `--port`
+command arguments as follows
+
+```
+deno run -A --no-check \
+    ./denops/@denops-private/cli.ts \
+    --hostname=0.0.0.0 \
+    --port 12345
+```
+
 ## Documentations
 
 To learn how to write Vim/Neovim plugins by denops, see
