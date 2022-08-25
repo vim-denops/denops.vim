@@ -65,6 +65,16 @@ export interface Denops {
   dispatcher: Dispatcher;
 
   /**
+   * Redraw text and cursor on Vim.
+   *
+   * It's not equivalent to `redraw` command on Vim script and does nothing on Neovim.
+   * Use `denops.cmd('redraw')` instead if you need to execute `redraw` command.
+   *
+   * @param force: Clear screen prior to redraw.
+   */
+  redraw(force?: boolean): Promise<void>;
+
+  /**
    * Call an arbitrary function of Vim/Neovim and return the result
    *
    * @param fn: A function name of Vim/Neovim.

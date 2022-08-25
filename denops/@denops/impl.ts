@@ -26,6 +26,10 @@ export class DenopsImpl implements Denops {
     this.#session.dispatcher = dispatcher;
   }
 
+  async redraw(force?: boolean): Promise<void> {
+    await this.#session.call("redraw", force);
+  }
+
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
     return await this.#session.call("call", fn, ...normArgs(args));
   }

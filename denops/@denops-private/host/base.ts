@@ -6,6 +6,11 @@ import { Invoker } from "./invoker.ts";
  */
 export interface Host extends Disposable {
   /**
+   * Redraw text and cursor on Vim but Neovim.
+   */
+  redraw(force?: boolean): Promise<void>;
+
+  /**
    * Call host function and return result
    */
   call(fn: string, ...args: unknown[]): Promise<unknown>;
