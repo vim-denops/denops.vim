@@ -131,6 +131,14 @@ VARIABLE						*denops-variable*
 	The number of restart count within |g:denops#server#restart_interval|.
 	Default: 3
 
+*g:denops#server#reconnect_interval*
+	Interval in milliseconds before retry connection to the server.
+	Default: 100
+
+*g:denops#server#reconnect_threshold*
+	The number of reconnect count on connection failure.
+	Default: 3
+
 *g:denops#plugin#wait_interval*
 	Interval in milliseconds for |denops#plugin#wait()|.
 	Default: 10
@@ -194,6 +202,16 @@ denops#server#status()
 	"stopped"	Server is stopped.
 	"starting"	Server is starting.
 	"running"	Server is running (ready).
+
+						*denops#server#connect()*
+denops#server#connect()
+	Connect to a |denops-shared-server|.
+	It is automatically called 1) on |VimEnter| autocmd when denops is
+	in |runtimepath| during Vim startup, 2) immediately when denops is
+	added to |runtimepath| after Vim startup when |g:denops_server_addr|
+	is specified. Otherwise it echo errors.
+	It will invoke |User| |DenopsReady| autocmd to discover denops plugins.
+	See |denops#plugin#discover()| for detail.
 
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({plugin})

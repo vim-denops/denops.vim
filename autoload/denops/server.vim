@@ -8,17 +8,18 @@ let s:STATUS_STOPPED = 'stopped'
 let s:STATUS_STARTING = 'starting'
 let s:STATUS_RUNNING = 'running'
 
-function! denops#server#connect(addr) abort
-  call denops#util#debug(printf('Connecting to `%s`', a:addr))
-  try
-    let s:chan = s:connect(a:addr)
-  catch
-    call denops#util#error(printf('Failed to connect denops server (%s): %s', a:addr, v:exception))
+function! denops#server#connect() abort
+  if g:denops#disabled
     return
-  endtry
-  doautocmd <nomodeline> User DenopsReady
-  return v:true
+  endif
+  let addr = get(g:, 'denops_server_addr')
+  if empty(addr)
+    call denops#util#error('denops shared server address (g:denops_server_addr) is not given')
+    return
+  endif
+  return s:connect(addr)
 endfunction
+
 
 function! denops#server#start() abort
   if g:denops#disabled
@@ -107,7 +108,7 @@ function! s:on_stdout(data) abort
     return
   endif
   let addr = substitute(a:data, '\r\?\n$', '', 'g')
-  if !denops#server#connect(addr)
+  if !s:connect(addr)
     call denops#server#stop()
     call s:on_stderr(a:data)
     return
@@ -132,6 +133,24 @@ function! s:on_exit(status, ...) abort dict
   endif
   " Restart asynchronously to avoid #136
   call timer_start(g:denops#server#restart_delay, { -> s:restart(a:status) })
+endfunction
+
+function! s:connect(addr) abort
+  let interval = g:denops#server#reconnect_interval
+  let threshold = g:denops#server#reconnect_threshold
+  let previous_exception = ''
+  for i in range(threshold)
+    call denops#util#debug(printf('Connecting to `%s`', a:addr))
+    try
+      let s:chan = s:raw_connect(a:addr)
+      doautocmd <nomodeline> User DenopsReady
+      return v:true
+    catch
+      call denops#util#debug(printf('Failed to connect `%s`: %s', a:addr, v:exception))
+      let previous_exception = v:exception
+    endtry
+  endfor
+  call denops#util#error(printf('Failed to connect `%s`: %s', a:addr, previous_exception))
 endfunction
 
 function! s:stop(restart) abort
@@ -172,7 +191,7 @@ function! s:restart_guard() abort
 endfunction
 
 if has('nvim')
-  function! s:connect(address) abort
+  function! s:raw_connect(address) abort
     let chan = sockconnect('tcp', a:address, {
           \ 'rpc': v:true,
           \})
@@ -190,7 +209,7 @@ if has('nvim')
     return call('rpcrequest', [a:chan, a:method] + a:params)
   endfunction
 else
-  function! s:connect(address) abort
+  function! s:raw_connect(address) abort
     let chan = ch_open(a:address, {
           \ 'mode': 'json',
           \ 'drop': 'auto',
@@ -234,3 +253,5 @@ let g:denops#server#deno_args = get(g:, 'denops#server#deno_args', filter([
 let g:denops#server#restart_delay = get(g:, 'denops#server#restart_delay', 100)
 let g:denops#server#restart_interval = get(g:, 'denops#server#restart_interval', 10000)
 let g:denops#server#restart_threshold = get(g:, 'denops#server#restart_threshold', 3)
+let g:denops#server#reconnect_interval = get(g:, 'denops#server#reconnect_interval', 100)
+let g:denops#server#reconnect_threshold = get(g:, 'denops#server#reconnect_threshold', 3)
