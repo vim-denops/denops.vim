@@ -136,15 +136,21 @@ function! s:on_exit(status, ...) abort dict
 endfunction
 
 function! s:connect(addr) abort
-  call denops#util#debug(printf('Connecting to `%s`', a:addr))
-  try
-    let s:chan = s:raw_connect(a:addr)
-  catch
-    call denops#util#error(printf('Failed to connect `%s`: %s', a:addr, v:exception))
-    return
-  endtry
-  doautocmd <nomodeline> User DenopsReady
-  return v:true
+  let interval = g:denops#server#reconnect_interval
+  let threshold = g:denops#server#reconnect_threshold
+  let previous_exception = ''
+  for i in range(threshold)
+    call denops#util#debug(printf('Connecting to `%s`', a:addr))
+    try
+      let s:chan = s:raw_connect(a:addr)
+      doautocmd <nomodeline> User DenopsReady
+      return v:true
+    catch
+      call denops#util#debug(printf('Failed to connect `%s`: %s', a:addr, v:exception))
+      let previous_exception = v:exception
+    endtry
+  endfor
+  call denops#util#error(printf('Failed to connect `%s`: %s', a:addr, previous_exception))
 endfunction
 
 function! s:stop(restart) abort
@@ -247,3 +253,5 @@ let g:denops#server#deno_args = get(g:, 'denops#server#deno_args', filter([
 let g:denops#server#restart_delay = get(g:, 'denops#server#restart_delay', 100)
 let g:denops#server#restart_interval = get(g:, 'denops#server#restart_interval', 10000)
 let g:denops#server#restart_threshold = get(g:, 'denops#server#restart_threshold', 3)
+let g:denops#server#reconnect_interval = get(g:, 'denops#server#reconnect_interval', 100)
+let g:denops#server#reconnect_threshold = get(g:, 'denops#server#reconnect_threshold', 3)
