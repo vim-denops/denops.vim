@@ -8,17 +8,18 @@ let s:STATUS_STOPPED = 'stopped'
 let s:STATUS_STARTING = 'starting'
 let s:STATUS_RUNNING = 'running'
 
-function! denops#server#connect(addr) abort
-  call denops#util#debug(printf('Connecting to `%s`', a:addr))
-  try
-    let s:chan = s:connect(a:addr)
-  catch
-    call denops#util#error(printf('Failed to connect denops server (%s): %s', a:addr, v:exception))
+function! denops#server#connect() abort
+  if g:denops#disabled
     return
-  endtry
-  doautocmd <nomodeline> User DenopsReady
-  return v:true
+  endif
+  let addr = get(g:, 'denops_server_addr')
+  if empty(addr)
+    call denops#util#error('denops shared server address (g:denops_server_addr) is not given')
+    return
+  endif
+  return s:connect(addr)
 endfunction
+
 
 function! denops#server#start() abort
   if g:denops#disabled
@@ -107,7 +108,7 @@ function! s:on_stdout(data) abort
     return
   endif
   let addr = substitute(a:data, '\r\?\n$', '', 'g')
-  if !denops#server#connect(addr)
+  if !s:connect(addr)
     call denops#server#stop()
     call s:on_stderr(a:data)
     return
@@ -132,6 +133,18 @@ function! s:on_exit(status, ...) abort dict
   endif
   " Restart asynchronously to avoid #136
   call timer_start(g:denops#server#restart_delay, { -> s:restart(a:status) })
+endfunction
+
+function! s:connect(addr) abort
+  call denops#util#debug(printf('Connecting to `%s`', a:addr))
+  try
+    let s:chan = s:raw_connect(a:addr)
+  catch
+    call denops#util#error(printf('Failed to connect `%s`: %s', a:addr, v:exception))
+    return
+  endtry
+  doautocmd <nomodeline> User DenopsReady
+  return v:true
 endfunction
 
 function! s:stop(restart) abort
@@ -172,7 +185,7 @@ function! s:restart_guard() abort
 endfunction
 
 if has('nvim')
-  function! s:connect(address) abort
+  function! s:raw_connect(address) abort
     let chan = sockconnect('tcp', a:address, {
           \ 'rpc': v:true,
           \})
@@ -190,7 +203,7 @@ if has('nvim')
     return call('rpcrequest', [a:chan, a:method] + a:params)
   endfunction
 else
-  function! s:connect(address) abort
+  function! s:raw_connect(address) abort
     let chan = ch_open(a:address, {
           \ 'mode': 'json',
           \ 'drop': 'auto',

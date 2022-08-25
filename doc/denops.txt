@@ -195,6 +195,16 @@ denops#server#status()
 	"starting"	Server is starting.
 	"running"	Server is running (ready).
 
+						*denops#server#connect()*
+denops#server#connect()
+	Connect to a |denops-shared-server|.
+	It is automatically called 1) on |VimEnter| autocmd when denops is
+	in |runtimepath| during Vim startup, 2) immediately when denops is
+	added to |runtimepath| after Vim startup when |g:denops_server_addr|
+	is specified. Otherwise it echo errors.
+	It will invoke |User| |DenopsReady| autocmd to discover denops plugins.
+	See |denops#plugin#discover()| for detail.
+
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({plugin})
 	Return 1 if a {plugin} plugin is already loaded. Otherwise return 0.

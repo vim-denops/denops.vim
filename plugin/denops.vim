@@ -25,9 +25,8 @@ augroup denops_plugin_internal
 augroup END
 
 function! s:init() abort
-  let addr = get(g:, 'denops_server_addr')
-  if !empty(addr)
-    if denops#server#connect(addr)
+  if !empty(get(g:, 'denops_server_addr'))
+    if denops#server#connect()
       return
     endif
     " Fallback to a local denops server
