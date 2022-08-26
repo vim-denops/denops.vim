@@ -19,6 +19,11 @@ export class Neovim implements Host {
     });
   }
 
+  redraw(_force?: boolean): Promise<void> {
+    // Do NOTHING on Neovim
+    return Promise.resolve();
+  }
+
   call(fn: string, ...args: unknown[]): Promise<unknown> {
     return this.#session.call("nvim_call_function", fn, args);
   }

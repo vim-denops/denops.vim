@@ -20,6 +20,10 @@ export class Vim implements Host {
     });
   }
 
+  redraw(force?: boolean): Promise<void> {
+    return this.#session.redraw(force);
+  }
+
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
     const [ret, err] = await this.#session.call(
       "denops#api#vim#call",

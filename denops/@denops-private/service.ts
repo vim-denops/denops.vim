@@ -1,9 +1,11 @@
 import { compareVersions } from "https://deno.land/x/compare_versions@0.4.0/mod.ts#^";
 import {
   assertArray,
+  assertBoolean,
   assertString,
   isArray,
   isString,
+  isUndefined,
 } from "https://deno.land/x/unknownutil@v2.0.0/mod.ts#^";
 import {
   Dispatcher as SessionDispatcher,
@@ -89,6 +91,10 @@ export class Service implements ServiceApi, Disposable {
     });
   }
 
+  redraw(force?: boolean): Promise<void> {
+    return this.#host.redraw(force);
+  }
+
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
     return await this.#host.call(fn, ...args);
   }
@@ -147,6 +153,13 @@ function buildServiceSession(
   options?: SessionOptions,
 ) {
   const dispatcher: SessionDispatcher = {
+    redraw: async (force) => {
+      if (!isUndefined(force)) {
+        assertBoolean(force);
+      }
+      return await service.redraw(force);
+    },
+
     call: async (fn, ...args) => {
       assertString(fn);
       assertArray(args);
