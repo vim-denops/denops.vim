@@ -123,7 +123,14 @@ function! s:on_stderr(data) abort
   echohl None
 endfunction
 
-function! s:on_exit(status, ...) abort dict
+function! denops#server#_on_exit(status) abort
+  call s:on_exit(a:status)
+endfunction
+
+function! s:on_exit(status, ...) abort
+  if s:job is# v:null && s:chan is# v:null
+    return
+  endif
   let s:job = v:null
   let s:chan = v:null
   call denops#util#debug(printf('Server stopped: %s', a:status))
@@ -131,8 +138,13 @@ function! s:on_exit(status, ...) abort dict
   if s:stopped_on_purpose || v:dying || v:exiting || s:vim_exiting
     return
   endif
-  " Restart asynchronously to avoid #136
-  call timer_start(g:denops#server#restart_delay, { -> s:restart(a:status) })
+  let addr = get(g:, 'denops_server_addr')
+  if empty(addr)
+    " Restart asynchronously to avoid #136
+    call timer_start(g:denops#server#restart_delay, { -> s:restart(a:status) })
+  else " reconnect
+    call timer_start(g:denops#server#reconnect_delay, { -> s:connect(addr) })
+  endif
 endfunction
 
 function! s:connect(addr) abort
@@ -253,5 +265,6 @@ let g:denops#server#deno_args = get(g:, 'denops#server#deno_args', filter([
 let g:denops#server#restart_delay = get(g:, 'denops#server#restart_delay', 100)
 let g:denops#server#restart_interval = get(g:, 'denops#server#restart_interval', 10000)
 let g:denops#server#restart_threshold = get(g:, 'denops#server#restart_threshold', 3)
+let g:denops#server#reconnect_delay = get(g:, 'denops#server#reconnect_delay', 1000)
 let g:denops#server#reconnect_interval = get(g:, 'denops#server#reconnect_interval', 100)
 let g:denops#server#reconnect_threshold = get(g:, 'denops#server#reconnect_threshold', 3)
