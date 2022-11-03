@@ -131,6 +131,7 @@ function! s:on_exit(status, ...) abort
   if s:job is# v:null && s:chan is# v:null
     return
   endif
+  let is_local_server = s:job isnot# v:null
   let s:job = v:null
   let s:chan = v:null
   call denops#util#debug(printf('Server stopped: %s', a:status))
@@ -139,7 +140,7 @@ function! s:on_exit(status, ...) abort
     return
   endif
   let addr = get(g:, 'denops_server_addr')
-  if empty(addr)
+  if is_local_server || empty(addr)
     " Restart asynchronously to avoid #136
     call timer_start(g:denops#server#restart_delay, { -> s:restart(a:status) })
   else " reconnect
