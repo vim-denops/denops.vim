@@ -228,11 +228,18 @@ else
           \ 'drop': 'auto',
           \ 'noblock': 1,
           \ 'timeout': 1000 * 60 * 60 * 24 * 7,
+          \ 'close_cb': funcref('s:on_channel_close'),
           \})
     if ch_status(chan) !=# 'open'
       throw printf('Failed to connect `%s`', a:address)
     endif
     return chan
+  endfunction
+
+  function! s:on_channel_close(chan) abort
+    if s:chan is# a:chan
+      call s:on_exit(0)
+    endif
   endfunction
 
   function! s:notify(chan, method, params) abort
