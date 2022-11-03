@@ -109,7 +109,16 @@ for await (const conn of listener) {
   const [r1, r2] = tee(reader);
 
   // Detect host from payload
-  const hostClass = await detectHost(r1);
+  let hostClass: Host;
+  try {
+    hostClass = await detectHost(r1);
+  } catch (e: unknown) {
+    if (e instanceof Deno.errors.ConnectionReset) {
+      conn.close();
+      continue;
+    }
+    throw e;
+  }
   r1.close();
 
   if (!quiet) {
@@ -127,6 +136,8 @@ for await (const conn of listener) {
       });
     } finally {
       hosts.delete(host);
+      conn.close();
+
       if (!quiet) {
         console.log(
           `${remoteAddr.hostname}:${remoteAddr.port} (${hostClass.name}) is closed`,
