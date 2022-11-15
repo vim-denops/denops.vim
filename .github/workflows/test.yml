@@ -34,7 +34,7 @@ jobs:
         runner:
           - ubuntu-latest
         version:
-          - "1.17.1"
+          - "1.27.0"
           - "1.x"
     runs-on: ${{ matrix.runner }}
     steps:
@@ -59,7 +59,7 @@ jobs:
           - macos-latest
           - ubuntu-latest
         version:
-          - "1.17.1"
+          - "1.27.0"
           - "1.x"
         host_version:
           - vim: "v8.2.3452"
