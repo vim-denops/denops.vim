@@ -2,7 +2,6 @@ name: test
 
 env:
   DENOPS_PATH: "./"
-  DENO_DIR: ".deno"
 
 on:
   schedule:
@@ -45,13 +44,6 @@ jobs:
       - uses: denoland/setup-deno@v1
         with:
           deno-version: "${{ matrix.version }}"
-      - uses: actions/cache@v3
-        with:
-          path: ${{ env.DENO_DIR }}
-          key: ${{ runner.os }}-deno-${{ matrix.version }}-${{ hashFiles('**/*.ts') }}
-          restore-keys: |
-            ${{ runner.os }}-deno-${{ matrix.version }}-
-            ${{ runner.os }}-deno-
       - name: Lint check
         run: make lint
       - name: Format check
@@ -80,14 +72,6 @@ jobs:
       - uses: denoland/setup-deno@v1
         with:
           deno-version: "${{ matrix.version }}"
-      - uses: actions/cache@v3
-        id: cache
-        with:
-          path: ${{ env.DENO_DIR }}
-          key: ${{ runner.os }}-deno-${{ matrix.version }}-${{ hashFiles('**/*.ts') }}
-          restore-keys: |
-            ${{ runner.os }}-deno-${{ matrix.version }}-
-            ${{ runner.os }}-deno-
       - uses: thinca/action-setup-vim@v1
         id: vim
         with:
