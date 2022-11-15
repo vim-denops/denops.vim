@@ -65,7 +65,7 @@ jobs:
           - "1.x"
         host_version:
           - vim: "v8.2.3452"
-            nvim: "v0.6.0"
+            nvim: "v0.8.0"
     runs-on: ${{ matrix.runner }}
     steps:
       - run: git config --global core.autocrlf false

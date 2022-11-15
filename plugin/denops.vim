@@ -3,9 +3,9 @@ if exists('g:loaded_denops')
 endif
 let g:loaded_denops = 1
 
-if !get(g:, 'denops_disable_version_check') && !has('nvim-0.6.0') && !has('patch-8.2.3452')
+if !get(g:, 'denops_disable_version_check') && !has('nvim-0.8.0') && !has('patch-8.2.3452')
   echohl WarningMsg
-  echomsg '[denops] Denops requires Vim 8.2.3452 or Neovim 0.6.0. See ":h g:denops_disable_version_check" to disable this check.'
+  echomsg '[denops] Denops requires Vim 8.2.3452 or Neovim 0.8.0. See ":h g:denops_disable_version_check" to disable this check.'
   echohl None
   finish
 endif
