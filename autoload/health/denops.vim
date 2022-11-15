@@ -1,5 +1,5 @@
 let s:deno_version = '1.17.1'
-let s:vim_version = '8.2.3452'
+let s:vim_version = '9.0.0472'
 let s:neovim_version = '0.6.0'
 
 function! s:compare_version(v1, v2) abort

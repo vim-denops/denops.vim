@@ -58,7 +58,7 @@ jobs:
           - "1.17.1"
           - "1.x"
         host_version:
-          - vim: "v8.2.3452"
+          - vim: "v9.0.0472"
             nvim: "v0.6.0"
     runs-on: ${{ matrix.runner }}
     steps:
