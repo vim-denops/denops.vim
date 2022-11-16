@@ -351,7 +351,8 @@ DenopsStarted						*DenopsStarted*
 	Invoked when a denops server is started.
 
 DenopsStopped						*DenopsStopped*
-	Invoked when a denops server is stopped.
+	Invoked when a denops server is stopped or disconnected from a
+	|denops-shared-server|.
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
