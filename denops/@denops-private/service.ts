@@ -78,6 +78,8 @@ export class Service implements Disposable {
     );
     worker.postMessage({ name, script, meta });
     const session = buildServiceSession(
+      name,
+      meta,
       new WorkerReader(worker),
       new WorkerWriter(worker),
       this,
@@ -140,12 +142,21 @@ export class Service implements Disposable {
 }
 
 function buildServiceSession(
+  name: string,
+  meta: Meta,
   reader: Deno.Reader & Deno.Closer,
   writer: Deno.Writer,
   service: Service,
   options?: SessionOptions,
 ) {
   const dispatcher: SessionDispatcher = {
+    reload: () => {
+      service.reload(name, meta, {
+        mode: "skip",
+      });
+      return Promise.resolve();
+    },
+
     redraw: async (force) => {
       if (!isUndefined(force)) {
         assertBoolean(force);

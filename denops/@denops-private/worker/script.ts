@@ -31,6 +31,17 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
       },
     }),
     async (session) => {
+      // Protect the process itself from "Unhandled promises"
+      // https://github.com/vim-denops/denops.vim/issues/208
+      globalThis.addEventListener("unhandledrejection", (ev) => {
+        console.error(
+          `Unhandled rejection is detected. Worker of '${name}' will be reloaded: ${ev.reason}`,
+        );
+        // Reload the worker because "Unhandled promises" error occured.
+        session.notify("reload");
+        // Avoid process death
+        ev.preventDefault();
+      });
       const denops: Denops = new DenopsImpl(name, meta, session);
       try {
         const mod = await import(toFileUrl(script).href);
