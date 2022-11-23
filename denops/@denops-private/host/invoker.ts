@@ -12,6 +12,16 @@ export type RegisterOptions = {
   mode?: "reload" | "skip" | "error";
 };
 
+export type ReloadOptions = {
+  /**
+   * The behavior of reload when the plugin is not registered yet.
+   *
+   * skip:    Skip reload
+   * error:   Throw an error
+   */
+  mode?: "skip" | "error";
+};
+
 export class Invoker {
   #service: Service;
 
@@ -26,6 +36,14 @@ export class Invoker {
     options: RegisterOptions,
   ): void {
     this.#service.register(name, script, meta, options);
+  }
+
+  reload(
+    name: string,
+    meta: Meta,
+    options: ReloadOptions,
+  ): void {
+    this.#service.reload(name, meta, options);
   }
 
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {

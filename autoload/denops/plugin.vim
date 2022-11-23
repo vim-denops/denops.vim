@@ -71,6 +71,17 @@ function! denops#plugin#register(plugin, ...) abort
   return s:register(a:plugin, l:script, l:meta, l:options)
 endfunction
 
+function! denops#plugin#reload(plugin, ...) abort
+  let l:options = a:0 > 0 ? a:1 : {}
+  let l:meta = denops#_internal#meta#get()
+  let l:options = s:options(l:options, {
+        \ 'mode': 'error',
+        \})
+  let l:args = [a:plugin, l:meta, l:options]
+  call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
+  return denops#server#request('invoke', ['reload', l:args])
+endfunction
+
 function! denops#plugin#discover(...) abort
   let l:meta = denops#_internal#meta#get()
   let l:options = s:options(a:0 > 0 ? a:1 : {}, {
