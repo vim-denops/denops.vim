@@ -64,7 +64,7 @@ for await (const conn of listener) {
   // Create host and service
   using(new hostClass(r2, writer), async (host) => {
     await using(new Service(host), async (service) => {
-      await service.waitClosed();
+      await service.host.waitClosed();
       if (!quiet) {
         console.log(
           `${remoteAddr.hostname}:${remoteAddr.port} (${hostClass.name}) is closed`,

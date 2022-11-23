@@ -34,14 +34,14 @@ const workerOptions: any = compareVersions(Deno.version.deno, "1.22.0") === -1
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
-export class Service implements ServiceApi, Disposable {
+export class Service implements Disposable {
   #plugins: Map<string, { worker: Worker; session: Session }>;
-  #host: Host;
+  host: Host;
 
   constructor(host: Host) {
     this.#plugins = new Map();
-    this.#host = host;
-    this.#host.register(new Invoker(this));
+    this.host = host;
+    this.host.register(new Invoker(this));
   }
 
   register(
@@ -91,20 +91,6 @@ export class Service implements ServiceApi, Disposable {
     });
   }
 
-  redraw(force?: boolean): Promise<void> {
-    return this.#host.redraw(force);
-  }
-
-  async call(fn: string, ...args: unknown[]): Promise<unknown> {
-    return await this.#host.call(fn, ...args);
-  }
-
-  async batch(
-    ...calls: [string, ...unknown[]][]
-  ): Promise<[unknown[], string]> {
-    return await this.#host.batch(...calls);
-  }
-
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
     try {
       const plugin = this.#plugins.get(name);
@@ -119,10 +105,6 @@ export class Service implements ServiceApi, Disposable {
     }
   }
 
-  waitClosed(): Promise<void> {
-    return this.#host.waitClosed();
-  }
-
   dispose(): void {
     // Dispose all sessions
     for (const plugin of this.#plugins.values()) {
@@ -133,17 +115,6 @@ export class Service implements ServiceApi, Disposable {
       plugin.worker.terminate();
     }
   }
-}
-
-/**
- * Service API interface visible through Msgpack RPC
- */
-interface ServiceApi {
-  call(fn: string, ...args: unknown[]): Promise<unknown>;
-
-  batch(...calls: [string, ...unknown[]][]): Promise<[unknown[], string]>;
-
-  dispatch(name: string, fn: string, args: unknown[]): Promise<unknown>;
 }
 
 function buildServiceSession(
@@ -157,18 +128,18 @@ function buildServiceSession(
       if (!isUndefined(force)) {
         assertBoolean(force);
       }
-      return await service.redraw(force);
+      return await service.host.redraw(force);
     },
 
     call: async (fn, ...args) => {
       assertString(fn);
       assertArray(args);
-      return await service.call(fn, ...args);
+      return await service.host.call(fn, ...args);
     },
 
     batch: async (...calls) => {
       assertArray(calls, isCall);
-      return await service.batch(...calls);
+      return await service.host.batch(...calls);
     },
 
     dispatch: async (name, fn, ...args) => {

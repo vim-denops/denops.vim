@@ -42,14 +42,14 @@ export class Invoker {
     this.#service.dispatch(name, fn, args)
       .then(async (r) => {
         try {
-          await this.#service.call("denops#callback#call", success, r);
+          await this.#service.host.call("denops#callback#call", success, r);
         } catch (e) {
           console.error(`${e.stack ?? e.toString()}`);
         }
       })
       .catch(async (e) => {
         try {
-          await this.#service.call(
+          await this.#service.host.call(
             "denops#callback#call",
             failure,
             toErrorObject(e),
