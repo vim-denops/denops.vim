@@ -7,13 +7,13 @@ function! denops#request(plugin, method, params) abort
 endfunction
 
 function! denops#request_async(plugin, method, params, success, failure) abort
-  let success = denops#callback#register(a:success, {
+  let l:success = denops#callback#register(a:success, {
         \ 'once': v:true,
         \})
-  let failure = denops#callback#register(a:failure, {
+  let l:failure = denops#callback#register(a:failure, {
         \ 'once': v:true,
         \})
-  return denops#server#request('invoke', ['dispatchAsync', [a:plugin, a:method, a:params, success, failure]])
+  return denops#server#request('invoke', ['dispatchAsync', [a:plugin, a:method, a:params, l:success, l:failure]])
 endfunction
 
 function! s:define(name, default) abort
@@ -26,6 +26,7 @@ call s:define('denops#deno', 'deno')
 call s:define('denops#debug', 0)
 call s:define('denops#trace', 0)
 call s:define('denops#type_check', 0)
+call s:define('denops#disable_deprecation_warning_message', 0)
 
 " Internal configuration
 call s:define('denops#_test', 0)

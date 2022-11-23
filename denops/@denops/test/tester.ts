@@ -64,7 +64,10 @@ async function withDenops(
         },
       }),
       async (session) => {
-        const meta = await session.call("call", "denops#util#meta") as Meta;
+        const meta = await session.call(
+          "call",
+          "denops#_internal#meta#get",
+        ) as Meta;
         const denops: Denops = new DenopsImpl(pluginName, meta, session);
         const runner = async () => {
           await main(denops);

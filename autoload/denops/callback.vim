@@ -1,16 +1,16 @@
 let s:registry = {}
 
 function! denops#callback#register(callback, ...) abort
-  let options = extend({
+  let l:options = extend({
         \ 'once': v:false,
         \}, a:0 ? a:1 : {},
         \)
-  let id = sha256(string(a:callback))
-  let s:registry[id] = {
+  let l:id = sha256(string(a:callback))
+  let s:registry[l:id] = {
         \ 'callback': a:callback,
-        \ 'options': options,
+        \ 'options': l:options,
         \}
-  return id
+  return l:id
 endfunction
 
 function! denops#callback#unregister(id) abort
@@ -24,12 +24,12 @@ function! denops#callback#call(id, ...) abort
   if !has_key(s:registry, a:id)
     throw printf('No callback function for %s exist', a:id)
   endif
-  let entry = s:registry[a:id]
-  let ret = call(entry.callback, a:000)
-  if entry.options.once
+  let l:entry = s:registry[a:id]
+  let l:ret = call(l:entry.callback, a:000)
+  if l:entry.options.once
     call denops#callback#unregister(a:id)
   endif
-  return ret
+  return l:ret
 endfunction
 
 function! denops#callback#clear() abort
