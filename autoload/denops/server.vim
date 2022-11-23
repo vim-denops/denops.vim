@@ -43,7 +43,7 @@ function! denops#server#start() abort
         \ : { 'mode': 'nl' }
   let s:stopped_on_purpose = 0
   let s:chan = v:null
-  let s:job = denops#job#start(l:args, {
+  let s:job = denops#_internal#job#start(l:args, {
         \ 'env': {
         \   'NO_COLOR': 1,
         \   'DENO_NO_PROMPT': 1,
@@ -154,7 +154,7 @@ endfunction
 
 function! s:stop(restart) abort
   let s:stopped_on_purpose = a:restart ? 0 : 1
-  call denops#job#stop(s:job)
+  call denops#_internal#job#stop(s:job)
 endfunction
 
 function! s:restart(status) abort

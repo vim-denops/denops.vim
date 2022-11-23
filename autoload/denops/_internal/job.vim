@@ -1,4 +1,4 @@
-function! denops#job#start(args, ...) abort
+function! denops#_internal#job#start(args, ...) abort
   let l:options = extend({
         \ 'pty': 0,
         \ 'env': {},
@@ -11,7 +11,7 @@ function! denops#job#start(args, ...) abort
   return s:start(a:args, l:options)
 endfunction
 
-function! denops#job#stop(job) abort
+function! denops#_internal#job#stop(job) abort
   call s:stop(a:job)
 endfunction
 
@@ -78,4 +78,3 @@ else
     call a:callback(a:status)
   endfunction
 endif
-
