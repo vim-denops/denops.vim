@@ -1,6 +1,3 @@
-let s:sep = has('win32') ? '\' : '/'
-let s:root = expand('<sfile>:h:h:h')
-
 " DEPRECATED:
 function! denops#util#meta() abort
   call denops#_internal#echo#deprecate(
@@ -46,26 +43,31 @@ function! denops#util#error(...) abort
   call call('denops#_internal#echo#error', a:000)
 endfunction
 
-if has('win32unix')
-  function! denops#util#normalize_path(path) abort
-    return trim(system(printf("cygpath -m '%s'", a:path)))
-  endfunction
-
-  function! denops#util#script_path(...) abort
-    return denops#util#normalize_path(call('denops#util#join_path', [s:root, 'denops'] + a:000))
-  endfunction
-else
-  function! denops#util#normalize_path(path) abort
-    return a:path
-  endfunction
-
-  function! denops#util#script_path(...) abort
-    return call('denops#util#join_path', [s:root, 'denops'] + a:000)
-  endfunction
-endif
-
+" DEPRECATED:
 function! denops#util#join_path(...) abort
-  return join(a:000, s:sep)
+  call denops#_internal#echo#deprecate(
+        \ 'The function `denops#util#join_path` is deprecated and will be removed.',
+        \ 'Denops does not provide a public alternative so plugins must define it by themselves.',
+        \)
+  return denops#_internal#path#join(a:000)
+endfunction
+
+" DEPRECATED:
+function! denops#util#normalize_path(path) abort
+  call denops#_internal#echo#deprecate(
+        \ 'The function `denops#util#normalize_path` is deprecated and will be removed.',
+        \ 'Denops does not provide a public alternative so plugins must define it by themselves.',
+        \)
+  return denops#_internal#path#norm(a:path)
+endfunction
+
+" DEPRECATED:
+function! denops#util#script_path(...) abort
+  call denops#_internal#echo#deprecate(
+        \ 'The function `denops#util#script_path` is deprecated and will be removed.',
+        \ 'Denops does not provide a public alternative so plugins must define it by themselves.',
+        \)
+  return denops#_internal#path#script(a:000)
 endfunction
 
 " DEPRECATED

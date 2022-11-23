@@ -85,7 +85,7 @@ function! denops#plugin#discover(...) abort
 endfunction
 
 function! s:gather_plugins(plugins) abort
-  for l:script in globpath(&runtimepath, denops#util#join_path('denops', '*', 'main.ts'), 1, 1, 1)
+  for l:script in globpath(&runtimepath, denops#_internal#path#join(['denops', '*', 'main.ts']), 1, 1, 1)
     let l:plugin = fnamemodify(l:script, ':h:t')
     if l:plugin[:0] ==# '@' || has_key(a:plugins, l:plugin)
       continue
@@ -103,14 +103,14 @@ function! s:options(base, default) abort
 endfunction
 
 function! s:register(plugin, script, meta, options) abort
-  let l:script = denops#util#normalize_path(a:script)
+  let l:script = denops#_internal#path#norm(a:script)
   let l:args = [a:plugin, l:script, a:meta, a:options]
   call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
   return denops#server#request('invoke', ['register', l:args])
 endfunction
 
 function! s:find_plugin(plugin) abort
-  for l:script in globpath(&runtimepath, denops#util#join_path('denops', a:plugin, 'main.ts'), 1, 1, 1)
+  for l:script in globpath(&runtimepath, denops#_internal#path#join(['denops', a:plugin, 'main.ts']), 1, 1, 1)
     let l:plugin = fnamemodify(l:script, ':h:t')
     if l:plugin[:0] ==# '@' || !filereadable(l:script)
       continue
