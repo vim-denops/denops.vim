@@ -26,6 +26,7 @@ call s:define('denops#deno', 'deno')
 call s:define('denops#debug', 0)
 call s:define('denops#trace', 0)
 call s:define('denops#type_check', 0)
+call s:define('denops#disable_deprecation_warning_message', 0)
 
 " Internal configuration
 call s:define('denops#_test', 0)

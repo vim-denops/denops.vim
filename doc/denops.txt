@@ -108,6 +108,11 @@ VARIABLE						*denops-variable*
 
 	Default: 0
 
+*g:denops#disable_deprecation_warning_message*
+	Set 1 to disable deprecation warning messages.
+
+	Default: 0
+
 *g:denops#server#deno*
 	Executable program of Deno for starting a server.
 	Default: |g:denops#deno|
