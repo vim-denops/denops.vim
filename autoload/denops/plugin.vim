@@ -14,7 +14,7 @@ function! denops#plugin#wait(plugin, ...) abort
         \)
   if denops#server#status() ==# 'stopped'
     if !l:options.silent
-      call denops#util#error(printf(
+      call denops#_internal#echo#error(printf(
             \ 'Failed to wait for "%s" to start. Denops server itself is not started.',
             \ a:plugin,
             \))
@@ -31,7 +31,7 @@ function! denops#plugin#wait(plugin, ...) abort
         \)
   if l:ret is# -1
     if !l:options.silent
-      call denops#util#error(printf(
+      call denops#_internal#echo#error(printf(
             \ 'Failed to wait for "%s" to start. It took more than %d milliseconds and timed out.',
             \ a:plugin,
             \ l:options.timeout,
@@ -78,7 +78,7 @@ function! denops#plugin#discover(...) abort
         \})
   let l:plugins = {}
   call s:gather_plugins(l:plugins)
-  call denops#util#debug(printf('%d plugins are discovered', len(l:plugins)))
+  call denops#_internal#echo#debug(printf('%d plugins are discovered', len(l:plugins)))
   for [l:plugin, l:script] in items(l:plugins)
     call s:register(l:plugin, l:script, l:meta, l:options)
   endfor
@@ -105,7 +105,7 @@ endfunction
 function! s:register(plugin, script, meta, options) abort
   let l:script = denops#util#normalize_path(a:script)
   let l:args = [a:plugin, l:script, a:meta, a:options]
-  call denops#util#debug(printf('register plugin: %s', l:args))
+  call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
   return denops#server#request('invoke', ['register', l:args])
 endfunction
 

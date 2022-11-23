@@ -19,41 +19,40 @@ function! denops#util#meta() abort
   return s:meta
 endfunction
 
+" DEPRECATED:
 function! denops#util#debug(...) abort
-  if !g:denops#debug
-    return
-  endif
-  let l:msg = join(a:000)
-  echohl Comment
-  for l:line in split(l:msg, '\n')
-    echomsg printf('[denops] %s', l:line)
-  endfor
-  echohl None
+  call denops#_internal#echo#deprecate(
+        \ 'The function `denops#util#debug` is deprecated and will be removed.',
+        \ 'Denops does not provide a public alternative so plugins must define it by themselves.',
+        \)
+  call call('denops#_internal#echo#debug', a:000)
 endfunction
 
+" DEPRECATED:
 function! denops#util#info(...) abort
-  let l:msg = join(a:000)
-  for l:line in split(l:msg, '\n')
-    echomsg printf('[denops] %s', l:line)
-  endfor
+  call denops#_internal#echo#deprecate(
+        \ 'The function `denops#util#info` is deprecated and will be removed.',
+        \ 'Denops does not provide a public alternative so plugins must define it by themselves.',
+        \)
+  call call('denops#_internal#echo#info', a:000)
 endfunction
 
+" DEPRECATED:
 function! denops#util#warn(...) abort
-  let l:msg = join(a:000)
-  echohl WarningMsg
-  for l:line in split(l:msg, '\n')
-    echomsg printf('[denops] %s', l:line)
-  endfor
-  echohl None
+  call denops#_internal#echo#deprecate(
+        \ 'The function `denops#util#warn` is deprecated and will be removed.',
+        \ 'Denops does not provide a public alternative so plugins must define it by themselves.',
+        \)
+  call call('denops#_internal#echo#warn', a:000)
 endfunction
 
+" DEPRECATED:
 function! denops#util#error(...) abort
-  let l:msg = join(a:000)
-  echohl ErrorMsg
-  for l:line in split(l:msg, '\n')
-    echomsg printf('[denops] %s', l:line)
-  endfor
-  echohl None
+  call denops#_internal#echo#deprecate(
+        \ 'The function `denops#util#error` is deprecated and will be removed.',
+        \ 'Denops does not provide a public alternative so plugins must define it by themselves.',
+        \)
+  call call('denops#_internal#echo#error', a:000)
 endfunction
 
 if has('win32unix')

@@ -14,7 +14,7 @@ function! denops#server#connect() abort
   endif
   let l:addr = get(g:, 'denops_server_addr')
   if empty(l:addr)
-    call denops#util#error('denops shared server address (g:denops_server_addr) is not given')
+    call denops#_internal#echo#error('denops shared server address (g:denops_server_addr) is not given')
     return
   endif
   return s:connect(l:addr)
@@ -24,7 +24,7 @@ function! denops#server#start() abort
   if g:denops#disabled
     return
   elseif denops#server#status() isnot# s:STATUS_STOPPED
-    call denops#util#debug('Server is already starting or running. Skip')
+    call denops#_internal#echo#debug('Server is already starting or running. Skip')
     return
   endif
   let l:args = [g:denops#server#deno, 'run']
@@ -53,7 +53,7 @@ function! denops#server#start() abort
         \ 'on_exit': funcref('s:on_exit'),
         \ 'raw_options': l:raw_options,
         \})
-  call denops#util#debug(printf('Server spawned: %s', l:args))
+  call denops#_internal#echo#debug(printf('Server spawned: %s', l:args))
   doautocmd <nomodeline> User DenopsStarted
 endfunction
 
@@ -125,7 +125,7 @@ endfunction
 function! s:on_exit(status, ...) abort dict
   let s:job = v:null
   let s:chan = v:null
-  call denops#util#debug(printf('Server stopped: %s', a:status))
+  call denops#_internal#echo#debug(printf('Server stopped: %s', a:status))
   doautocmd <nomodeline> User DenopsStopped
   if s:stopped_on_purpose || v:dying || v:exiting || s:vim_exiting
     return
@@ -139,17 +139,17 @@ function! s:connect(addr) abort
   let l:threshold = g:denops#server#reconnect_threshold
   let l:previous_exception = ''
   for l:i in range(l:threshold)
-    call denops#util#debug(printf('Connecting to `%s`', a:addr))
+    call denops#_internal#echo#debug(printf('Connecting to `%s`', a:addr))
     try
       let s:chan = s:raw_connect(a:addr)
       doautocmd <nomodeline> User DenopsReady
       return v:true
     catch
-      call denops#util#debug(printf('Failed to connect `%s`: %s', a:addr, v:exception))
+      call denops#_internal#echo#debug(printf('Failed to connect `%s`: %s', a:addr, v:exception))
       let l:previous_exception = v:exception
     endtry
   endfor
-  call denops#util#error(printf('Failed to connect `%s`: %s', a:addr, l:previous_exception))
+  call denops#_internal#echo#error(printf('Failed to connect `%s`: %s', a:addr, l:previous_exception))
 endfunction
 
 function! s:stop(restart) abort
@@ -161,18 +161,18 @@ function! s:restart(status) abort
   if s:restart_guard()
     return
   endif
-  call denops#util#warn(printf(
+  call denops#_internal#echo#warn(printf(
         \ 'Server stopped (%d). Restarting...',
         \ a:status,
         \))
   call denops#server#start()
-  call denops#util#info('Server is restarted.')
+  call denops#_internal#echo#info('Server is restarted.')
 endfunction
 
 function! s:restart_guard() abort
   let s:restart_count = get(s:, 'restart_count', 0) + 1
   if s:restart_count >= g:denops#server#restart_threshold
-    call denops#util#warn(printf(
+    call denops#_internal#echo#warn(printf(
           \ 'Server stopped %d times within %d millisec. Denops become disabled to avoid infinity restart loop.',
           \ g:denops#server#restart_threshold,
           \ g:denops#server#restart_interval,
