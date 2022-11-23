@@ -24,7 +24,7 @@ function! denops#plugin#wait(plugin, ...) abort
   if has_key(s:loaded_plugins, a:plugin)
     return s:loaded_plugins[a:plugin]
   endif
-  let l:ret = denops#util#wait(
+  let l:ret = denops#_internal#wait#for(
         \ l:options.timeout,
         \ { -> has_key(s:loaded_plugins, a:plugin) },
         \ l:options.interval,

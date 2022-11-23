@@ -1,6 +1,5 @@
 let s:sep = has('win32') ? '\' : '/'
 let s:root = expand('<sfile>:h:h:h')
-let s:wait_warning_time = 5000
 
 " DEPRECATED:
 function! denops#util#meta() abort
@@ -69,49 +68,11 @@ function! denops#util#join_path(...) abort
   return join(a:000, s:sep)
 endfunction
 
-function! denops#util#wait(timeout, condition, interval) abort
-  return s:wait(a:timeout, a:condition, a:interval)
-endfunction
-
-function! s:warn_wait() abort
-  let l:m = printf(
-        \ 'It tooks more than %d ms. Use Ctrl-C to cancel.',
-        \ s:wait_warning_time,
+" DEPRECATED
+function! denops#util#wait(...) abort
+  call denops#_internal#echo#deprecate(
+        \ 'The function `denops#util#wait` is deprecated and will be removed.',
+        \ 'Denops does not provide a public alternative so plugins must define it by themselves.',
         \)
-  call denops#util#warn(l:m)
+  call call('denops#_internal#wait#for', a:000)
 endfunction
-
-if exists('*wait')
-  function! s:wait(timeout, condition, interval) abort
-    let l:t = timer_start(
-          \ s:wait_warning_time,
-          \ { -> s:warn_wait() },
-          \)
-    try
-      return wait(a:timeout, a:condition, a:interval)
-    finally
-      silent! call timer_stop(l:t)
-    endtry
-  endfunction
-else
-  function! s:wait(timeout, condition, interval) abort
-    let l:t = timer_start(
-          \ s:wait_warning_time,
-          \ { -> s:warn_wait() },
-          \)
-    let l:waiter = printf('sleep %dm', a:interval)
-    let l:s = reltime()
-    try
-      while !a:condition()
-        if reltimefloat(reltime(l:s)) * 1000 > a:timeout
-          return -1
-        endif
-        execute l:waiter
-      endwhile
-    catch /^Vim:Interrupt$/
-      return -2
-    finally
-      silent! call timer_stop(l:t)
-    endtry
-  endfunction
-endif
