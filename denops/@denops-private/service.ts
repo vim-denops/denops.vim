@@ -19,7 +19,7 @@ import {
 import { Disposable } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
 import { responseTimeout } from "./defs.ts";
 import { Host } from "./host/base.ts";
-import { Invoker, RegisterOptions } from "./host/invoker.ts";
+import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
 import type { Meta } from "../@denops/mod.ts";
 
 const workerScript = "./worker/script.ts";
@@ -35,7 +35,7 @@ const workerOptions: any = compareVersions(Deno.version.deno, "1.22.0") === -1
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service implements Disposable {
-  #plugins: Map<string, { worker: Worker; session: Session }>;
+  #plugins: Map<string, { script: string; worker: Worker; session: Session }>;
   host: Host;
 
   constructor(host: Host) {
@@ -78,6 +78,8 @@ export class Service implements Disposable {
     );
     worker.postMessage({ name, script, meta });
     const session = buildServiceSession(
+      name,
+      meta,
       new WorkerReader(worker),
       new WorkerWriter(worker),
       this,
@@ -86,8 +88,30 @@ export class Service implements Disposable {
       },
     );
     this.#plugins.set(name, {
+      script,
       session,
       worker,
+    });
+  }
+
+  reload(
+    name: string,
+    meta: Meta,
+    options: ReloadOptions,
+  ): void {
+    const plugin = this.#plugins.get(name);
+    if (!plugin) {
+      if (options.mode === "skip") {
+        if (meta.mode === "debug") {
+          console.log(`A denops plugin '${name}' is not registered yet. Skip`);
+        }
+        return;
+      } else {
+        throw new Error(`A denops plugin '${name}' is not registered yet`);
+      }
+    }
+    this.register(name, plugin.script, { ...meta, mode: "release" }, {
+      mode: "reload",
     });
   }
 
@@ -118,12 +142,21 @@ export class Service implements Disposable {
 }
 
 function buildServiceSession(
+  name: string,
+  meta: Meta,
   reader: Deno.Reader & Deno.Closer,
   writer: Deno.Writer,
   service: Service,
   options?: SessionOptions,
 ) {
   const dispatcher: SessionDispatcher = {
+    reload: () => {
+      service.reload(name, meta, {
+        mode: "skip",
+      });
+      return Promise.resolve();
+    },
+
     redraw: async (force) => {
       if (!isUndefined(force)) {
         assertBoolean(force);

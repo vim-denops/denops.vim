@@ -296,6 +296,20 @@ denops#plugin#discover([{options}])
 	It uses same {options} as |denops#plugin#register()| except that the
 	default value of "mode" is "skip".
 
+						*denops#plugin#reload()*
+denops#plugin#reload({plugin}[, {options}])
+	Reload registered denops plugin.
+	The following attributes are available on {options}.
+
+	"mode"		|String| to regulate the behavior of reload when
+			a {plugin} plugin is not registered yet.
+
+			"error"		Throw an error. (Default)
+			"skip"		Skip plugin reload.
+
+	It internally calls |denops#plugin#register()| with "reload" mode when
+	the plugin is registered.
+
 						*denops#callback#register()*
 denops#callback#register({callback}[, {options}])
 	Register {callback} to internal callback map as an anonymous function

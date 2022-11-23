@@ -31,6 +31,23 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
       },
     }),
     async (session) => {
+      // Protect the process itself from "Unhandled promises"
+      // https://github.com/vim-denops/denops.vim/issues/208
+      globalThis.addEventListener("unhandledrejection", (ev) => {
+        // XXX:
+        // Denops support Deno from 1.17 so the following `any` is required
+        // to pass type-check. Note that the code is not invoked because "unhandledrejection"
+        // event itself is supported from Deno 1.24 (and Deno 1.24 has `reason` attribute on `ev`)
+        // deno-lint-ignore no-explicit-any
+        const reason = (ev as any).reason;
+        console.error(
+          `Unhandled rejection is detected. Worker of '${name}' will be reloaded: ${reason}`,
+        );
+        // Reload the worker because "Unhandled promises" error occured.
+        session.notify("reload");
+        // Avoid process death
+        ev.preventDefault();
+      });
       const denops: Denops = new DenopsImpl(name, meta, session);
       try {
         const mod = await import(toFileUrl(script).href);
