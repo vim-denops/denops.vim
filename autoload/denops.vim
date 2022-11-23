@@ -7,13 +7,13 @@ function! denops#request(plugin, method, params) abort
 endfunction
 
 function! denops#request_async(plugin, method, params, success, failure) abort
-  let success = denops#callback#register(a:success, {
+  let l:success = denops#callback#register(a:success, {
         \ 'once': v:true,
         \})
-  let failure = denops#callback#register(a:failure, {
+  let l:failure = denops#callback#register(a:failure, {
         \ 'once': v:true,
         \})
-  return denops#server#request('invoke', ['dispatchAsync', [a:plugin, a:method, a:params, success, failure]])
+  return denops#server#request('invoke', ['dispatchAsync', [a:plugin, a:method, a:params, l:success, l:failure]])
 endfunction
 
 function! s:define(name, default) abort
