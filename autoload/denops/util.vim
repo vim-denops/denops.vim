@@ -2,21 +2,13 @@ let s:sep = has('win32') ? '\' : '/'
 let s:root = expand('<sfile>:h:h:h')
 let s:wait_warning_time = 5000
 
+" DEPRECATED:
 function! denops#util#meta() abort
-  let l:mode = g:denops#_test ? 'test' : g:denops#debug ? 'debug' : 'release'
-  if exists('s:meta')
-    return extend({'mode': l:mode}, s:meta, 'keep')
-  endif
-  let l:host = has('nvim') ? 'nvim' : 'vim'
-  let l:version = s:get_host_version()
-  let l:platform = has('win32') ? 'windows' : has('mac') ? 'mac' : 'linux'
-  let s:meta = {
-        \ 'mode': l:mode,
-        \ 'host': l:host,
-        \ 'version': l:version,
-        \ 'platform': l:platform,
-        \}
-  return s:meta
+  call denops#_internal#echo#deprecate(
+        \ 'The function `denops#util#meta` is deprecated and will be removed.',
+        \ 'Denops does not provide a public alternative so plugins must define it by themselves.',
+        \)
+  return denops#_internal#meta#get()
 endfunction
 
 " DEPRECATED:
@@ -121,19 +113,5 @@ else
     finally
       silent! call timer_stop(l:t)
     endtry
-  endfunction
-endif
-
-if has('nvim')
-  function! s:get_host_version() abort
-    let l:output = execute('version')
-    return matchstr(l:output, 'NVIM v\zs[0-9.]\+')
-  endfunction
-else
-  function! s:get_host_version() abort
-    let l:output = execute('version')
-    let l:major = matchstr(l:output, 'Vi IMproved \zs[0-9.]\+')
-    let l:patch = matchstr(l:output, 'Included patches: [0-9]\+-\zs[0-9]\+')
-    return printf('%s.%s', l:major, l:patch)
   endfunction
 endif

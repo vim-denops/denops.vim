@@ -72,7 +72,7 @@ function! s:check_vim_version() abort
         \))
   call health#report_info(printf(
         \ 'Detected Vim version: `%s`',
-        \ denops#util#meta().version,
+        \ denops#_internal#meta#get().version,
         \))
   if !has(printf('patch-%s', s:vim_version))
     call health#report_error(printf(
@@ -91,7 +91,7 @@ function! s:check_neovim_version() abort
         \))
   call health#report_info(printf(
         \ 'Detected Neovim version: `%s`',
-        \ denops#util#meta().version,
+        \ denops#_internal#meta#get().version,
         \))
   if !has(printf('nvim-%s', s:neovim_version))
     call health#report_error(printf(

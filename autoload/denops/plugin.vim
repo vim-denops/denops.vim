@@ -64,7 +64,7 @@ function! denops#plugin#register(plugin, ...) abort
     let l:script = a:1
     let l:options = a:0 > 1 ? a:2 : {}
   endif
-  let l:meta = denops#util#meta()
+  let l:meta = denops#_internal#meta#get()
   let l:options = s:options(l:options, {
         \ 'mode': 'error',
         \})
@@ -72,7 +72,7 @@ function! denops#plugin#register(plugin, ...) abort
 endfunction
 
 function! denops#plugin#discover(...) abort
-  let l:meta = denops#util#meta()
+  let l:meta = denops#_internal#meta#get()
   let l:options = s:options(a:0 > 0 ? a:1 : {}, {
         \ 'mode': 'skip',
         \})
