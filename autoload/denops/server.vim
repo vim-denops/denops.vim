@@ -135,7 +135,7 @@ function! s:on_exit(status, ...) abort dict
 endfunction
 
 function! s:connect(addr) abort
-  let l:interval = g:denops#server#reconnect_interval
+  let l:waiter = printf('sleep %dm', g:denops#server#reconnect_interval)
   let l:threshold = g:denops#server#reconnect_threshold
   let l:previous_exception = ''
   for l:i in range(l:threshold)
@@ -148,6 +148,7 @@ function! s:connect(addr) abort
       call denops#_internal#echo#debug(printf('Failed to connect `%s`: %s', a:addr, v:exception))
       let l:previous_exception = v:exception
     endtry
+    execute l:waiter
   endfor
   call denops#_internal#echo#error(printf('Failed to connect `%s`: %s', a:addr, l:previous_exception))
 endfunction
