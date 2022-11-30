@@ -1,5 +1,5 @@
-import { parse } from "https://deno.land/std@0.149.0/flags/mod.ts";
-import { using } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
+import { parse } from "https://deno.land/std@0.166.0/flags/mod.ts";
+import { using } from "https://deno.land/x/disposable@v1.1.0/mod.ts#^";
 import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
