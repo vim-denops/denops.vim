@@ -5,7 +5,6 @@ function! denops#_internal#job#start(args, ...) abort
         \ 'on_stdout': { -> 0 },
         \ 'on_stderr': { -> 0 },
         \ 'on_exit': { -> 0 },
-        \ 'raw_options': {},
         \}, a:0 ? a:1 : {},
         \)
   return s:start(a:args, l:options)
@@ -17,13 +16,14 @@ endfunction
 
 if has('nvim')
   function! s:start(args, options) abort
-    let l:options = extend({
+    let l:options = {
+          \ 'mode': 'nl',
           \ 'pty': a:options.pty,
           \ 'env': a:options.env,
           \ 'on_stdout': funcref('s:on_recv', [a:options.on_stdout]),
           \ 'on_stderr': funcref('s:on_recv', [a:options.on_stderr]),
           \ 'on_exit': funcref('s:on_exit', [a:options.on_exit]),
-          \}, a:options.raw_options)
+          \}
     return jobstart(a:args, l:options)
   endfunction
 
@@ -49,14 +49,14 @@ else
   let s:KILL_TIMEOUT_MS = 2000
 
   function! s:start(args, options) abort
-    let l:options = extend({
+    let l:options = {
           \ 'noblock': 1,
           \ 'pty': a:options.pty,
           \ 'env': a:options.env,
           \ 'out_cb': funcref('s:out_cb', [a:options.on_stdout]),
           \ 'err_cb': funcref('s:out_cb', [a:options.on_stderr]),
           \ 'exit_cb': funcref('s:exit_cb', [a:options.on_exit]),
-          \}, a:options.raw_options)
+          \}
     return job_start(a:args, l:options)
   endfunction
 

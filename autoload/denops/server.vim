@@ -38,9 +38,6 @@ function! denops#server#start() abort
   if g:denops#trace
     let l:args += ['--trace']
   endif
-  let l:raw_options = has('nvim')
-        \ ? {}
-        \ : { 'mode': 'nl' }
   let s:stopped_on_purpose = 0
   let s:chan = v:null
   let s:job = denops#_internal#job#start(l:args, {
@@ -51,7 +48,6 @@ function! denops#server#start() abort
         \ 'on_stdout': funcref('s:on_stdout'),
         \ 'on_stderr': funcref('s:on_stderr'),
         \ 'on_exit': funcref('s:on_exit'),
-        \ 'raw_options': l:raw_options,
         \})
   call denops#_internal#echo#debug(printf('Server spawned: %s', l:args))
   doautocmd <nomodeline> User DenopsStarted
