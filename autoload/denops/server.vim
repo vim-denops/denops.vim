@@ -95,7 +95,7 @@ function! denops#server#request(method, params) abort
   return s:request(s:chan, a:method, a:params)
 endfunction
 
-function! s:on_stdout(data) abort
+function! s:on_stdout(_job, data, _event) abort
   if s:chan isnot# v:null
     for l:line in split(a:data, '\n')
       echomsg printf('[denops] %s', substitute(l:line, '\t', '    ', 'g'))
@@ -110,7 +110,7 @@ function! s:on_stdout(data) abort
   endif
 endfunction
 
-function! s:on_stderr(data) abort
+function! s:on_stderr(_job, data, _event) abort
   echohl ErrorMsg
   for l:line in split(a:data, '\n')
     echomsg printf('[denops] %s', substitute(l:line, '\t', '    ', 'g'))
@@ -118,7 +118,7 @@ function! s:on_stderr(data) abort
   echohl None
 endfunction
 
-function! s:on_exit(status, ...) abort dict
+function! s:on_exit(_job, status, _event) abort
   let s:job = v:null
   let s:chan = v:null
   call denops#_internal#echo#debug(printf('Server stopped: %s', a:status))

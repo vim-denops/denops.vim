@@ -38,11 +38,11 @@ if has('nvim')
   endfunction
 
   function! s:on_recv(callback, job, data, event) abort
-    call a:callback(join(a:data, "\n"))
+    call a:callback(a:job, join(a:data, "\n"), a:event)
   endfunction
 
   function! s:on_exit(callback, job, status, event) abort
-    call a:callback(a:status)
+    call a:callback(a:job, a:status, a:event)
   endfunction
 else
   " https://github.com/neovim/neovim/blob/f629f83/src/nvim/event/process.c#L24-L26
@@ -53,9 +53,9 @@ else
           \ 'noblock': 1,
           \ 'pty': a:options.pty,
           \ 'env': a:options.env,
-          \ 'out_cb': funcref('s:out_cb', [a:options.on_stdout]),
-          \ 'err_cb': funcref('s:out_cb', [a:options.on_stderr]),
-          \ 'exit_cb': funcref('s:exit_cb', [a:options.on_exit]),
+          \ 'out_cb': funcref('s:out_cb', [a:options.on_stdout, 'stdout']),
+          \ 'err_cb': funcref('s:out_cb', [a:options.on_stderr, 'stderr']),
+          \ 'exit_cb': funcref('s:exit_cb', [a:options.on_exit, 'exit']),
           \}
     return job_start(a:args, l:options)
   endfunction
@@ -70,11 +70,11 @@ else
     redraw
   endfunction
 
-  function! s:out_cb(callback, ch, msg) abort
-    call a:callback(a:msg)
+  function! s:out_cb(callback, event, ch, msg) abort
+    call a:callback(a:ch, a:msg, a:event)
   endfunction
 
-  function! s:exit_cb(callback, ch, status) abort
-    call a:callback(a:status)
+  function! s:exit_cb(callback, event, ch, status) abort
+    call a:callback(a:ch, a:status, a:event)
   endfunction
 endif
