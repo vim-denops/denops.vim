@@ -6,7 +6,7 @@ import {
   isArray,
   isString,
   isUndefined,
-} from "https://deno.land/x/unknownutil@v2.0.0/mod.ts#^";
+} from "https://deno.land/x/unknownutil@v2.1.0/mod.ts#^";
 import {
   Dispatcher as SessionDispatcher,
   Session,
@@ -16,7 +16,7 @@ import {
   WorkerReader,
   WorkerWriter,
 } from "https://deno.land/x/workerio@v1.4.4/mod.ts#^";
-import { Disposable } from "https://deno.land/x/disposable@v1.0.2/mod.ts#^";
+import { Disposable } from "https://deno.land/x/disposable@v1.1.0/mod.ts#^";
 import { responseTimeout } from "./defs.ts";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
