@@ -239,15 +239,17 @@ augroup denops_server_internal
   autocmd VimLeave * let s:vim_exiting = 1
 augroup END
 
-let g:denops#server#deno = get(g:, 'denops#server#deno', g:denops#deno)
-let g:denops#server#deno_args = get(g:, 'denops#server#deno_args', filter([
+call denops#_internal#conf#define('denops#server#deno', g:denops#deno)
+call denops#_internal#conf#define('denops#server#deno_args', filter([
       \ '-q',
       \ g:denops#type_check ? '' : '--no-check',
       \ '--unstable',
       \ '-A',
       \], { _, v -> !empty(v) }))
-let g:denops#server#restart_delay = get(g:, 'denops#server#restart_delay', 100)
-let g:denops#server#restart_interval = get(g:, 'denops#server#restart_interval', 10000)
-let g:denops#server#restart_threshold = get(g:, 'denops#server#restart_threshold', 3)
-let g:denops#server#reconnect_interval = get(g:, 'denops#server#reconnect_interval', 100)
-let g:denops#server#reconnect_threshold = get(g:, 'denops#server#reconnect_threshold', 3)
+
+call denops#_internal#conf#define('denops#server#restart_delay', 100)
+call denops#_internal#conf#define('denops#server#restart_interval', 10000)
+call denops#_internal#conf#define('denops#server#restart_threshold', 3)
+
+call denops#_internal#conf#define('denops#server#reconnect_interval', 100)
+call denops#_internal#conf#define('denops#server#reconnect_threshold', 3)

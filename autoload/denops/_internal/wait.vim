@@ -35,4 +35,4 @@ else
   endfunction
 endif
 
-let g:denops#_internal#wait#timeout = get(g:, 'denops#_internal#wait#timeout', 5000)
+call denops#_internal#conf#define('denops#_internal#wait#timeout', 5000)

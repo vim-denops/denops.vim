@@ -163,5 +163,5 @@ augroup denops_autoload_plugin_internal
   autocmd User DenopsStopped let s:loaded_plugins = {}
 augroup END
 
-let g:denops#plugin#wait_interval = get(g:, 'denops#plugin#wait_interval', 10)
-let g:denops#plugin#wait_timeout = get(g:, 'denops#plugin#wait_timeout', 30000)
+call denops#_internal#conf#define('denops#plugin#wait_interval', 10)
+call denops#_internal#conf#define('denops#plugin#wait_timeout', 30000)
