@@ -38,9 +38,6 @@ function! denops#server#start() abort
   if g:denops#trace
     let l:args += ['--trace']
   endif
-  let l:raw_options = has('nvim')
-        \ ? {}
-        \ : { 'mode': 'nl' }
   let s:stopped_on_purpose = 0
   let s:chan = v:null
   let s:job = denops#_internal#job#start(l:args, {
@@ -51,7 +48,6 @@ function! denops#server#start() abort
         \ 'on_stdout': funcref('s:on_stdout'),
         \ 'on_stderr': funcref('s:on_stderr'),
         \ 'on_exit': funcref('s:on_exit'),
-        \ 'raw_options': l:raw_options,
         \})
   call denops#_internal#echo#debug(printf('Server spawned: %s', l:args))
   doautocmd <nomodeline> User DenopsStarted
@@ -99,7 +95,7 @@ function! denops#server#request(method, params) abort
   return s:request(s:chan, a:method, a:params)
 endfunction
 
-function! s:on_stdout(data) abort
+function! s:on_stdout(_job, data, _event) abort
   if s:chan isnot# v:null
     for l:line in split(a:data, '\n')
       echomsg printf('[denops] %s', substitute(l:line, '\t', '    ', 'g'))
@@ -114,7 +110,7 @@ function! s:on_stdout(data) abort
   endif
 endfunction
 
-function! s:on_stderr(data) abort
+function! s:on_stderr(_job, data, _event) abort
   echohl ErrorMsg
   for l:line in split(a:data, '\n')
     echomsg printf('[denops] %s', substitute(l:line, '\t', '    ', 'g'))
@@ -122,7 +118,7 @@ function! s:on_stderr(data) abort
   echohl None
 endfunction
 
-function! s:on_exit(status, ...) abort dict
+function! s:on_exit(_job, status, _event) abort
   let s:job = v:null
   let s:chan = v:null
   call denops#_internal#echo#debug(printf('Server stopped: %s', a:status))
@@ -243,15 +239,17 @@ augroup denops_server_internal
   autocmd VimLeave * let s:vim_exiting = 1
 augroup END
 
-let g:denops#server#deno = get(g:, 'denops#server#deno', g:denops#deno)
-let g:denops#server#deno_args = get(g:, 'denops#server#deno_args', filter([
+call denops#_internal#conf#define('denops#server#deno', g:denops#deno)
+call denops#_internal#conf#define('denops#server#deno_args', filter([
       \ '-q',
       \ g:denops#type_check ? '' : '--no-check',
       \ '--unstable',
       \ '-A',
       \], { _, v -> !empty(v) }))
-let g:denops#server#restart_delay = get(g:, 'denops#server#restart_delay', 100)
-let g:denops#server#restart_interval = get(g:, 'denops#server#restart_interval', 10000)
-let g:denops#server#restart_threshold = get(g:, 'denops#server#restart_threshold', 3)
-let g:denops#server#reconnect_interval = get(g:, 'denops#server#reconnect_interval', 100)
-let g:denops#server#reconnect_threshold = get(g:, 'denops#server#reconnect_threshold', 3)
+
+call denops#_internal#conf#define('denops#server#restart_delay', 100)
+call denops#_internal#conf#define('denops#server#restart_interval', 10000)
+call denops#_internal#conf#define('denops#server#restart_threshold', 3)
+
+call denops#_internal#conf#define('denops#server#reconnect_interval', 100)
+call denops#_internal#conf#define('denops#server#reconnect_threshold', 3)

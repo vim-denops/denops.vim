@@ -6,14 +6,6 @@ import { Neovim } from "./host/nvim.ts";
 import { TraceReader, TraceWriter } from "./tracer.ts";
 import { tee } from "./tee.ts";
 
-type Opts = {
-  hostname?: string;
-  port?: number;
-  trace?: boolean;
-  quiet?: boolean;
-  identity?: boolean;
-};
-
 type Host = typeof Vim | typeof Neovim;
 
 async function detectHost(reader: Deno.Reader): Promise<Host> {
@@ -27,11 +19,14 @@ async function detectHost(reader: Deno.Reader): Promise<Host> {
   return Neovim;
 }
 
-const { hostname, port, trace, quiet, identity } = parse(Deno.args) as Opts;
+const { hostname, port, trace, quiet, identity } = parse(Deno.args, {
+  string: ["hostname", "port"],
+  boolean: ["trace", "quiet", "identity"],
+});
 
 const listener = Deno.listen({
   hostname: hostname ?? "127.0.0.1",
-  port: port ?? 32123,
+  port: Number(port ?? "32123"),
 });
 const localAddr = listener.addr as Deno.NetAddr;
 

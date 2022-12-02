@@ -1,4 +1,4 @@
-TARGETS := $$(find . \( -name '*.ts' -or -name '*.md' \) -not -path './.deno/*')
+TARGETS := $$(find . -name '*.ts' -or -name '*.md')
 
 .DEFAULT_GOAL := help
 
@@ -8,22 +8,22 @@ help:
 	    perl -pe 's/(.*):.*##\s*/sprintf("%-20s",$$1)/eg;'
 
 fmt: FORCE	## Format code
-	@deno fmt --config deno.jsonc
+	@deno fmt
 
 fmt-check: FORCE	## Format check
-	@deno fmt --check --config deno.jsonc
+	@deno fmt --check
 
 lint: FORCE	## Lint code
-	@deno lint --config deno.jsonc
+	@deno lint
 
 type-check: FORCE	## Type check
 	@deno test --unstable --no-run --no-check=remote ${TARGETS}
 
 test: FORCE	## Test
-	@deno test --unstable -A --no-check --jobs
+	@deno test --unstable -A --no-check
 
 deps: FORCE	## Update dependencies
-	@deno run -A https://deno.land/x/udd@0.7.2/main.ts ${TARGETS}
+	@deno run -A --no-check https://deno.land/x/udd@0.8.1/main.ts ${TARGETS}
 	@make fmt
 
 FORCE:
