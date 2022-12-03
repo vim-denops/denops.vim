@@ -5,7 +5,9 @@ let g:loaded_denops_debug = 1
 
 augroup denops_debug_plugin_internal
   autocmd!
-  autocmd User DenopsReady,DenopsStarted,DenopsStopped
+  autocmd User DenopsReady,DenopsClosed
+        \  call denops#_internal#echo#debug(expand('<amatch>:t'))
+  autocmd User DenopsStarted,DenopsListen:*,DenopsStopped:*
         \  call denops#_internal#echo#debug(expand('<amatch>:t'))
   autocmd User DenopsPluginPre:*,DenopsPluginPost:*
         \  call denops#_internal#echo#debug(expand('<amatch>:t'))
