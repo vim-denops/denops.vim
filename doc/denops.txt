@@ -1,8 +1,5 @@
 *denops.txt*		An eco-system to write Vim/Neovim plugins in Deno
 
-Author:  Alisue <lambdalisue@hashnote.net>
-License: MIT license
-
 =============================================================================
 CONTENTS					*denops-contents*
 
