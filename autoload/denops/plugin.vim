@@ -160,7 +160,7 @@ augroup denops_autoload_plugin_internal
   autocmd!
   autocmd User DenopsPluginPost:* call s:DenopsPluginPost()
   autocmd User DenopsPluginFail:* call s:DenopsPluginFail()
-  autocmd User DenopsStopped let s:loaded_plugins = {}
+  autocmd User DenopsClosed let s:loaded_plugins = {}
 augroup END
 
 call denops#_internal#conf#define('denops#plugin#wait_interval', 10)
