@@ -1,5 +1,6 @@
 import {
   assertArray,
+  assertNumber,
   assertString,
 } from "https://deno.land/x/unknownutil@v2.1.0/mod.ts#^";
 import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.6/mod.ts#^";
@@ -45,6 +46,12 @@ export class Neovim implements Host {
     this.#session.dispatcher = {
       void() {
         return Promise.resolve();
+      },
+
+      kill(code: unknown) {
+        code = code ?? 1;
+        assertNumber(code);
+        Deno.exit(code);
       },
 
       async invoke(method: unknown, args: unknown): Promise<unknown> {

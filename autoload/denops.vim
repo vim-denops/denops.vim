@@ -16,6 +16,10 @@ function! denops#request_async(plugin, method, params, success, failure) abort
   return denops#server#request('invoke', ['dispatchAsync', [a:plugin, a:method, a:params, l:success, l:failure]])
 endfunction
 
+function! denops#restart() abort
+  call denops#server#notify('kill', [0])
+endfunction
+
 " Configuration
 call denops#_internal#conf#define('denops#disabled', 0)
 call denops#_internal#conf#define('denops#deno', 'deno')
