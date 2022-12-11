@@ -1,4 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.167.0/testing/asserts.ts";
+import { assertSnapshot } from "https://deno.land/std@0.167.0/testing/snapshot.ts";
 import { test } from "./tester.ts";
 
 test(
@@ -117,5 +118,13 @@ test({
       denops.name,
       "@denops-core-test",
     );
+  },
+});
+
+test({
+  mode: "all",
+  name: "second argument of fn is test context",
+  fn: async (denops, t) => {
+    await assertSnapshot(t, await denops.call("tolower", "Hello world"));
   },
 });
