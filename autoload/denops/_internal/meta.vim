@@ -22,9 +22,9 @@ if has('nvim')
   endfunction
 else
   function! s:get_host_version() abort
-    let l:output = execute('version')
-    let l:major = matchstr(l:output, 'Vi IMproved \zs[0-9.]\+')
-    let l:patch = matchstr(l:output, 'Included patches: [0-9]\+-\zs[0-9]\+')
-    return printf('%s.%s', l:major, l:patch)
+    let l:major = v:version / 100
+    let l:minor = v:version - (l:major * 100)
+    let l:patch = str2nr(matchstr(v:versionlong . '', '\d\{4}$'))
+    return printf('%s.%s.%s', l:major, l:minor, l:patch)
   endfunction
 endif
