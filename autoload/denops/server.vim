@@ -105,7 +105,7 @@ function! s:on_stdout(_job, data, _event) abort
   let l:addr = substitute(a:data, '\r\?\n$', '', 'g')
   if !s:connect(l:addr)
     call denops#server#stop()
-    call s:on_stderr(a:data)
+    call s:on_stderr(a:_job, a:data, a:_event)
     return
   endif
 endfunction
