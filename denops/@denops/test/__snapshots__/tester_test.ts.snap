@@ -1,0 +1,5 @@
+export const snapshot = {};
+
+snapshot[`second argument of fn is test context (vim) 1`] = `"hello world"`;
+
+snapshot[`second argument of fn is test context (nvim) 1`] = `"hello world"`;

@@ -87,7 +87,7 @@ async function withDenops(
 
 export type TestDefinition = Omit<Deno.TestDefinition, "fn"> & {
   mode: "vim" | "nvim" | "any" | "all";
-  fn: (denops: Denops) => Promise<void> | void;
+  fn: (denops: Denops, t: Deno.TestContext) => Promise<void> | void;
   pluginName?: string;
   timeout?: number;
   verbose?: boolean;
@@ -118,7 +118,7 @@ export function test(
   name: string,
   fn: TestDefinition["fn"],
 ): void;
-export function test(t: TestDefinition): void;
+export function test(def: TestDefinition): void;
 export function test(
   modeOrDefinition: TestDefinition["mode"] | TestDefinition,
   name?: string,
@@ -141,38 +141,38 @@ export function test(
   }
 }
 
-function testInternal(t: TestDefinition): void {
-  const mode = t.mode;
+function testInternal(def: TestDefinition): void {
+  const mode = def.mode;
   if (mode === "all") {
     testInternal({
-      ...t,
-      name: `${t.name} (vim)`,
+      ...def,
+      name: `${def.name} (vim)`,
       mode: "vim",
     });
     testInternal({
-      ...t,
-      name: `${t.name} (nvim)`,
+      ...def,
+      name: `${def.name} (nvim)`,
       mode: "nvim",
     });
   } else if (mode === "any") {
     const m = DENOPS_TEST_NVIM ? "nvim" : "vim";
     testInternal({
-      ...t,
-      name: `${t.name} (${m})`,
+      ...def,
+      name: `${def.name} (${m})`,
       mode: m,
     });
   } else {
     Deno.test({
-      ...t,
-      ignore: t.ignore || !DENOPS_PATH ||
+      ...def,
+      ignore: def.ignore || !DENOPS_PATH ||
         (mode === "vim" && !DENOPS_TEST_VIM) ||
         (mode === "nvim" && !DENOPS_TEST_NVIM),
-      fn: async () => {
-        await withDenops(mode, t.fn, {
-          pluginName: t.pluginName,
-          timeout: t.timeout,
-          verbose: t.verbose,
-          prelude: t.prelude,
+      fn: async (t) => {
+        await withDenops(mode, (denops: Denops) => def.fn(denops, t), {
+          pluginName: def.pluginName,
+          timeout: def.timeout,
+          verbose: def.verbose,
+          prelude: def.prelude,
         });
       },
     });
