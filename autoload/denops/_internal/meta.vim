@@ -24,7 +24,7 @@ else
   function! s:get_host_version() abort
     let l:major = v:version / 100
     let l:minor = v:version - (l:major * 100)
-    let l:patch = str2nr(matchstr(v:versionlong . '', '\d\{4}$'))
+    let l:patch = str2nr(v:versionlong[-4:])
     return printf('%s.%s.%s', l:major, l:minor, l:patch)
   endfunction
 endif
