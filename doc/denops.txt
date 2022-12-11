@@ -194,25 +194,52 @@ denops#request_async({plugin}, {method}, {params}, {success}, {failure})
 	      \ { e -> s:failure(e) },
 	      \)
 <
+						*denops#restart()*
+denops#restart()
+	Kill a local/shared denops server process to prompt restart.
+
 						*denops#server#start()*
 denops#server#start()
-	Start a denops server.
-	It will skip internal process if server is already running.
+	Start a denops server process and connect to the channel. It does
+	nothing when the server is already started.
+
 	It is automatically called 1) on |VimEnter| autocmd when denops is
 	in |runtimepath| during Vim startup, 2) immediately when denops is
 	added to |runtimepath| after Vim startup.
-	It will invoke |User| |DenopsReady| autocmd to discover denops plugins.
-	See |denops#plugin#discover()| for detail.
+
 	Note that the server is automatically restarted when the process is
 	stopped unexpectedly.
 
 						*denops#server#stop()*
 denops#server#stop()
-	Stop a denops server immediately.
+	Stop a denops server. It does nothing when the server is not started
+	yet.
 
 						*denops#server#restart()*
 denops#server#restart()
 	Restart a denops server.
+
+						*denops#server#connect()*
+denops#server#connect()
+	Connect to a |denops-shared-server| channel. It does nothing when the
+	channel is already established.
+
+	It is automatically called 1) on |VimEnter| autocmd when denops is
+	in |runtimepath| during Vim startup, 2) immediately when denops is
+	added to |runtimepath| after Vim startup when |g:denops_server_addr|
+	is specified. Otherwise it echo errors.
+
+	Note that the channel is automatically re-established when the channel
+	is closed unexpectedly.
+
+						*denops#server#close()*
+denops#server#stop()
+	Close the channel. It does nothing when the channel is not established
+	yet.
+
+						*denops#server#reconnect()*
+denops#server#reconnect()
+	Reconnect to a denops shared server.
 
 						*denops#server#status()*
 denops#server#status()
@@ -223,15 +250,8 @@ denops#server#status()
 	"starting"	Server is starting.
 	"running"	Server is running (ready).
 
-						*denops#server#connect()*
-denops#server#connect()
-	Connect to a |denops-shared-server|.
-	It is automatically called 1) on |VimEnter| autocmd when denops is
-	in |runtimepath| during Vim startup, 2) immediately when denops is
-	added to |runtimepath| after Vim startup when |g:denops_server_addr|
-	is specified. Otherwise it echo errors.
-	It will invoke |User| |DenopsReady| autocmd to discover denops plugins.
-	See |denops#plugin#discover()| for detail.
+	Note that "starting" is never returned when a |denops-shared-server|
+	is used.
 
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({plugin})
@@ -349,20 +369,37 @@ denops#callback#clear()
 AUTOCMD						*denops-autocmd*
 
 DenopsReady						*DenopsReady*
-	Invoked when a denops become ready. Note that it is not mean that all
-	of denops plugins are ready.
+	Fired when a connection (channel) with Denops is established.
+	Note that this is not when all plug-ins are available.
+
+DenopsClosed						*DenopsClosed*
+	Fired when the connection (channel) with Denops is broken.
+	It is assumed to be used to release resources such as cache.
 
 DenopsPluginPre:{plugin}				*DenopsPluginPre*
-	Invoked just before denops call a "main" function of a plugin {plugin}.
+	Fired before the "main" function of each plugin is called.
+	{plugin} is the name of the target plugin.
 
 DenopsPluginPost:{plugin}				*DenopsPluginPost*
-	Invoked just after denops called a "main" function of a plugin {plugin}.
+	Fired after the "main" function of each plugin is called.
+	{plugin} is the name of the target plugin.
+
+DenopsProcessStarted					*DenopsProcessStarted*
+	Fires when the Denops local server process is started.
+	It is never fired in shared server mode.
+
+DenopsProcessStopped:{exitcode}				*DenopsProcessStopped*
+	Fired when the Denops local server process is stopped.
+	It is never fired in shared server mode.
 
 DenopsStarted						*DenopsStarted*
-	Invoked when a denops server is started.
+	DEPRECATED:
+	Use |DenopsProcessStarted| autocmd instead.
 
 DenopsStopped						*DenopsStopped*
-	Invoked when a denops server is stopped.
+	DEPRECATED:
+	Use |DenopsClosed| autocmd instead to release resources.
+	Use |DenopsProcessStopped| autocmd to detect 
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
