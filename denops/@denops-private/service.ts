@@ -4,8 +4,8 @@ import {
   assertBoolean,
   assertString,
   isArray,
+  isNullish,
   isString,
-  isUndefined,
 } from "https://deno.land/x/unknownutil@v2.1.0/mod.ts#^";
 import {
   Dispatcher as SessionDispatcher,
@@ -158,10 +158,10 @@ function buildServiceSession(
     },
 
     redraw: async (force) => {
-      if (!isUndefined(force)) {
+      if (!isNullish(force)) {
         assertBoolean(force);
       }
-      return await service.host.redraw(force);
+      return await service.host.redraw(!!force);
     },
 
     call: async (fn, ...args) => {
