@@ -76,10 +76,7 @@ export class Vim implements Host {
 }
 
 async function dispatch(invoker: Invoker, expr: unknown): Promise<unknown> {
-  if (isKillMessage(expr)) {
-    const [_, code] = expr;
-    Deno.exit(code);
-  } else if (isInvokeMessage(expr)) {
+  if (isInvokeMessage(expr)) {
     const [_, method, args] = expr;
     if (!isInvokerMethod(method)) {
       throw new Error(`Method '${method}' is not defined in the invoker`);
@@ -91,17 +88,6 @@ async function dispatch(invoker: Invoker, expr: unknown): Promise<unknown> {
       `Unexpected JSON channel message is received: ${JSON.stringify(expr)}`,
     );
   }
-}
-
-type KillMessage = ["kill", number];
-
-function isKillMessage(data: unknown): data is KillMessage {
-  return (
-    Array.isArray(data) &&
-    data.length === 2 &&
-    data[0] === "kill" &&
-    typeof data[1] === "number"
-  );
 }
 
 type InvokeMessage = ["invoke", string, unknown[]];

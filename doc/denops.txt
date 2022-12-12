@@ -194,10 +194,6 @@ denops#request_async({plugin}, {method}, {params}, {success}, {failure})
 	      \ { e -> s:failure(e) },
 	      \)
 <
-						*denops#restart()*
-denops#restart()
-	Kill a local/shared denops server process to prompt restart.
-
 						*denops#server#start()*
 denops#server#start()
 	Start a denops server process and connect to the channel. It does
