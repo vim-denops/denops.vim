@@ -6,7 +6,9 @@ import type { Denops, Meta } from "../mod.ts";
 import { DenopsImpl } from "../impl.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
 
-const DEFAULT_TIMEOUT = 1000;
+const DEFAULT_TIMEOUT = Number(
+  Deno.env.get("DENOPS_TEST_DEFAULT_TIMEOUT") ?? "30000",
+);
 
 const DENOPS_PATH = Deno.env.get("DENOPS_PATH");
 
