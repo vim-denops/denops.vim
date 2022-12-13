@@ -55,7 +55,9 @@ async function main(
       });
       const denops: Denops = new DenopsImpl(name, meta, session);
       try {
-        const mod = await import(scriptUrl);
+        // Import module with fragment so that reload works properly
+        // https://github.com/vim-denops/denops.vim/issues/227
+        const mod = await import(`${scriptUrl}#${performance.now()}`);
         await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPre:${name}`)
           .catch((e) =>
             console.warn(`Failed to emit DenopsPluginPre:${name}: ${e}`)
