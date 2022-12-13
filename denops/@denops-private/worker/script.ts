@@ -1,4 +1,3 @@
-import { toFileUrl } from "https://deno.land/std@0.167.0/path/mod.ts";
 import {
   assertObject,
   assertString,
@@ -17,7 +16,11 @@ import { DenopsImpl } from "../../@denops/impl.ts";
 
 const worker = self as unknown as Worker;
 
-async function main(name: string, script: string, meta: Meta): Promise<void> {
+async function main(
+  name: string,
+  scriptUrl: string,
+  meta: Meta,
+): Promise<void> {
   const reader = new WorkerReader(worker);
   const writer = new WorkerWriter(worker);
   await using(
@@ -52,7 +55,7 @@ async function main(name: string, script: string, meta: Meta): Promise<void> {
       });
       const denops: Denops = new DenopsImpl(name, meta, session);
       try {
-        const mod = await import(toFileUrl(script).href);
+        const mod = await import(scriptUrl);
         await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPre:${name}`)
           .catch((e) =>
             console.warn(`Failed to emit DenopsPluginPre:${name}: ${e}`)
@@ -103,12 +106,14 @@ function isMeta(v: unknown): v is Meta {
 worker.addEventListener("message", (event: MessageEvent<unknown>) => {
   assertObject(event.data);
   assertString(event.data.name);
-  assertString(event.data.script);
+  assertString(event.data.scriptUrl);
   if (!isMeta(event.data.meta)) {
     throw new Error(`Invalid 'meta' is passed: ${event.data.meta}`);
   }
-  const { name, script, meta } = event.data;
-  main(name, script, meta).catch((e) => {
-    console.error(`Unexpected error occurred in '${name}' (${script}): ${e}`);
+  const { name, scriptUrl, meta } = event.data;
+  main(name, scriptUrl, meta).catch((e) => {
+    console.error(
+      `Unexpected error occurred in '${name}' (${scriptUrl}): ${e}`,
+    );
   });
 }, { once: true });
