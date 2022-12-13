@@ -46,8 +46,10 @@ jobs:
           deno-version: "${{ matrix.version }}"
       - name: Lint check
         run: make lint
+        if: matrix.version == '1.x'
       - name: Format check
         run: make fmt-check
+        if: matrix.version == '1.x'
       - name: Type check
         run: make type-check
 
