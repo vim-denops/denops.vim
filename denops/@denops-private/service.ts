@@ -1,3 +1,4 @@
+import { toFileUrl } from "https://deno.land/std@0.167.0/path/mod.ts";
 import { compareVersions } from "https://deno.land/x/compare_versions@0.4.0/mod.ts#^";
 import {
   assertArray,
@@ -76,7 +77,8 @@ export class Service implements Disposable {
         ...workerOptions,
       },
     );
-    worker.postMessage({ name, script, meta });
+    const scriptUrl = resolveScriptUrl(script);
+    worker.postMessage({ name, scriptUrl, meta });
     const session = buildServiceSession(
       name,
       meta,
@@ -187,4 +189,12 @@ function buildServiceSession(
 
 function isCall(call: unknown): call is [string, ...unknown[]] {
   return isArray(call) && call.length > 0 && isString(call[0]);
+}
+
+function resolveScriptUrl(script: string): string {
+  try {
+    return toFileUrl(script).href;
+  } catch {
+    return new URL(script, import.meta.url).href;
+  }
 }
