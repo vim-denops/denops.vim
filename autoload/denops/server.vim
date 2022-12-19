@@ -122,3 +122,5 @@ call denops#_internal#conf#define('denops#server#restart_threshold', 3)
 call denops#_internal#conf#define('denops#server#reconnect_delay', 100)
 call denops#_internal#conf#define('denops#server#reconnect_interval', 1000)
 call denops#_internal#conf#define('denops#server#reconnect_threshold', 3)
+
+call denops#_internal#conf#define('denops#server#deno_args', ['-q', '--no-lock', '--unstable', '-A'])
