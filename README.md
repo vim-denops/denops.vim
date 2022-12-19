@@ -70,7 +70,7 @@ To start the shared server, execute the following command in the denops.vim
 repository top
 
 ```
-deno run -A --no-check ./denops/@denops-private/cli.ts
+deno run -A --no-lock ./denops/@denops-private/cli.ts
 ```
 
 Then specify the server address in `g:denops_server_addr` as follows
@@ -83,7 +83,7 @@ If you'd like to specify hostname and port, use `--hostname` and `--port`
 command arguments as follows
 
 ```
-deno run -A --no-check \
+deno run -A --no-lock \
     ./denops/@denops-private/cli.ts \
     --hostname=0.0.0.0 \
     --port 12345
