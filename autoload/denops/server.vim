@@ -242,7 +242,8 @@ augroup END
 call denops#_internal#conf#define('denops#server#deno', g:denops#deno)
 call denops#_internal#conf#define('denops#server#deno_args', filter([
       \ '-q',
-      \ g:denops#type_check ? '' : '--no-check',
+      \ g:denops#type_check ? '--check=all' : '',
+      \ '--no-lock',
       \ '--unstable',
       \ '-A',
       \], { _, v -> !empty(v) }))
