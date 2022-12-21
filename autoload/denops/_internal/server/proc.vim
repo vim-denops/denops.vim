@@ -163,6 +163,4 @@ augroup denops_internal_server_proc_internal
 augroup END
 
 call denops#_internal#conf#define('denops#_internal#server#proc#deno', g:denops#deno)
-call denops#_internal#conf#define('denops#_internal#server#proc#deno_args', filter([
-      \ g:denops#type_check ? '--check=all' : '',
-      \], { _, v -> !empty(v) }) + g:denops#server#deno_args)
+call denops#_internal#conf#define('denops#_internal#server#proc#deno_args', g:denops#server#deno_args)

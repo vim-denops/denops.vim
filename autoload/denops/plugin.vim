@@ -95,6 +95,23 @@ function! denops#plugin#discover(...) abort
   endfor
 endfunction
 
+function! denops#plugin#check_type(...) abort
+  if !a:0
+    let l:plugins = {}
+    call s:gather_plugins(l:plugins)
+  endif
+  let l:args = [g:denops#deno, 'check', '--remote']
+  let l:args += a:0 ? [s:find_plugin(a:1)] : values(l:plugins)
+  let l:job = denops#_internal#job#start(l:args, {
+        \ 'env': {
+        \   'NO_COLOR': 1,
+        \   'DENO_NO_PROMPT': 1,
+        \ },
+        \ 'on_stderr': { _job, data, _event -> denops#_internal#echo#error(data) },
+        \ 'on_exit': { _job, status, _event -> denops#_internal#echo#error('Type check exited:', status) },
+        \ })
+endfunction
+
 function! s:gather_plugins(plugins) abort
   for l:script in globpath(&runtimepath, denops#_internal#path#join(['denops', '*', 'main.ts']), 1, 1, 1)
     let l:plugin = fnamemodify(l:script, ':h:t')

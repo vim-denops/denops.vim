@@ -97,14 +97,6 @@ VARIABLE						*denops-variable*
 
 	Default: 0
 
-*g:denops#type_check*
-	Set 1 to enable Deno's type check feature.
-
-	Note that the type check would affect the performance so disable it
-	unless you are debugging denops plugins.
-
-	Default: 0
-
 *g:denops#disable_deprecation_warning_message*
 	Set 1 to disable deprecation warning messages.
 
@@ -322,6 +314,11 @@ denops#plugin#reload({plugin}[, {options}])
 
 	It internally calls |denops#plugin#register()| with "reload" mode when
 	the plugin is registered.
+
+						*denops#plugin#check_type()*
+denops#plugin#check_type([{plugin}])
+	Run Deno's type check feature for {plugin} or all registered plugins.
+	The result of check will be displayed in |message-history|.
 
 						*denops#callback#register()*
 denops#callback#register({callback}[, {options}])
