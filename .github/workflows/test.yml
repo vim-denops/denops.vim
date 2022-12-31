@@ -41,11 +41,11 @@ jobs:
         with:
           deno-version: "${{ matrix.version }}"
       - name: Lint check
-        run: make lint
+        run: deno lint
       - name: Format check
-        run: make fmt-check
+        run: deno fmt --check
       - name: Type check
-        run: make type-check
+        run: deno task check
 
   test:
     strategy:
@@ -92,7 +92,7 @@ jobs:
         env:
           DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable_path }}
       - name: Test
-        run: make test
+        run: deno task test
         env:
           DENOPS_TEST_DENOPS_PATH: "./"
           DENOPS_TEST_VIM_EXECUTABLE: ${{ steps.vim.outputs.executable_path }}
