@@ -37,11 +37,7 @@ async function main(
       // Protect the process itself from "Unhandled promises"
       // https://github.com/vim-denops/denops.vim/issues/208
       globalThis.addEventListener("unhandledrejection", (ev) => {
-        // XXX:
-        // Denops support Deno from 1.17 so the following `unknown` is required
-        // to pass type-check. Note that the code is not invoked because "unhandledrejection"
-        // event itself is supported from Deno 1.24 (and Deno 1.24 has `reason` attribute on `ev`)
-        let { reason } = ev as (Event & { reason: unknown });
+        let { reason } = ev;
         if (reason instanceof Error && reason.stack) {
           reason = reason.stack;
         }
