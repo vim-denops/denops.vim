@@ -1,5 +1,11 @@
 import type { Session } from "https://deno.land/x/msgpack_rpc@v3.1.6/mod.ts#^";
-import { BatchError, Context, Denops, Dispatcher, Meta } from "./mod.ts";
+import {
+  BatchError,
+  Context,
+  Denops,
+  Dispatcher,
+  Meta,
+} from "../@denops/mod.ts";
 
 export class DenopsImpl implements Denops {
   readonly name: string;
