@@ -3,7 +3,6 @@ import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.6/mod.ts#^";
 import { using } from "https://deno.land/x/disposable@v1.1.0/mod.ts#^";
 import { deadline } from "https://deno.land/std@0.170.0/async/mod.ts";
 import type { Denops, Meta } from "../mod.ts";
-import { DenopsImpl } from "../impl.ts";
 import { DENOPS_TEST_NVIM, DENOPS_TEST_VIM, run } from "./runner.ts";
 
 const DEFAULT_TIMEOUT = Number(
@@ -70,7 +69,7 @@ async function withDenops(
           "call",
           "denops#_internal#meta#get",
         ) as Meta;
-        const denops: Denops = new DenopsImpl(pluginName, meta, session);
+        const denops = await newDenopsImpl(pluginName, meta, session);
         const runner = async () => {
           await main(denops);
         };
@@ -85,6 +84,23 @@ async function withDenops(
     conn.close();
     listener.close();
   }
+}
+
+async function newDenopsImpl(
+  pluginName: string,
+  meta: Meta,
+  session: Session,
+): Promise<Denops> {
+  if (!DENOPS_PATH) {
+    throw new Error("`DENOPS_PATH` environment variable is not defined");
+  }
+  const { DenopsImpl } = await import(path.join(
+    path.resolve(DENOPS_PATH),
+    "denops",
+    "@denops",
+    "impl.ts",
+  ));
+  return new DenopsImpl(pluginName, meta, session);
 }
 
 export type TestDefinition = Omit<Deno.TestDefinition, "fn"> & {
