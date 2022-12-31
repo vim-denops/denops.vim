@@ -94,12 +94,14 @@ async function newDenopsImpl(
   if (!DENOPS_PATH) {
     throw new Error("`DENOPS_PATH` environment variable is not defined");
   }
-  const { DenopsImpl } = await import(path.join(
-    path.resolve(DENOPS_PATH),
-    "denops",
-    "@denops-private",
-    "impl.ts",
-  ));
+  const { DenopsImpl } = await import(
+    path.toFileUrl(path.join(
+      path.resolve(DENOPS_PATH),
+      "denops",
+      "@denops-private",
+      "impl.ts",
+    )).href
+  );
   return new DenopsImpl(pluginName, meta, session);
 }
 
