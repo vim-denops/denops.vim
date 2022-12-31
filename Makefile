@@ -23,7 +23,7 @@ test: FORCE	## Test
 	@deno test --unstable -A --no-check
 
 deps: FORCE	## Update dependencies
-	@deno run -A --no-check https://deno.land/x/udd@0.8.1/main.ts ${TARGETS}
+	@deno run -A --no-check https://deno.land/x/udd@0.8.2/main.ts ${TARGETS}
 	@make fmt
 
 FORCE:
