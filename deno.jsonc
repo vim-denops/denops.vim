@@ -1,3 +1,6 @@
 // XXX
 // This file is required to workaround the following issue
 // https://github.com/vim-denops/denops.vim/issues/218
+{
+  "lock": false
+}

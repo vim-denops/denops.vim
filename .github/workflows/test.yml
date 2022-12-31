@@ -31,7 +31,6 @@ jobs:
         runner:
           - ubuntu-latest
         version:
-          - "1.17.1"
           - "1.x"
     runs-on: ${{ matrix.runner }}
     steps:
@@ -43,10 +42,8 @@ jobs:
           deno-version: "${{ matrix.version }}"
       - name: Lint check
         run: make lint
-        if: matrix.version == '1.x'
       - name: Format check
         run: make fmt-check
-        if: matrix.version == '1.x'
       - name: Type check
         run: make type-check
 

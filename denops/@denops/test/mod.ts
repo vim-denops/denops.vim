@@ -1,6 +1,7 @@
 /**
  * This module is deprecated. Use https://deno.land/x/denops_test/mod.ts instead.
  *
+ * @deprecated
  * @module
  */
 console.warn(
