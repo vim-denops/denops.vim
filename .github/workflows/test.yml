@@ -1,8 +1,5 @@
 name: test
 
-env:
-  DENOPS_PATH: "./"
-
 on:
   schedule:
     - cron: "0 7 * * 0"
@@ -100,6 +97,7 @@ jobs:
       - name: Test
         run: make test
         env:
-          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable_path }}
-          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable_path }}
+          DENOPS_TEST_DENOPS_PATH: "./"
+          DENOPS_TEST_VIM_EXECUTABLE: ${{ steps.vim.outputs.executable_path }}
+          DENOPS_TEST_NVIM_EXECUTABLE: ${{ steps.nvim.outputs.executable_path }}
         timeout-minutes: 5
