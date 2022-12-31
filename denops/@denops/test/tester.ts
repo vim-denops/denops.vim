@@ -97,7 +97,7 @@ async function newDenopsImpl(
   const { DenopsImpl } = await import(path.join(
     path.resolve(DENOPS_PATH),
     "denops",
-    "@denops",
+    "@denops-private",
     "impl.ts",
   ));
   return new DenopsImpl(pluginName, meta, session);

@@ -3,8 +3,8 @@ import {
   assertEquals,
   assertRejects,
 } from "https://deno.land/std@0.170.0/testing/asserts.ts";
-import { test } from "./test/tester.ts";
-import { BatchError } from "./mod.ts";
+import { test } from "../@denops/test/tester.ts";
+import { BatchError } from "../@denops/mod.ts";
 
 test({
   mode: "all",
