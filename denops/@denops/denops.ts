@@ -13,7 +13,7 @@ export type Context = Record<string, unknown>;
 /**
  * Environment meta information.
  */
-export type Meta = {
+export interface Meta {
   // Current denops mode.
   // In "debug" or "test" mode, some features become enabled
   // which might impact the performance.
@@ -24,7 +24,7 @@ export type Meta = {
   readonly version: string;
   // Host platform name.
   readonly platform: "windows" | "mac" | "linux";
-};
+}
 
 /**
  * Batch error which is raised when one of function fails during batch process
