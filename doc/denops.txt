@@ -323,6 +323,11 @@ denops#plugin#reload({plugin}[, {options}])
 	It internally calls |denops#plugin#register()| with "reload" mode when
 	the plugin is registered.
 
+						*denops#plugin#check_type()*
+denops#plugin#check_type([{plugin}])
+	Run Deno's type check feature for {plugin} or all registered plugins.
+	The result of check will be displayed in |message-history|.
+
 						*denops#callback#register()*
 denops#callback#register({callback}[, {options}])
 	Register {callback} to internal callback map as an anonymous function
