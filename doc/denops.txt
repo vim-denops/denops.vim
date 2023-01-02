@@ -82,12 +82,8 @@ VARIABLE						*denops-variable*
 	Default: 'deno'
 
 *g:denops#debug*
-	Set 1 to enable debug mode. In debug mode, the following additional
-	features become enabled.
-
-	- Additional debug messages of denops itself
-
-	Use |g:denops#type_check| to enable Deno's type check feature.
+	Set 1 to enable debug mode. In debug mode, the additional debug
+	messages of denops itself will be shown.
 
 	Default: 0
 
@@ -98,12 +94,8 @@ VARIABLE						*denops-variable*
 	Default: 0
 
 *g:denops#type_check*
-	Set 1 to enable Deno's type check feature.
-
-	Note that the type check would affect the performance so disable it
-	unless you are debugging denops plugins.
-
-	Default: 0
+	DEPRECATED:
+	Use |denops#plugin#check_type()| function instead.
 
 *g:denops#disable_deprecation_warning_message*
 	Set 1 to disable deprecation warning messages.

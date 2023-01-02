@@ -65,9 +65,6 @@ endfunction
 function! s:start(options) abort
   let l:args = [g:denops#deno, 'run']
   let l:args += g:denops#server#deno_args
-  if g:denops#type_check
-    let l:args += ['--check=all']
-  endif
   let l:args += [
         \ s:SCRIPT,
         \ '--quiet',
