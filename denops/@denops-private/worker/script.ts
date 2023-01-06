@@ -13,6 +13,7 @@ import {
 import { responseTimeout } from "../defs.ts";
 import type { Denops, Meta } from "../../@denops/mod.ts";
 import { DenopsImpl } from "../impl.ts";
+import { patchConsole } from "./patch_console.ts";
 
 const worker = self as unknown as Worker & { name: string };
 
@@ -106,6 +107,9 @@ function isMeta(v: unknown): v is Meta {
   }
   return true;
 }
+
+// Patch console with worker name for easy debugging
+patchConsole(`(${worker.name})`);
 
 // Wait startup arguments and start 'main'
 worker.addEventListener("message", (event: MessageEvent<unknown>) => {
