@@ -117,7 +117,7 @@ function! s:register(plugin, script, meta, options) abort
   let l:script = denops#_internal#path#norm(a:script)
   let l:args = [a:plugin, l:script, a:meta, a:options]
   call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
-  return denops#server#request('invoke', ['register', l:args])
+  return denops#server#notify('invoke', ['register', l:args])
 endfunction
 
 function! s:find_plugin(plugin) abort
