@@ -78,7 +78,7 @@ export class Service implements Disposable {
       },
     );
     const scriptUrl = resolveScriptUrl(script);
-    worker.postMessage({ name, scriptUrl, meta });
+    worker.postMessage({ scriptUrl, meta });
     const session = buildServiceSession(
       name,
       meta,
