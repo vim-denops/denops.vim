@@ -30,7 +30,7 @@ async function main(
         if (e.name === "Interrupted") {
           return;
         }
-        console.error(`Unexpected error occurred in '${worker.name}'`, e);
+        console.error("Unexpected error occurred", e);
       },
     }),
     async (session) => {
@@ -46,7 +46,7 @@ async function main(
           reason = reason.stack;
         }
         console.error(
-          `Unhandled rejection is detected. Worker of '${worker.name}' will be reloaded: ${reason}`,
+          `Unhandled rejection is detected. Worker will be reloaded: ${reason}`,
         );
         // Reload the worker because "Unhandled promises" error occured.
         session.notify("reload");
@@ -72,7 +72,7 @@ async function main(
             console.warn(`Failed to emit DenopsPluginPost:${worker.name}: ${e}`)
           );
       } catch (e) {
-        console.error(`${worker.name}: ${e}`);
+        console.error(e);
         await denops.cmd(
           `doautocmd <nomodeline> User DenopsPluginFail:${worker.name}`,
         )
