@@ -13,11 +13,11 @@ import {
 import { responseTimeout } from "../defs.ts";
 import type { Denops, Meta } from "../../@denops/mod.ts";
 import { DenopsImpl } from "../impl.ts";
+import { patchConsole } from "./patch_console.ts";
 
-const worker = self as unknown as Worker;
+const worker = self as unknown as Worker & { name: string };
 
 async function main(
-  name: string,
   scriptUrl: string,
   meta: Meta,
 ): Promise<void> {
@@ -30,7 +30,7 @@ async function main(
         if (e.name === "Interrupted") {
           return;
         }
-        console.error(`Unexpected error occurred in '${name}'`, e);
+        console.error("Unexpected error occurred", e);
       },
     }),
     async (session) => {
@@ -46,34 +46,38 @@ async function main(
           reason = reason.stack;
         }
         console.error(
-          `Unhandled rejection is detected. Worker of '${name}' will be reloaded: ${reason}`,
+          `Unhandled rejection is detected. Worker will be reloaded: ${reason}`,
         );
         // Reload the worker because "Unhandled promises" error occured.
         session.notify("reload");
         // Avoid process death
         ev.preventDefault();
       });
-      const denops: Denops = new DenopsImpl(name, meta, session);
+      const denops: Denops = new DenopsImpl(worker.name, meta, session);
       try {
         // Import module with fragment so that reload works properly
         // https://github.com/vim-denops/denops.vim/issues/227
         const mod = await import(`${scriptUrl}#${performance.now()}`);
-        await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPre:${name}`)
-          .catch((e) =>
-            console.warn(`Failed to emit DenopsPluginPre:${name}: ${e}`)
-          );
-        await mod.main(denops);
-        await denops.cmd(`doautocmd <nomodeline> User DenopsPluginPost:${name}`)
-          .catch((e) =>
-            console.warn(`Failed to emit DenopsPluginPost:${name}: ${e}`)
-          );
-      } catch (e) {
-        console.error(`${name}: ${e}`);
         await denops.cmd(
-          `doautocmd <nomodeline> User DenopsPluginFail:${name}`,
+          `doautocmd <nomodeline> User DenopsPluginPre:${worker.name}`,
         )
           .catch((e) =>
-            console.warn(`Failed to emit DenopsPluginFail:${name}: ${e}`)
+            console.warn(`Failed to emit DenopsPluginPre:${worker.name}: ${e}`)
+          );
+        await mod.main(denops);
+        await denops.cmd(
+          `doautocmd <nomodeline> User DenopsPluginPost:${worker.name}`,
+        )
+          .catch((e) =>
+            console.warn(`Failed to emit DenopsPluginPost:${worker.name}: ${e}`)
+          );
+      } catch (e) {
+        console.error(e);
+        await denops.cmd(
+          `doautocmd <nomodeline> User DenopsPluginFail:${worker.name}`,
+        )
+          .catch((e) =>
+            console.warn(`Failed to emit DenopsPluginFail:${worker.name}: ${e}`)
           );
       } finally {
         await session.waitClosed();
@@ -104,18 +108,20 @@ function isMeta(v: unknown): v is Meta {
   return true;
 }
 
+// Patch console with worker name for easy debugging
+patchConsole(`(${worker.name})`);
+
 // Wait startup arguments and start 'main'
 worker.addEventListener("message", (event: MessageEvent<unknown>) => {
   assertObject(event.data);
-  assertString(event.data.name);
   assertString(event.data.scriptUrl);
   if (!isMeta(event.data.meta)) {
     throw new Error(`Invalid 'meta' is passed: ${event.data.meta}`);
   }
-  const { name, scriptUrl, meta } = event.data;
-  main(name, scriptUrl, meta).catch((e) => {
+  const { scriptUrl, meta } = event.data;
+  main(scriptUrl, meta).catch((e) => {
     console.error(
-      `Unexpected error occurred in '${name}' (${scriptUrl}): ${e}`,
+      `Unexpected error occurred in '${scriptUrl}': ${e}`,
     );
   });
 }, { once: true });
