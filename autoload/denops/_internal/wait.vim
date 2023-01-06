@@ -19,15 +19,23 @@ endfunction
 if exists('*wait')
   let s:wait = function('wait')
 else
+  " NOTE:
+  " The line 'call getchar(0)' is required to enable Ctrl-C
+  " interruption in Vim on Windows.
+  " See https://github.com/vim-denops/denops.vim/issues/182
+  function! s:sleep(duration) abort
+    call getchar(0)
+    execute printf('sleep %dm', a:duration)
+  endfunction
+
   function! s:wait(timeout, condition, interval) abort
-    let l:waiter = printf('sleep %dm', a:interval)
     let l:s = reltime()
     try
       while !a:condition()
         if reltimefloat(reltime(l:s)) * 1000 > a:timeout
           return -1
         endif
-        execute l:waiter
+        call s:sleep(a:interval)
       endwhile
     catch /^Vim:Interrupt$/
       return -2
