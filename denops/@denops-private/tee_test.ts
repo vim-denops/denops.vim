@@ -1,12 +1,12 @@
 import {
   assert,
   assertEquals,
-} from "https://deno.land/std@0.170.0/testing/asserts.ts";
+} from "https://deno.land/std@0.171.0/testing/asserts.ts";
 import {
   readAll,
   writeAll,
-} from "https://deno.land/std@0.170.0/streams/mod.ts";
-import { Buffer } from "https://deno.land/std@0.170.0/io/mod.ts";
+} from "https://deno.land/std@0.171.0/streams/mod.ts";
+import { Buffer } from "https://deno.land/std@0.171.0/io/mod.ts";
 import { tee } from "./tee.ts";
 
 Deno.test("tee", async (t) => {

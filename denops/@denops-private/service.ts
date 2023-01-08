@@ -1,4 +1,4 @@
-import { toFileUrl } from "https://deno.land/std@0.170.0/path/mod.ts";
+import { toFileUrl } from "https://deno.land/std@0.171.0/path/mod.ts";
 import { compareVersions } from "https://deno.land/x/compare_versions@0.4.0/mod.ts#^";
 import {
   assertArray,
