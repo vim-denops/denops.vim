@@ -3,9 +3,9 @@
 <strong>Denops</strong><br>
 <sup>An ecosystem of Vim/Neovim which allows developers to write plugins in Deno.</sup>
 
-[![Deno 1.17.1 or above](https://img.shields.io/badge/Deno-Support%201.17.1-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v1.17.1)
-[![Vim 8.2.3452 or above](https://img.shields.io/badge/Vim-Support%208.2.3452-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v8.2.3452)
-[![Neovim 0.6.0 or above](https://img.shields.io/badge/Neovim-Support%200.6.0-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.6.0)
+[![Deno 1.28.0 or above](https://img.shields.io/badge/Deno-Support%201.28.0-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v1.28.0)
+[![Vim 9.0.0472 or above](https://img.shields.io/badge/Vim-Support%209.0.0472-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v9.0.0472)
+[![Neovim 0.8.0 or above](https://img.shields.io/badge/Neovim-Support%200.8.0-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.8.0)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![deno land](http://img.shields.io/badge/available%20on-deno.land/x/denops__core-lightgrey.svg?logo=deno)](https://deno.land/x/denops_core)
@@ -70,7 +70,7 @@ To start the shared server, execute the following command in the denops.vim
 repository top
 
 ```
-deno run -A --no-check ./denops/@denops-private/cli.ts
+deno run -A --no-lock ./denops/@denops-private/cli.ts
 ```
 
 Then specify the server address in `g:denops_server_addr` as follows
@@ -83,7 +83,7 @@ If you'd like to specify hostname and port, use `--hostname` and `--port`
 command arguments as follows
 
 ```
-deno run -A --no-check \
+deno run -A --no-lock \
     ./denops/@denops-private/cli.ts \
     --hostname=0.0.0.0 \
     --port 12345

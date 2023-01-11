@@ -1,6 +1,8 @@
-// XXX
-// This file is required to workaround the following issue
-// https://github.com/vim-denops/denops.vim/issues/218
 {
-  "lock": false
+  "lock": false,
+  "tasks": {
+    "test": "deno test --no-lock --unstable -A --parallel --shuffle",
+    "check": "deno check --no-lock --unstable $(find . -name '*.ts')",
+    "upgrade": "deno run --no-lock -A https://deno.land/x/udd/main.ts $(find . -name '*.ts')"
+  }
 }

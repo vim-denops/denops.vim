@@ -43,6 +43,10 @@ export class Neovim implements Host {
 
   register(invoker: Invoker): void {
     this.#session.dispatcher = {
+      void() {
+        return Promise.resolve();
+      },
+
       async invoke(method: unknown, args: unknown): Promise<unknown> {
         assertString(method);
         assertArray(args);

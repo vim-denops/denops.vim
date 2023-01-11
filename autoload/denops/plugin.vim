@@ -95,6 +95,26 @@ function! denops#plugin#discover(...) abort
   endfor
 endfunction
 
+function! denops#plugin#check_type(...) abort
+  if !a:0
+    let l:plugins = {}
+    call s:gather_plugins(l:plugins)
+  endif
+  let l:args = [g:denops#deno, 'check']
+  let l:args += a:0 ? [s:find_plugin(a:1)] : values(l:plugins)
+  let l:job = denops#_internal#job#start(l:args, {
+        \ 'env': {
+        \   'NO_COLOR': 1,
+        \   'DENO_NO_PROMPT': 1,
+        \ },
+        \ 'on_stderr': { _job, data, _event -> denops#_internal#echo#info(data) },
+        \ 'on_exit': { _job, status, _event -> status 
+        \   ? denops#_internal#echo#error('Type check failed:', status)
+        \   : denops#_internal#echo#info('Type check succeeded')
+        \ },
+        \ })
+endfunction
+
 function! s:gather_plugins(plugins) abort
   for l:script in globpath(&runtimepath, denops#_internal#path#join(['denops', '*', 'main.ts']), 1, 1, 1)
     let l:plugin = fnamemodify(l:script, ':h:t')
@@ -160,7 +180,7 @@ augroup denops_autoload_plugin_internal
   autocmd!
   autocmd User DenopsPluginPost:* call s:DenopsPluginPost()
   autocmd User DenopsPluginFail:* call s:DenopsPluginFail()
-  autocmd User DenopsStopped let s:loaded_plugins = {}
+  autocmd User DenopsClosed let s:loaded_plugins = {}
 augroup END
 
 call denops#_internal#conf#define('denops#plugin#wait_interval', 10)

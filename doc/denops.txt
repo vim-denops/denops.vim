@@ -39,7 +39,7 @@ process launches and possibly improving usability.
 To start the shared server, execute the following command in the denops.vim 
 repository top
 >
-	deno run -A --no-check ./denops/@denops-private/cli.ts
+	deno run -A --no-lock ./denops/@denops-private/cli.ts
 <
 Then specify the server address in |g:denops_server_addr| as follows
 >
@@ -48,7 +48,7 @@ Then specify the server address in |g:denops_server_addr| as follows
 If you'd like to specify hostname and port, use "--hostname" and "--port"
 command arguments as follows
 >
-	deno run -A --no-check \
+	deno run -A --no-lock \
 		./denops/@denops-private/cli.ts \
 		--hostname=0.0.0.0 \
 		--port 12345
@@ -82,12 +82,8 @@ VARIABLE						*denops-variable*
 	Default: 'deno'
 
 *g:denops#debug*
-	Set 1 to enable debug mode. In debug mode, the following additional
-	features become enabled.
-
-	- Additional debug messages of denops itself
-
-	Use |g:denops#type_check| to enable Deno's type check feature.
+	Set 1 to enable debug mode. In debug mode, the additional debug
+	messages of denops itself will be shown.
 
 	Default: 0
 
@@ -98,12 +94,8 @@ VARIABLE						*denops-variable*
 	Default: 0
 
 *g:denops#type_check*
-	Set 1 to enable Deno's type check feature.
-
-	Note that the type check would affect the performance so disable it
-	unless you are debugging denops plugins.
-
-	Default: 0
+	DEPRECATED:
+	Use |denops#plugin#check_type()| function instead.
 
 *g:denops#disable_deprecation_warning_message*
 	Set 1 to disable deprecation warning messages.
@@ -116,7 +108,7 @@ VARIABLE						*denops-variable*
 
 *g:denops#server#deno_args*
 	Program arguments of Deno for starting a server.
-	Default: ['-q', '--no-check', '--unstable', '-A']
+	Default: ['-q', '--no-lock', '--unstable', '-A']
 
 *g:denops#server#restart_delay*
 	Restart delay in milliseconds to avoid #136.
@@ -196,23 +188,46 @@ denops#request_async({plugin}, {method}, {params}, {success}, {failure})
 <
 						*denops#server#start()*
 denops#server#start()
-	Start a denops server.
-	It will skip internal process if server is already running.
+	Start a denops server process and connect to the channel. It does
+	nothing when the server is already started.
+
 	It is automatically called 1) on |VimEnter| autocmd when denops is
 	in |runtimepath| during Vim startup, 2) immediately when denops is
 	added to |runtimepath| after Vim startup.
-	It will invoke |User| |DenopsReady| autocmd to discover denops plugins.
-	See |denops#plugin#discover()| for detail.
+
 	Note that the server is automatically restarted when the process is
 	stopped unexpectedly.
 
 						*denops#server#stop()*
 denops#server#stop()
-	Stop a denops server immediately.
+	Stop a denops server. It does nothing when the server is not started
+	yet.
 
 						*denops#server#restart()*
 denops#server#restart()
 	Restart a denops server.
+
+						*denops#server#connect()*
+denops#server#connect()
+	Connect to a |denops-shared-server| channel. It does nothing when the
+	channel is already established.
+
+	It is automatically called 1) on |VimEnter| autocmd when denops is
+	in |runtimepath| during Vim startup, 2) immediately when denops is
+	added to |runtimepath| after Vim startup when |g:denops_server_addr|
+	is specified. Otherwise it echo errors.
+
+	Note that the channel is automatically re-established when the channel
+	is closed unexpectedly.
+
+						*denops#server#close()*
+denops#server#stop()
+	Close the channel. It does nothing when the channel is not established
+	yet.
+
+						*denops#server#reconnect()*
+denops#server#reconnect()
+	Reconnect to a denops shared server.
 
 						*denops#server#status()*
 denops#server#status()
@@ -223,15 +238,8 @@ denops#server#status()
 	"starting"	Server is starting.
 	"running"	Server is running (ready).
 
-						*denops#server#connect()*
-denops#server#connect()
-	Connect to a |denops-shared-server|.
-	It is automatically called 1) on |VimEnter| autocmd when denops is
-	in |runtimepath| during Vim startup, 2) immediately when denops is
-	added to |runtimepath| after Vim startup when |g:denops_server_addr|
-	is specified. Otherwise it echo errors.
-	It will invoke |User| |DenopsReady| autocmd to discover denops plugins.
-	See |denops#plugin#discover()| for detail.
+	Note that "starting" is never returned when a |denops-shared-server|
+	is used.
 
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({plugin})
@@ -307,6 +315,11 @@ denops#plugin#reload({plugin}[, {options}])
 	It internally calls |denops#plugin#register()| with "reload" mode when
 	the plugin is registered.
 
+						*denops#plugin#check_type()*
+denops#plugin#check_type([{plugin}])
+	Run Deno's type check feature for {plugin} or all registered plugins.
+	The result of check will be displayed in |message-history|.
+
 						*denops#callback#register()*
 denops#callback#register({callback}[, {options}])
 	Register {callback} to internal callback map as an anonymous function
@@ -349,20 +362,37 @@ denops#callback#clear()
 AUTOCMD						*denops-autocmd*
 
 DenopsReady						*DenopsReady*
-	Invoked when a denops become ready. Note that it is not mean that all
-	of denops plugins are ready.
+	Fired when a connection (channel) with Denops is established.
+	Note that this is not when all plug-ins are available.
+
+DenopsClosed						*DenopsClosed*
+	Fired when the connection (channel) with Denops is broken.
+	It is assumed to be used to release resources such as cache.
 
 DenopsPluginPre:{plugin}				*DenopsPluginPre*
-	Invoked just before denops call a "main" function of a plugin {plugin}.
+	Fired before the "main" function of each plugin is called.
+	{plugin} is the name of the target plugin.
 
 DenopsPluginPost:{plugin}				*DenopsPluginPost*
-	Invoked just after denops called a "main" function of a plugin {plugin}.
+	Fired after the "main" function of each plugin is called.
+	{plugin} is the name of the target plugin.
+
+DenopsProcessStarted					*DenopsProcessStarted*
+	Fires when the Denops local server process is started.
+	It is never fired in shared server mode.
+
+DenopsProcessStopped:{exitcode}				*DenopsProcessStopped*
+	Fired when the Denops local server process is stopped.
+	It is never fired in shared server mode.
 
 DenopsStarted						*DenopsStarted*
-	Invoked when a denops server is started.
+	DEPRECATED:
+	Use |DenopsProcessStarted| autocmd instead.
 
 DenopsStopped						*DenopsStopped*
-	Invoked when a denops server is stopped.
+	DEPRECATED:
+	Use |DenopsClosed| autocmd instead to release resources.
+	Use |DenopsProcessStopped| autocmd to detect 
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

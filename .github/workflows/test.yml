@@ -41,11 +41,11 @@ jobs:
         with:
           deno-version: "${{ matrix.version }}"
       - name: Lint check
-        run: make lint
+        run: deno lint
       - name: Format check
-        run: make fmt-check
+        run: deno fmt --check
       - name: Type check
-        run: make type-check
+        run: deno task check
 
   test:
     strategy:
@@ -55,11 +55,11 @@ jobs:
           - macos-latest
           - ubuntu-latest
         version:
-          - "1.17.1"
+          - "1.28.0"
           - "1.x"
         host_version:
-          - vim: "v8.2.3452"
-            nvim: "v0.6.0"
+          - vim: "v9.0.0472"
+            nvim: "v0.8.0"
     runs-on: ${{ matrix.runner }}
     steps:
       - run: git config --global core.autocrlf false
@@ -92,7 +92,7 @@ jobs:
         env:
           DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable_path }}
       - name: Test
-        run: make test
+        run: deno task test
         env:
           DENOPS_TEST_DENOPS_PATH: "./"
           DENOPS_TEST_VIM_EXECUTABLE: ${{ steps.vim.outputs.executable_path }}

@@ -1,5 +1,4 @@
 import { toFileUrl } from "https://deno.land/std@0.170.0/path/mod.ts";
-import { compareVersions } from "https://deno.land/x/compare_versions@0.4.0/mod.ts#^";
 import {
   assertArray,
   assertBoolean,
@@ -24,13 +23,6 @@ import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
 import type { Meta } from "../@denops/mod.ts";
 
 const workerScript = "./worker/script.ts";
-
-// Prior to Deno v1.22.0, `Deno` namespace is not available on Worker
-// https://deno.com/blog/v1.22#deno-namespace-is-available-in-workers-by-default
-// deno-lint-ignore no-explicit-any
-const workerOptions: any = compareVersions(Deno.version.deno, "1.22.0") === -1
-  ? { deno: { namespace: true } }
-  : {};
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
@@ -74,7 +66,6 @@ export class Service implements Disposable {
       {
         name,
         type: "module",
-        ...workerOptions,
       },
     );
     const scriptUrl = resolveScriptUrl(script);
