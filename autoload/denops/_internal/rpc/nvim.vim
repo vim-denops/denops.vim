@@ -22,7 +22,7 @@ function! denops#_internal#rpc#nvim#connect(addr, ...) abort
 endfunction
 
 function! denops#_internal#rpc#nvim#close(chan) abort
-  call timer_stop(a:chan._ping_timer)
+  call timer_stop(a:chan._healthcheck_timer)
   call chanclose(a:chan._id)
   call a:chan._on_close(a:chan)
 endfunction
