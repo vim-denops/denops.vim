@@ -90,7 +90,7 @@ function! denops#server#request(method, params) abort
 endfunction
 
 function! s:DenopsProcessListen(expr) abort
-  let l:addr = matchstr(a:expr, '^DenopsProcessListen:\zs.*')
+  let l:addr = matchstr(a:expr, '\<DenopsProcessListen:\zs.*')
   call denops#_internal#server#chan#connect(l:addr, {
         \ 'retry_interval': g:denops#server#retry_interval,
         \ 'retry_threshold': g:denops#server#retry_threshold,
