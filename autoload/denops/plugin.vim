@@ -151,37 +151,43 @@ function! s:find_plugin(plugin) abort
   throw printf('No denops plugin for "%s" exists', a:plugin)
 endfunction
 
-function! s:DenopsPluginPost() abort
-  let l:plugin = matchstr(expand('<amatch>'), 'DenopsPluginPost:\zs.*')
-  let s:loaded_plugins[l:plugin] = 0
-  if !has_key(s:load_callbacks, l:plugin)
-    return
-  endif
-  let l:callbacks = remove(s:load_callbacks, l:plugin)
-  " Vim uses FILO for a task execution registered by timer_start().
-  " That's why reverse 'callbacks' in the case of Vim to keep consistent
-  " behavior.
-  let l:callbacks = has('nvim') ? l:callbacks : reverse(l:callbacks)
-  for l:Callback in l:callbacks
-    call timer_start(0, { -> l:Callback() })
-  endfor
+function! s:DenopsSystemPluginPre() abort
+  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginPre:\zs.*')
+  execute printf('doautocmd <nomodeline> User DenopsPluginPre:%s', l:plugin)
 endfunction
 
-function! s:DenopsPluginFail() abort
-  let l:plugin = matchstr(expand('<amatch>'), 'DenopsPluginFail:\zs.*')
-  let s:loaded_plugins[l:plugin] = -3
-  if !has_key(s:load_callbacks, l:plugin)
-    return
+function! s:DenopsSystemPluginPost() abort
+  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginPost:\zs.*')
+  let s:loaded_plugins[l:plugin] = 0
+  if has_key(s:load_callbacks, l:plugin)
+    let l:callbacks = remove(s:load_callbacks, l:plugin)
+    " Vim uses FILO for a task execution registered by timer_start().
+    " That's why reverse 'callbacks' in the case of Vim to keep consistent
+    " behavior.
+    let l:callbacks = has('nvim') ? l:callbacks : reverse(l:callbacks)
+    for l:Callback in l:callbacks
+      call timer_start(0, { -> l:Callback() })
+    endfor
   endif
-  call remove(s:load_callbacks, l:plugin)
+  execute printf('doautocmd <nomodeline> User DenopsPluginPost:%s', l:plugin)
+endfunction
+
+function! s:DenopsSystemPluginFail() abort
+  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginFail:\zs.*')
+  let s:loaded_plugins[l:plugin] = -3
+  if has_key(s:load_callbacks, l:plugin)
+    call remove(s:load_callbacks, l:plugin)
+  endif
+  execute printf('doautocmd <nomodeline> User DenopsPluginFail:%s', l:plugin)
 endfunction
 
 augroup denops_autoload_plugin_internal
   autocmd!
-  autocmd User DenopsPluginPost:* call s:DenopsPluginPost()
-  autocmd User DenopsPluginFail:* call s:DenopsPluginFail()
+  autocmd User DenopsSystemPluginPre:* call s:DenopsSystemPluginPre()
+  autocmd User DenopsSystemPluginPost:* call s:DenopsSystemPluginPost()
+  autocmd User DenopsSystemPluginFail:* call s:DenopsSystemPluginFail()
   autocmd User DenopsClosed let s:loaded_plugins = {}
 augroup END
 
-call denops#_internal#conf#define('denops#plugin#wait_interval', 10)
+call denops#_internal#conf#define('denops#plugin#wait_interval', 200)
 call denops#_internal#conf#define('denops#plugin#wait_timeout', 30000)
