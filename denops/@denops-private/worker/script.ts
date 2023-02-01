@@ -55,25 +55,31 @@ async function main(
         // https://github.com/vim-denops/denops.vim/issues/227
         const mod = await import(`${scriptUrl}#${performance.now()}`);
         await denops.cmd(
-          `doautocmd <nomodeline> User DenopsPluginPre:${worker.name}`,
+          `doautocmd <nomodeline> User DenopsSystemPluginPre:${worker.name}`,
         )
           .catch((e) =>
-            console.warn(`Failed to emit DenopsPluginPre:${worker.name}: ${e}`)
+            console.warn(
+              `Failed to emit DenopsSystemPluginPre:${worker.name}: ${e}`,
+            )
           );
         await mod.main(denops);
         await denops.cmd(
-          `doautocmd <nomodeline> User DenopsPluginPost:${worker.name}`,
+          `doautocmd <nomodeline> User DenopsSystemPluginPost:${worker.name}`,
         )
           .catch((e) =>
-            console.warn(`Failed to emit DenopsPluginPost:${worker.name}: ${e}`)
+            console.warn(
+              `Failed to emit DenopsSystemPluginPost:${worker.name}: ${e}`,
+            )
           );
       } catch (e) {
         console.error(e);
         await denops.cmd(
-          `doautocmd <nomodeline> User DenopsPluginFail:${worker.name}`,
+          `doautocmd <nomodeline> User DenopsSystemPluginFail:${worker.name}`,
         )
           .catch((e) =>
-            console.warn(`Failed to emit DenopsPluginFail:${worker.name}: ${e}`)
+            console.warn(
+              `Failed to emit DenopsSystemPluginFail:${worker.name}: ${e}`,
+            )
           );
       } finally {
         await session.waitClosed();

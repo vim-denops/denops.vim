@@ -22,6 +22,7 @@ augroup denops_plugin_internal
   autocmd User DenopsReady call denops#plugin#discover()
   autocmd User DenopsPluginPre:* :
   autocmd User DenopsPluginPost:* :
+  autocmd User DenopsPluginFail:* :
 augroup END
 
 function! s:init() abort
