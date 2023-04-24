@@ -122,37 +122,39 @@ function! s:check_denops_status() abort
   call s:report_ok('Denops status check: passed')
 endfunction
 
-function! s:report_ok(report) abort
-  if has('nvim-0.10')
+if has('nvim-0.10')
+  function! s:report_ok(report) abort
     call v:lua.vim.health.ok(a:report)
-  else
-    call health#report_ok(a:report)
-  endif
-endfunction
+  endfunction
 
-function! s:report_info(report) abort
-  if has('nvim-0.10')
+  function! s:report_info(report) abort
     call v:lua.vim.health.info(a:report)
-  else
-    call health#report_info(a:report)
-  endif
-endfunction
+  endfunction
 
-function! s:report_warn(report) abort
-  if has('nvim-0.10')
+  function! s:report_warn(report) abort
     call v:lua.vim.health.warn(a:report)
-  else
-    call health#report_warn(a:report)
-  endif
-endfunction
+  endfunction
 
-function! s:report_error(report) abort
-  if has('nvim-0.10')
+  function! s:report_error(report) abort
     call v:lua.vim.health.error(a:report)
-  else
+  endfunction
+else
+  function! s:report_ok(report) abort
+    call health#report_ok(a:report)
+  endfunction
+
+  function! s:report_info(report) abort
+    call health#report_info(a:report)
+  endfunction
+
+  function! s:report_warn(report) abort
+    call health#report_warn(a:report)
+  endfunction
+
+  function! s:report_error(report) abort
     call health#report_error(a:report)
-  endif
-endfunction
+  endfunction
+endif
 
 function! health#denops#check() abort
   call s:check_deno_version()
