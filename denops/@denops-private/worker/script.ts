@@ -9,7 +9,7 @@ import { using } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
 import {
   WorkerReader,
   WorkerWriter,
-} from "https://deno.land/x/workerio@v1.4.4/mod.ts#^";
+} from "https://deno.land/x/workerio@v3.0.1/mod.ts#^";
 import { responseTimeout } from "../defs.ts";
 import type { Denops, Meta } from "../../@denops/mod.ts";
 import { DenopsImpl } from "../impl.ts";
