@@ -71,9 +71,6 @@ function! s:start(options) abort
         \ '--identity',
         \ '--port', '0',
         \]
-  if g:denops#trace
-    let l:args += ['--trace']
-  endif
   let l:store = {'prepared': 0}
   let s:stopped_on_purpose = 0
   let s:job = denops#_internal#job#start(l:args, {
