@@ -2,7 +2,7 @@
  * Method dispatcher
  */
 export interface Dispatcher {
-  [key: string]: (...args: unknown[]) => Promise<unknown>;
+  [key: string]: (...args: unknown[]) => unknown;
 }
 
 /**
