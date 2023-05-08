@@ -87,12 +87,6 @@ VARIABLE						*denops-variable*
 
 	Default: 0
 
-*g:denops#trace*
-	Set 1 to enable trace mode. In trace mode, all raw RPC messages
-	between Vim/Neovim and denops are echoed.
-
-	Default: 0
-
 *g:denops#type_check*
 	DEPRECATED:
 	Use |denops#plugin#check_type()| function instead.

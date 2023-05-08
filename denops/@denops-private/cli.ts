@@ -3,7 +3,6 @@ import { using } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
 import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
-import { TraceReader, TraceWriter } from "./tracer.ts";
 import { tee } from "./tee.ts";
 
 type Host = typeof Vim | typeof Neovim;
@@ -19,9 +18,9 @@ async function detectHost(reader: Deno.Reader): Promise<Host> {
   return Neovim;
 }
 
-const { hostname, port, trace, quiet, identity } = parse(Deno.args, {
+const { hostname, port, quiet, identity } = parse(Deno.args, {
   string: ["hostname", "port"],
-  boolean: ["trace", "quiet", "identity"],
+  boolean: ["quiet", "identity"],
 });
 
 const listener = Deno.listen({
@@ -41,8 +40,8 @@ if (!quiet) {
 
 for await (const conn of listener) {
   const remoteAddr = conn.remoteAddr as Deno.NetAddr;
-  const reader = trace ? new TraceReader(conn) : conn;
-  const writer = trace ? new TraceWriter(conn) : conn;
+  const reader = conn;
+  const writer = conn;
 
   const [r1, r2] = tee(reader);
 
