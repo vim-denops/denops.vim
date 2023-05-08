@@ -15,7 +15,7 @@ import {
 import {
   WorkerReader,
   WorkerWriter,
-} from "https://deno.land/x/workerio@v3.0.1/mod.ts#^";
+} from "https://deno.land/x/workerio@v3.1.0/mod.ts#^";
 import { Disposable } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
 import { responseTimeout } from "./defs.ts";
 import { Host } from "./host/base.ts";
