@@ -3,9 +3,9 @@ import {
   assertString,
   isObject,
   isString,
-} from "https://deno.land/x/unknownutil@v2.1.0/mod.ts#^";
+} from "https://deno.land/x/unknownutil@v2.1.1/mod.ts#^";
 import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.6/mod.ts#^";
-import { using } from "https://deno.land/x/disposable@v1.1.0/mod.ts#^";
+import { using } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
 import {
   WorkerReader,
   WorkerWriter,
