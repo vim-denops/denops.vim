@@ -7,7 +7,7 @@ import {
 import {
   Client,
   Session,
-} from "https://deno.land/x/messagepack_rpc@v0.3.1/mod.ts#^";
+} from "https://deno.land/x/messagepack_rpc@v1.0.0/mod.ts#^";
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
@@ -25,12 +25,13 @@ async function main(
   const session = new Session(
     readableStreamFromWorker(worker),
     writableStreamFromWorker(worker),
-    {
-      onRequestMessageError: onMessageError,
-      onResponseMessageError: onMessageError,
-      onNotificationMessageError: onMessageError,
-    },
   );
+  session.onMessageError = (error, message) => {
+    if (error instanceof Error && error.name === "Interrupted") {
+      return;
+    }
+    console.error(`Failed to handle message ${message}`, error);
+  };
   session.start();
   const client = new Client(session);
   // Protect the process itself from "Unhandled promises"
@@ -98,13 +99,6 @@ async function main(
     await session.shutdown();
   }
   self.close();
-}
-
-function onMessageError(message: unknown, error: Error): void {
-  if (error instanceof Error && error.name === "Interrupted") {
-    return;
-  }
-  console.error(`Failed to handle message ${message}`, error);
 }
 
 function isMeta(v: unknown): v is Meta {

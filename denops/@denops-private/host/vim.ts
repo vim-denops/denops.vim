@@ -1,4 +1,8 @@
 import {
+  readerFromStreamReader,
+  writerFromStreamWriter,
+} from "https://deno.land/std@0.186.0/streams/mod.ts";
+import {
   Session as VimSession,
 } from "https://deno.land/x/vim_channel_command@v0.7.1/mod.ts#^";
 import type {
@@ -9,15 +13,24 @@ import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";
 
 export class Vim implements Host {
+  #reader: ReadableStreamDefaultReader<Uint8Array>;
+  #writer: WritableStreamDefaultWriter<Uint8Array>;
   #session: VimSession;
 
   constructor(
-    reader: Deno.Reader & Deno.Closer,
-    writer: Deno.Writer,
+    reader: ReadableStream<Uint8Array>,
+    writer: WritableStream<Uint8Array>,
   ) {
-    this.#session = new VimSession(reader, writer, undefined, {
-      responseTimeout,
-    });
+    this.#reader = reader.getReader();
+    this.#writer = writer.getWriter();
+    this.#session = new VimSession(
+      readerFromStreamReader(this.#reader),
+      writerFromStreamWriter(this.#writer),
+      undefined,
+      {
+        responseTimeout,
+      },
+    );
   }
 
   redraw(force?: boolean): Promise<void> {
@@ -71,6 +84,8 @@ export class Vim implements Host {
   }
 
   dispose(): void {
+    this.#reader.releaseLock();
+    this.#writer.releaseLock();
     this.#session.dispose();
   }
 }
