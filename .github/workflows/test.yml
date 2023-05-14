@@ -98,3 +98,9 @@ jobs:
           DENOPS_TEST_VIM_EXECUTABLE: ${{ steps.vim.outputs.executable_path }}
           DENOPS_TEST_NVIM_EXECUTABLE: ${{ steps.nvim.outputs.executable_path }}
         timeout-minutes: 5
+      - run: |
+          deno coverage --unstable .coverage --lcov > coverage.lcov
+      - uses: codecov/codecov-action@v3
+        with:
+          os: ${{ runner.os }}
+          files: ./coverage.lcov
