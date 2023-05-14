@@ -1,5 +1,5 @@
-import { parse } from "https://deno.land/std@0.186.0/flags/mod.ts";
-import { pop } from "https://deno.land/x/streamtools@v0.4.1/mod.ts";
+import { parse } from "https://deno.land/std@0.187.0/flags/mod.ts";
+import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
 import { using } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
 import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
