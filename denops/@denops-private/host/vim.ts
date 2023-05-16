@@ -49,13 +49,12 @@ export class Vim implements Host {
     this.#session.onMessage = (message: Message) => {
       const [msgid, expr] = message;
       dispatch(invoker, expr)
-        .then((result) => {
-          this.#client.reply(msgid, [result, null]);
-        })
-        .catch((error) => {
+        .then((result) => [result, null] as const)
+        .catch((error) => [null, error] as const)
+        .then(([result, error]) => {
           if (msgid) {
-            this.#client.reply(msgid, [null, error]);
-          } else {
+            this.#client.reply(msgid, [result, error]);
+          } else if (error !== null) {
             console.error(error);
           }
         });
