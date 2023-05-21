@@ -2,21 +2,30 @@ import {
   assertArray,
   assertString,
 } from "https://deno.land/x/unknownutil@v2.1.1/mod.ts#^";
-import { Session } from "https://deno.land/x/msgpack_rpc@v3.1.6/mod.ts#^";
-import { responseTimeout } from "../defs.ts";
+import {
+  Client,
+  Session,
+} from "https://deno.land/x/messagepack_rpc@v1.0.0/mod.ts#^";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";
 
 export class Neovim implements Host {
   #session: Session;
+  #client: Client;
 
   constructor(
-    reader: Deno.Reader & Deno.Closer,
-    writer: Deno.Writer,
+    reader: ReadableStream<Uint8Array>,
+    writer: WritableStream<Uint8Array>,
   ) {
-    this.#session = new Session(reader, writer, undefined, {
-      responseTimeout,
-    });
+    this.#session = new Session(reader, writer);
+    this.#session.onMessageError = (error, message) => {
+      if (error instanceof Error && error.name === "Interrupted") {
+        return;
+      }
+      console.error(`Failed to handle message ${message}`, error);
+    };
+    this.#session.start();
+    this.#client = new Client(this.#session);
   }
 
   redraw(_force?: boolean): Promise<void> {
@@ -25,13 +34,13 @@ export class Neovim implements Host {
   }
 
   call(fn: string, ...args: unknown[]): Promise<unknown> {
-    return this.#session.call("nvim_call_function", fn, args);
+    return this.#client.call("nvim_call_function", fn, args);
   }
 
   async batch(
     ...calls: [string, ...unknown[]][]
   ): Promise<[unknown[], string]> {
-    const [ret, err] = await this.#session.call(
+    const [ret, err] = await this.#client.call(
       "nvim_call_atomic",
       calls.map(([fn, ...args]) => ["nvim_call_function", [fn, args]]),
     ) as [unknown[], [number, number, string] | null];
@@ -59,11 +68,11 @@ export class Neovim implements Host {
     };
   }
 
-  waitClosed(): Promise<void> {
-    return this.#session.waitClosed();
+  async waitClosed(): Promise<void> {
+    await this.#session.wait();
   }
 
   dispose(): void {
-    this.#session.dispose();
+    this.#session.shutdown();
   }
 }

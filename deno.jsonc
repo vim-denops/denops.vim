@@ -1,8 +1,9 @@
 {
   "lock": false,
   "tasks": {
-    "test": "deno test --no-lock --unstable -A --parallel --shuffle",
-    "check": "deno check --no-lock --unstable $(find . -name '*.ts')",
-    "upgrade": "deno run --no-lock -A https://deno.land/x/udd/main.ts $(find . -name '*.ts')"
+    "test": "deno test --unstable -A --parallel --shuffle --doc --coverage=.coverage",
+    "check": "deno check --unstable $(find . -name '*.ts')",
+    "coverage": "deno coverage --unstable .coverage",
+    "upgrade": "deno run -A https://deno.land/x/udd/main.ts $(find . -name '*.ts')"
   }
 }

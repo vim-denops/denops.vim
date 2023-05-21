@@ -1,4 +1,3 @@
-import type { Session } from "https://deno.land/x/msgpack_rpc@v3.1.6/mod.ts#^";
 import {
   BatchError,
   Context,
@@ -7,10 +6,16 @@ import {
   Meta,
 } from "../@denops/mod.ts";
 
+type Session = {
+  dispatcher: Dispatcher;
+  call(method: string, ...params: unknown[]): Promise<unknown>;
+  notify(method: string, ...params: unknown[]): Promise<void>;
+};
+
 export class DenopsImpl implements Denops {
+  readonly context: Record<string | number | symbol, unknown> = {};
   readonly name: string;
   readonly meta: Meta;
-  readonly context: Record<string | number | symbol, unknown>;
   #session: Session;
 
   constructor(
@@ -20,7 +25,6 @@ export class DenopsImpl implements Denops {
   ) {
     this.name = name;
     this.meta = meta;
-    this.context = {};
     this.#session = session;
   }
 

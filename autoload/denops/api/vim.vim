@@ -22,9 +22,7 @@ endfunction
 function! denops#api#vim#batch(calls) abort
   let l:results = []
   try
-    for l:Call in a:calls
-      call add(l:results, call(l:Call[0], l:Call[1:]))
-    endfor
+    call map(a:calls, {_, v -> add(l:results, call(v[0], v[1:]))})
     if g:denops#debug
       " Check if the result is serializable
       call json_encode(l:results)
