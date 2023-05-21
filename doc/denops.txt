@@ -87,10 +87,6 @@ VARIABLE						*denops-variable*
 
 	Default: 0
 
-*g:denops#type_check*
-	DEPRECATED:
-	Use |denops#plugin#check_type()| function instead.
-
 *g:denops#disable_deprecation_warning_message*
 	Set 1 to disable deprecation warning messages.
 
@@ -378,15 +374,6 @@ DenopsProcessStarted					*DenopsProcessStarted*
 DenopsProcessStopped:{exitcode}				*DenopsProcessStopped*
 	Fired when the Denops local server process is stopped.
 	It is never fired in shared server mode.
-
-DenopsStarted						*DenopsStarted*
-	DEPRECATED:
-	Use |DenopsProcessStarted| autocmd instead.
-
-DenopsStopped						*DenopsStopped*
-	DEPRECATED:
-	Use |DenopsClosed| autocmd instead to release resources.
-	Use |DenopsProcessStopped| autocmd to detect 
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

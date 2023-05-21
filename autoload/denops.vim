@@ -24,11 +24,3 @@ call denops#_internal#conf#define('denops#disable_deprecation_warning_message', 
 
 " Internal configuration
 call denops#_internal#conf#define('denops#_test', 0)
-
-" Check deprecated features and show warning messages
-if exists('g:denops#type_check')
-  " Since denops v4.0.0
-  call denops#_internal#echo#deprecate(
-        \ 'g:denops#type_check is deprecated and does nothing. Use denops#plugin#check_type() function instead.'
-        \)
-endif
