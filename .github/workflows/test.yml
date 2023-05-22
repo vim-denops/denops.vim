@@ -55,10 +55,10 @@ jobs:
           - macos-latest
           - ubuntu-latest
         version:
-          - "1.28.0"
+          - "1.32.x"
           - "1.x"
         host_version:
-          - vim: "v9.0.0472"
+          - vim: "v9.0.1499"
             nvim: "v0.8.0"
     runs-on: ${{ matrix.runner }}
     steps:
@@ -98,3 +98,9 @@ jobs:
           DENOPS_TEST_VIM_EXECUTABLE: ${{ steps.vim.outputs.executable_path }}
           DENOPS_TEST_NVIM_EXECUTABLE: ${{ steps.nvim.outputs.executable_path }}
         timeout-minutes: 5
+      - run: |
+          deno coverage --unstable .coverage --lcov > coverage.lcov
+      - uses: codecov/codecov-action@v3
+        with:
+          os: ${{ runner.os }}
+          files: ./coverage.lcov

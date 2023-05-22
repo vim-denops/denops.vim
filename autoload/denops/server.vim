@@ -106,12 +106,6 @@ augroup denops_server_internal
   autocmd User DenopsProcessListen:* call s:DenopsProcessListen(expand('<amatch>'))
 augroup END
 
-augroup denops_server_internal_deprecated
-  autocmd!
-  autocmd User DenopsProcessStarted doautocmd <nomodeline> User DenopsStarted
-  autocmd User DenopsClosed doautocmd <nomodeline> User DenopsStopped
-augroup END
-
 call denops#_internal#conf#define('denops#server#deno_args', [
       \ '-q',
       \ '--no-lock',

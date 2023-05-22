@@ -3,14 +3,15 @@
 <strong>Denops</strong><br>
 <sup>An ecosystem of Vim/Neovim which allows developers to write plugins in Deno.</sup>
 
-[![Deno 1.28.0 or above](https://img.shields.io/badge/Deno-Support%201.28.0-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v1.28.0)
-[![Vim 9.0.0472 or above](https://img.shields.io/badge/Vim-Support%209.0.0472-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v9.0.0472)
+[![Deno 1.32 or above](https://img.shields.io/badge/Deno-Support%201.32.0-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v1.32.0)
+[![Vim 9.0.1499 or above](https://img.shields.io/badge/Vim-Support%209.0.1499-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v9.0.1499)
 [![Neovim 0.8.0 or above](https://img.shields.io/badge/Neovim-Support%200.8.0-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.8.0)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![deno land](http://img.shields.io/badge/available%20on-deno.land/x/denops__core-lightgrey.svg?logo=deno)](https://deno.land/x/denops_core)
 [![test](https://github.com/vim-denops/denops.vim/actions/workflows/test.yml/badge.svg)](https://github.com/vim-denops/denops.vim/actions/workflows/test.yml)
 [![reviewdog](https://github.com/vim-denops/denops.vim/actions/workflows/reviewdog.yml/badge.svg)](https://github.com/vim-denops/denops.vim/actions/workflows/reviewdog.yml)
+[![codecov](https://codecov.io/github/vim-denops/denops.vim/branch/main/graph/badge.svg?token=k50SaoYUp0)](https://codecov.io/github/vim-denops/denops.vim)
 
 [![vim help](https://img.shields.io/badge/vim-%3Ah%20denops-orange.svg)](doc/denops.txt)
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/denops_core/mod.ts)
@@ -94,6 +95,25 @@ deno run -A --no-lock \
 To learn how to write Vim/Neovim plugins by denops, see
 [Denops Documentation](https://vim-denops.github.io/denops-documentation/) or
 [denops.vim Wiki](https://github.com/vim-denops/denops.vim/wiki).
+
+## Support policy
+
+Denops determines the supported versions of Vim/Neovim/Deno based on the
+following support policy when updating the major version:
+
+- For Vim, versions older than the latest version provided by
+  [Homebrew][homebrew] and the version distributed by
+  [vim-win32-installer][vim-win32-installer]
+  - Windows users can install it by downloading the package from
+    [vim-win32-installer][vim-win32-installer]
+  - macOS users can install it through [Homebrew][homebrew]
+  - Linux users have the flexibility to build any version they prefer
+- For Neovim/Deno, the two most recent minor versions
+  - Both Neovim and Deno adhere to
+    [semantic versioning](https://semver.org/spec/v2.0.0.html) principles
+
+[homebrew]: https://brew.sh/
+[vim-win32-installer]: https://github.com/vim/vim-win32-installer
 
 ## Versioning
 

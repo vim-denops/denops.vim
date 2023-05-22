@@ -1,4 +1,4 @@
-import { toFileUrl } from "https://deno.land/std@0.186.0/path/mod.ts";
+import { toFileUrl } from "https://deno.land/std@0.188.0/path/mod.ts";
 import {
   assertArray,
   assertBoolean,
@@ -8,16 +8,14 @@ import {
   isString,
 } from "https://deno.land/x/unknownutil@v2.1.1/mod.ts#^";
 import {
-  Dispatcher as SessionDispatcher,
+  Client,
   Session,
-  SessionOptions,
-} from "https://deno.land/x/msgpack_rpc@v3.1.6/mod.ts#^";
+} from "https://deno.land/x/messagepack_rpc@v1.0.0/mod.ts#^";
 import {
-  WorkerReader,
-  WorkerWriter,
+  readableStreamFromWorker,
+  writableStreamFromWorker,
 } from "https://deno.land/x/workerio@v3.1.0/mod.ts#^";
 import { Disposable } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
-import { responseTimeout } from "./defs.ts";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
 import type { Meta } from "../@denops/mod.ts";
@@ -28,7 +26,12 @@ const workerScript = "./worker/script.ts";
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service implements Disposable {
-  #plugins: Map<string, { script: string; worker: Worker; session: Session }>;
+  #plugins: Map<string, {
+    script: string;
+    worker: Worker;
+    session: Session;
+    client: Client;
+  }>;
   host: Host;
 
   constructor(host: Host) {
@@ -73,17 +76,15 @@ export class Service implements Disposable {
     const session = buildServiceSession(
       name,
       meta,
-      new WorkerReader(worker),
-      new WorkerWriter(worker),
+      readableStreamFromWorker(worker),
+      writableStreamFromWorker(worker),
       this,
-      {
-        responseTimeout,
-      },
     );
     this.#plugins.set(name, {
       script,
-      session,
       worker,
+      session,
+      client: new Client(session),
     });
   }
 
@@ -114,7 +115,7 @@ export class Service implements Disposable {
       if (!plugin) {
         throw new Error(`No plugin '${name}' is registered`);
       }
-      return await plugin.session.call(fn, ...args);
+      return await plugin.client.call(fn, ...args);
     } catch (e) {
       // NOTE:
       // Vim/Neovim does not handle JavaScript Error instance thus use string instead
@@ -125,7 +126,7 @@ export class Service implements Disposable {
   dispose(): void {
     // Dispose all sessions
     for (const plugin of this.#plugins.values()) {
-      plugin.session.dispose();
+      plugin.session.shutdown();
     }
     // Terminate all workers
     for (const plugin of this.#plugins.values()) {
@@ -137,12 +138,18 @@ export class Service implements Disposable {
 function buildServiceSession(
   name: string,
   meta: Meta,
-  reader: Deno.Reader & Deno.Closer,
-  writer: Deno.Writer,
+  reader: ReadableStream<Uint8Array>,
+  writer: WritableStream<Uint8Array>,
   service: Service,
-  options?: SessionOptions,
 ) {
-  const dispatcher: SessionDispatcher = {
+  const session = new Session(reader, writer);
+  session.onMessageError = (error, message) => {
+    if (error instanceof Error && error.name === "Interrupted") {
+      return;
+    }
+    console.error(`Failed to handle message ${message}`, error);
+  };
+  session.dispatcher = {
     reload: () => {
       service.reload(name, meta, {
         mode: "skip",
@@ -175,7 +182,8 @@ function buildServiceSession(
       return await service.dispatch(name, fn, args);
     },
   };
-  return new Session(reader, writer, dispatcher, options);
+  session.start();
+  return session;
 }
 
 function isCall(call: unknown): call is [string, ...unknown[]] {

@@ -1,38 +1,35 @@
 import {
-  Session as VimSession,
-} from "https://deno.land/x/vim_channel_command@v0.7.1/mod.ts#^";
-import type {
-  Message as VimMessage,
-} from "https://deno.land/x/vim_channel_command@v0.7.1/mod.ts#^";
-import { responseTimeout } from "../defs.ts";
+  Client,
+  Message,
+  Session,
+} from "https://deno.land/x/vim_channel_command@v2.0.0/mod.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Host } from "./base.ts";
 
 export class Vim implements Host {
-  #session: VimSession;
+  #session: Session;
+  #client: Client;
 
   constructor(
-    reader: Deno.Reader & Deno.Closer,
-    writer: Deno.Writer,
+    reader: ReadableStream<Uint8Array>,
+    writer: WritableStream<Uint8Array>,
   ) {
-    this.#session = new VimSession(reader, writer, undefined, {
-      responseTimeout,
-    });
+    this.#session = new Session(reader, writer);
+    this.#session.start();
+    this.#client = new Client(this.#session);
   }
 
   redraw(force?: boolean): Promise<void> {
-    return this.#session.redraw(force);
+    this.#client.redraw(force);
+    return Promise.resolve();
   }
 
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
-    const [ret, err] = await this.#session.call(
+    const [ret, err] = (await this.#client.call(
       "denops#api#vim#call",
       fn,
       args,
-    ) as [
-      unknown,
-      string,
-    ];
+    )) as [unknown, string];
     if (err !== "") {
       throw new Error(`Failed to call '${fn}(${args.join(", ")})': ${err}`);
     }
@@ -42,36 +39,34 @@ export class Vim implements Host {
   async batch(
     ...calls: [string, ...unknown[]][]
   ): Promise<[unknown[], string]> {
-    return await this.#session.call("denops#api#vim#batch", calls) as [
+    return (await this.#client.call("denops#api#vim#batch", calls)) as [
       unknown[],
       string,
     ];
   }
 
   register(invoker: Invoker): void {
-    this.#session.replaceCallback(async (message: VimMessage) => {
+    this.#session.onMessage = (message: Message) => {
       const [msgid, expr] = message;
-      let ok = null;
-      let err = null;
-      try {
-        ok = await dispatch(invoker, expr);
-      } catch (e) {
-        err = e;
-      }
-      if (msgid !== 0) {
-        await this.#session.reply(msgid, [ok, err]);
-      } else if (err !== null) {
-        console.error(err);
-      }
-    });
+      dispatch(invoker, expr)
+        .then((result) => [result, null] as const)
+        .catch((error) => [null, error] as const)
+        .then(([result, error]) => {
+          if (msgid) {
+            this.#client.reply(msgid, [result, error]);
+          } else if (error !== null) {
+            console.error(error);
+          }
+        });
+    };
   }
 
   waitClosed(): Promise<void> {
-    return this.#session.waitClosed();
+    return this.#session.wait();
   }
 
   dispose(): void {
-    this.#session.dispose();
+    this.#session.shutdown();
   }
 }
 
