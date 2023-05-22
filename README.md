@@ -96,6 +96,25 @@ To learn how to write Vim/Neovim plugins by denops, see
 [Denops Documentation](https://vim-denops.github.io/denops-documentation/) or
 [denops.vim Wiki](https://github.com/vim-denops/denops.vim/wiki).
 
+## Support policy
+
+Denops determines the supported versions of Vim/Neovim/Deno based on the
+following support policy when updating the major version:
+
+- For Vim, versions older than the latest version provided by
+  [Homebrew][homebrew] and the version distributed by
+  [vim-win32-installer][vim-win32-installer]
+  - Windows users can install it by downloading the package from
+    [vim-win32-installer][vim-win32-installer]
+  - macOS users can install it through [Homebrew][homebrew]
+  - Linux users have the flexibility to build any version they prefer
+- For Neovim/Deno, the two most recent minor versions
+  - Both Neovim and Deno adhere to
+    [semantic versioning](https://semver.org/spec/v2.0.0.html) principles
+
+[homebrew]: https://brew.sh/
+[vim-win32-installer]: https://github.com/vim/vim-win32-installer
+
 ## Versioning
 
 Before v1.10.0, we defined that the version of denops.vim indicates that code
