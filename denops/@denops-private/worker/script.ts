@@ -7,7 +7,7 @@ import {
 import {
   Client,
   Session,
-} from "https://deno.land/x/messagepack_rpc@v1.0.0/mod.ts#^";
+} from "https://deno.land/x/messagepack_rpc@v2.0.0/mod.ts#^";
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
@@ -15,6 +15,7 @@ import {
 import type { Denops, Meta } from "../../@denops/mod.ts";
 import { DenopsImpl } from "../impl.ts";
 import { patchConsole } from "./patch_console.ts";
+import { errorDeserializer, errorSerializer } from "../error.ts";
 
 const worker = self as unknown as Worker & { name: string };
 
@@ -25,6 +26,7 @@ async function main(
   const session = new Session(
     readableStreamFromWorker(worker),
     writableStreamFromWorker(worker),
+    { errorSerializer },
   );
   session.onMessageError = (error, message) => {
     if (error instanceof Error && error.name === "Interrupted") {
@@ -33,7 +35,7 @@ async function main(
     console.error(`Failed to handle message ${message}`, error);
   };
   session.start();
-  const client = new Client(session);
+  const client = new Client(session, { errorDeserializer });
   // Protect the process itself from "Unhandled promises"
   // https://github.com/vim-denops/denops.vim/issues/208
   globalThis.addEventListener("unhandledrejection", (ev) => {

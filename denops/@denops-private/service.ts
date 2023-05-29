@@ -10,7 +10,7 @@ import {
 import {
   Client,
   Session,
-} from "https://deno.land/x/messagepack_rpc@v1.0.0/mod.ts#^";
+} from "https://deno.land/x/messagepack_rpc@v2.0.0/mod.ts#^";
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
@@ -18,6 +18,7 @@ import {
 import { Disposable } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
+import { errorDeserializer, errorSerializer } from "./error.ts";
 import type { Meta } from "../@denops/mod.ts";
 
 const workerScript = "./worker/script.ts";
@@ -84,7 +85,7 @@ export class Service implements Disposable {
       script,
       worker,
       session,
-      client: new Client(session),
+      client: new Client(session, { errorDeserializer }),
     });
   }
 
@@ -142,7 +143,9 @@ function buildServiceSession(
   writer: WritableStream<Uint8Array>,
   service: Service,
 ) {
-  const session = new Session(reader, writer);
+  const session = new Session(reader, writer, {
+    errorSerializer,
+  });
   session.onMessageError = (error, message) => {
     if (error instanceof Error && error.name === "Interrupted") {
       return;

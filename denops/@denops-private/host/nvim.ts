@@ -5,8 +5,9 @@ import {
 import {
   Client,
   Session,
-} from "https://deno.land/x/messagepack_rpc@v1.0.0/mod.ts#^";
+} from "https://deno.land/x/messagepack_rpc@v2.0.0/mod.ts#^";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
+import { errorDeserializer, errorSerializer } from "../error.ts";
 import { Host } from "./base.ts";
 
 export class Neovim implements Host {
@@ -17,7 +18,9 @@ export class Neovim implements Host {
     reader: ReadableStream<Uint8Array>,
     writer: WritableStream<Uint8Array>,
   ) {
-    this.#session = new Session(reader, writer);
+    this.#session = new Session(reader, writer, {
+      errorSerializer,
+    });
     this.#session.onMessageError = (error, message) => {
       if (error instanceof Error && error.name === "Interrupted") {
         return;
@@ -25,7 +28,9 @@ export class Neovim implements Host {
       console.error(`Failed to handle message ${message}`, error);
     };
     this.#session.start();
-    this.#client = new Client(this.#session);
+    this.#client = new Client(this.#session, {
+      errorDeserializer,
+    });
   }
 
   redraw(_force?: boolean): Promise<void> {
