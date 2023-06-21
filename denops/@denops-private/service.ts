@@ -1,12 +1,5 @@
-import { toFileUrl } from "https://deno.land/std@0.188.0/path/mod.ts";
-import {
-  assertArray,
-  assertBoolean,
-  assertString,
-  isArray,
-  isNullish,
-  isString,
-} from "https://deno.land/x/unknownutil@v2.1.1/mod.ts#^";
+import { toFileUrl } from "https://deno.land/std@0.192.0/path/mod.ts";
+import { assert, is } from "https://deno.land/x/unknownutil@v3.0.0/mod.ts#^";
 import {
   Client,
   Session,
@@ -161,27 +154,25 @@ function buildServiceSession(
     },
 
     redraw: async (force) => {
-      if (!isNullish(force)) {
-        assertBoolean(force);
-      }
+      assert(force, is.OneOf([is.Boolean, is.Nullish]));
       return await service.host.redraw(!!force);
     },
 
     call: async (fn, ...args) => {
-      assertString(fn);
-      assertArray(args);
+      assert(fn, is.String);
+      assert(args, is.Array);
       return await service.host.call(fn, ...args);
     },
 
     batch: async (...calls) => {
-      assertArray(calls, isCall);
+      assert(calls, is.ArrayOf(isCall));
       return await service.host.batch(...calls);
     },
 
     dispatch: async (name, fn, ...args) => {
-      assertString(name);
-      assertString(fn);
-      assertArray(args);
+      assert(name, is.String);
+      assert(fn, is.String);
+      assert(args, is.Array);
       return await service.dispatch(name, fn, args);
     },
   };
@@ -190,7 +181,7 @@ function buildServiceSession(
 }
 
 function isCall(call: unknown): call is [string, ...unknown[]] {
-  return isArray(call) && call.length > 0 && isString(call[0]);
+  return is.Array(call) && call.length > 0 && is.String(call[0]);
 }
 
 function resolveScriptUrl(script: string): string {

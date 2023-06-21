@@ -1,7 +1,7 @@
 import {
   isObject,
   isString,
-} from "https://deno.land/x/unknownutil@v2.1.1/mod.ts";
+} from "https://deno.land/x/unknownutil@v2.1.1/mod.ts#^";
 
 export function errorSerializer(err: unknown): unknown {
   if (err instanceof Error) {
