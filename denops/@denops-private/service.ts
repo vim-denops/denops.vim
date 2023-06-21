@@ -1,4 +1,4 @@
-import { toFileUrl } from "https://deno.land/std@0.188.0/path/mod.ts";
+import { toFileUrl } from "https://deno.land/std@0.192.0/path/mod.ts";
 import {
   assertArray,
   assertBoolean,
