@@ -39,6 +39,7 @@ export class Service implements Disposable {
     script: string,
     meta: Meta,
     options: RegisterOptions,
+    trace: boolean,
   ): void {
     const plugin = this.#plugins.get(name);
     if (plugin) {
@@ -66,7 +67,7 @@ export class Service implements Disposable {
       },
     );
     const scriptUrl = resolveScriptUrl(script);
-    worker.postMessage({ scriptUrl, meta });
+    worker.postMessage({ scriptUrl, meta, trace });
     const session = buildServiceSession(
       name,
       meta,
@@ -86,6 +87,7 @@ export class Service implements Disposable {
     name: string,
     meta: Meta,
     options: ReloadOptions,
+    trace: boolean,
   ): void {
     const plugin = this.#plugins.get(name);
     if (!plugin) {
@@ -100,7 +102,7 @@ export class Service implements Disposable {
     }
     this.register(name, plugin.script, { ...meta, mode: "release" }, {
       mode: "reload",
-    });
+    }, trace);
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -146,10 +148,11 @@ function buildServiceSession(
     console.error(`Failed to handle message ${message}`, error);
   };
   session.dispatcher = {
-    reload: () => {
+    reload: (trace) => {
+      assert(trace, is.Boolean);
       service.reload(name, meta, {
         mode: "skip",
-      });
+      }, trace);
       return Promise.resolve();
     },
 
