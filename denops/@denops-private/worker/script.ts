@@ -1,9 +1,4 @@
-import {
-  assertObject,
-  assertString,
-  isObject,
-  isString,
-} from "https://deno.land/x/unknownutil@v2.1.1/mod.ts#^";
+import { assert, is } from "https://deno.land/x/unknownutil@v3.2.0/mod.ts#^";
 import {
   Client,
   Session,
@@ -104,20 +99,20 @@ async function main(
 }
 
 function isMeta(v: unknown): v is Meta {
-  if (!isObject(v)) {
+  if (!is.Record(v)) {
     return false;
   }
-  if (!isString(v.mode) || !["release", "debug", "test"].includes(v.mode)) {
+  if (!is.String(v.mode) || !["release", "debug", "test"].includes(v.mode)) {
     return false;
   }
-  if (!isString(v.host) || !["vim", "nvim"].includes(v.host)) {
+  if (!is.String(v.host) || !["vim", "nvim"].includes(v.host)) {
     return false;
   }
-  if (!isString(v.version)) {
+  if (!is.String(v.version)) {
     return false;
   }
   if (
-    !isString(v.platform) || !["windows", "mac", "linux"].includes(v.platform)
+    !is.String(v.platform) || !["windows", "mac", "linux"].includes(v.platform)
   ) {
     return false;
   }
@@ -129,11 +124,15 @@ patchConsole(`(${worker.name})`);
 
 // Wait startup arguments and start 'main'
 worker.addEventListener("message", (event: MessageEvent<unknown>) => {
-  assertObject(event.data);
-  assertString(event.data.scriptUrl);
-  if (!isMeta(event.data.meta)) {
-    throw new Error(`Invalid 'meta' is passed: ${event.data.meta}`);
-  }
+  assert(event.data, is.Record, {
+    message: `event.data '${event.data}' must be Record`,
+  });
+  assert(event.data.scriptUrl, is.String, {
+    message: `event.data.scriptUrl '${event.data.scriptUrl}' must be String`,
+  });
+  assert(event.data.meta, isMeta, {
+    message: `event.data.meta '${event.data.meta}' must be Meta`,
+  });
   const { scriptUrl, meta } = event.data;
   main(scriptUrl, meta).catch((e) => {
     console.error(

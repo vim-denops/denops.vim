@@ -1,3 +1,4 @@
+import { is } from "https://deno.land/x/unknownutil@v3.2.0/mod.ts#^";
 import { Service } from "../service.ts";
 import type { Meta } from "../../@denops/mod.ts";
 
@@ -80,8 +81,8 @@ export class Invoker {
   }
 }
 
-export function isInvokerMethod(value: string): value is keyof Invoker {
-  return value in Invoker.prototype;
+export function isInvokerMethod(value: unknown): value is keyof Invoker {
+  return is.String(value) && value in Invoker.prototype;
 }
 
 // https://github.com/vim-denops/denops.vim/issues/112
