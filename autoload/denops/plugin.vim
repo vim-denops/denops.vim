@@ -77,7 +77,8 @@ function! denops#plugin#reload(plugin, ...) abort
   let l:options = s:options(l:options, {
         \ 'mode': 'error',
         \})
-  let l:args = [a:plugin, l:meta, l:options]
+  let l:trace = s:trace(a:plugin)
+  let l:args = [a:plugin, l:meta, l:options, l:trace]
   call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
   return denops#server#request('invoke', ['reload', l:args])
 endfunction
@@ -135,9 +136,16 @@ endfunction
 
 function! s:register(plugin, script, meta, options) abort
   let l:script = denops#_internal#path#norm(a:script)
-  let l:args = [a:plugin, l:script, a:meta, a:options]
+  let l:trace = s:trace(a:plugin)
+  let l:args = [a:plugin, l:script, a:meta, a:options, l:trace]
   call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
   call denops#server#notify('invoke', ['register', l:args])
+endfunction
+
+function! s:trace(plugin)  abort            
+  return type(g:denops#trace) is# v:t_list
+        \ ? index(g:denops#trace, a:plugin) != -1 ? v:true : v:false
+        \ : g:denops#trace ? v:true : v:false
 endfunction
 
 function! s:find_plugin(plugin) abort

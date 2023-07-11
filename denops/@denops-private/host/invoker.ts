@@ -35,16 +35,18 @@ export class Invoker {
     script: string,
     meta: Meta,
     options: RegisterOptions,
+    trace: boolean,
   ): void {
-    this.#service.register(name, script, meta, options);
+    this.#service.register(name, script, meta, options, trace);
   }
 
   reload(
     name: string,
     meta: Meta,
     options: ReloadOptions,
+    trace: boolean,
   ): void {
-    this.#service.reload(name, meta, options);
+    this.#service.reload(name, meta, options, trace);
   }
 
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
