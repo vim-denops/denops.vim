@@ -1,7 +1,4 @@
-import {
-  isObject,
-  isString,
-} from "https://deno.land/x/unknownutil@v2.1.1/mod.ts#^";
+import { is } from "https://deno.land/x/unknownutil@v3.2.0/mod.ts#^";
 
 export function errorSerializer(err: unknown): unknown {
   if (err instanceof Error) {
@@ -15,10 +12,10 @@ export function errorSerializer(err: unknown): unknown {
 }
 
 export function errorDeserializer(err: unknown): unknown {
-  if (isString(err)) {
+  if (is.String(err)) {
     try {
       const obj = JSON.parse(err);
-      if (isObject(obj) && isString(obj.message)) {
+      if (is.Record(obj) && is.String(obj.message)) {
         return Object.assign(new Error(obj.message), obj);
       }
     } catch {

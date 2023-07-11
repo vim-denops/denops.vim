@@ -1,7 +1,4 @@
-import {
-  assertArray,
-  assertString,
-} from "https://deno.land/x/unknownutil@v2.1.1/mod.ts#^";
+import { assert, is } from "https://deno.land/x/unknownutil@v3.2.0/mod.ts#^";
 import {
   Client,
   Session,
@@ -62,11 +59,10 @@ export class Neovim implements Host {
       },
 
       async invoke(method: unknown, args: unknown): Promise<unknown> {
-        assertString(method);
-        assertArray(args);
-        if (!isInvokerMethod(method)) {
-          throw new Error(`Method '${method}' is not defined in the invoker`);
-        }
+        assert(method, isInvokerMethod, {
+          message: `method '${method}' must be a key of Invoker`,
+        });
+        assert(args, is.Array, { message: `args '${args}' must be an array` });
         // deno-lint-ignore no-explicit-any
         return await (invoker[method] as any)(...args);
       },
