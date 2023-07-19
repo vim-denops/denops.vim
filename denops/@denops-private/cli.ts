@@ -1,4 +1,4 @@
-import { parse } from "https://deno.land/std@0.192.0/flags/mod.ts";
+import { parse } from "https://deno.land/std@0.194.0/flags/mod.ts";
 import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
 import { using } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
 import { Service } from "./service.ts";
