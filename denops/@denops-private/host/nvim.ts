@@ -2,7 +2,7 @@ import { assert, is } from "https://deno.land/x/unknownutil@v3.2.0/mod.ts#^";
 import {
   Client,
   Session,
-} from "https://deno.land/x/messagepack_rpc@v2.0.1/mod.ts#^";
+} from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts#^";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { Host } from "./base.ts";

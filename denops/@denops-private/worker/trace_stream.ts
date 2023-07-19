@@ -1,5 +1,5 @@
 import { pipeThroughFrom } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
-import { decode } from "https://deno.land/x/messagepack@v0.1.0/mod.ts";
+import { decode } from "https://deno.land/x/messagepack@v1.0.0/mod.ts";
 
 export function traceReadableStream(
   stream: ReadableStream<Uint8Array>,
