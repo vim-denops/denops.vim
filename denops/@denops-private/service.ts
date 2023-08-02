@@ -11,6 +11,7 @@ import {
 import { Disposable } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
+import { traceReadableStream, traceWritableStream } from "./trace_stream.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 import type { Meta } from "../@denops/mod.ts";
 
@@ -74,6 +75,7 @@ export class Service implements Disposable {
       readableStreamFromWorker(worker),
       writableStreamFromWorker(worker),
       this,
+      trace,
     );
     this.#plugins.set(name, {
       script,
@@ -137,7 +139,12 @@ function buildServiceSession(
   reader: ReadableStream<Uint8Array>,
   writer: WritableStream<Uint8Array>,
   service: Service,
+  trace: boolean,
 ) {
+  if (trace) {
+    reader = traceReadableStream(reader, { prefix: "worker -> denops: " });
+    writer = traceWritableStream(writer, { prefix: "denops -> worker: " });
+  }
   const session = new Session(reader, writer, {
     errorSerializer,
   });

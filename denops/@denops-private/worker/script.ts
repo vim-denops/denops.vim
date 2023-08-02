@@ -10,7 +10,7 @@ import {
 import type { Denops, Meta } from "../../@denops/mod.ts";
 import { DenopsImpl } from "../impl.ts";
 import { patchConsole } from "./patch_console.ts";
-import { traceReadableStream, traceWritableStream } from "./trace_stream.ts";
+import { traceReadableStream, traceWritableStream } from "../trace_stream.ts";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 
 const worker = self as unknown as Worker & { name: string };
@@ -23,8 +23,8 @@ async function main(
   let reader = readableStreamFromWorker(worker);
   let writer = writableStreamFromWorker(worker);
   if (trace) {
-    reader = traceReadableStream(reader);
-    writer = traceWritableStream(writer);
+    reader = traceReadableStream(reader, { prefix: "worker -> plugin: " });
+    writer = traceWritableStream(writer, { prefix: "plugin -> worker: " });
   }
   const session = new Session(reader, writer, { errorSerializer });
   session.onMessageError = (error, message) => {
