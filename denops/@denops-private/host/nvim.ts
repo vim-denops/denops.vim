@@ -34,7 +34,7 @@ export class Neovim implements Host {
         "nvim_set_client_info",
         "denops",
         version,
-        "remote",
+        "msgpack-rpc",
         {
           invoke: {
             async: false,
