@@ -7,6 +7,7 @@ import {
 
 export function traceReadableStream(
   stream: ReadableStream<Uint8Array>,
+  { prefix, suffix }: { prefix?: string; suffix?: string } = {},
 ) {
   return stream.pipeThrough(
     new TransformStream({
@@ -14,8 +15,7 @@ export function traceReadableStream(
         const data = decode(chunk);
         if (isMessage(data)) {
           const m = stringifyMessage(data);
-          // Vim -> Denops
-          console.log("v -> d:", m);
+          console.log(`${prefix ?? ""}${m}${suffix ?? ""}`);
         }
         controller.enqueue(chunk);
       },
@@ -25,6 +25,7 @@ export function traceReadableStream(
 
 export function traceWritableStream(
   stream: WritableStream<Uint8Array>,
+  { prefix, suffix }: { prefix?: string; suffix?: string } = {},
 ) {
   return pipeThroughFrom(
     stream,
@@ -33,8 +34,7 @@ export function traceWritableStream(
         const data = decode(chunk);
         if (isMessage(data)) {
           const m = stringifyMessage(data);
-          // Denops -> Vim
-          console.log("d -> v:", m);
+          console.log(`${prefix ?? ""}${m}${suffix ?? ""}`);
         }
         controller.enqueue(chunk);
       },
