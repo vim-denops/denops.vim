@@ -1,6 +1,6 @@
 import { parse } from "https://deno.land/std@0.194.0/flags/mod.ts";
 import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
-import { using } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
+import { using as usingResource } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
 import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
@@ -34,8 +34,8 @@ async function handleConn(conn: Deno.Conn): Promise<void> {
   }
 
   // Create host and service
-  await using(new hostClass(r2, writer), async (host) => {
-    await using(new Service(host), async (service) => {
+  await usingResource(new hostClass(r2, writer), async (host) => {
+    await usingResource(new Service(host), async (service) => {
       await service.host.waitClosed();
       if (!quiet) {
         console.log(
