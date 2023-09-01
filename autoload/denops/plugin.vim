@@ -164,6 +164,13 @@ function! s:DenopsSystemPluginPre() abort
   execute printf('doautocmd <nomodeline> User DenopsPluginPre:%s', l:plugin)
 endfunction
 
+" Split function to create new callstack independent for loop,
+" because overwrited callback references when
+" before timer processing timings.
+function! s:delay_callback(callback) abort
+  call timer_start(0, { -> a:callback() })
+endfunction
+
 function! s:DenopsSystemPluginPost() abort
   let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginPost:\zs.*')
   let s:loaded_plugins[l:plugin] = 0
@@ -174,7 +181,7 @@ function! s:DenopsSystemPluginPost() abort
     " behavior.
     let l:callbacks = has('nvim') ? l:callbacks : reverse(l:callbacks)
     for l:Callback in l:callbacks
-      call timer_start(0, { -> l:Callback() })
+      call s:delay_callback(l:Callback)
     endfor
   endif
   execute printf('doautocmd <nomodeline> User DenopsPluginPost:%s', l:plugin)
