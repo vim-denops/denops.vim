@@ -66,9 +66,7 @@ async function main(
     },
   });
   try {
-    // Import module with fragment so that reload works properly
-    // https://github.com/vim-denops/denops.vim/issues/227
-    const mod = await import(`${scriptUrl}#${performance.now()}`);
+    const mod = await import(scriptUrl);
     await denops.cmd(
       `doautocmd <nomodeline> User DenopsSystemPluginPre:${worker.name}`,
     )
