@@ -1,3 +1,4 @@
+import { deferred } from "https://deno.land/std@0.194.0/async/mod.ts";
 import { toFileUrl } from "https://deno.land/std@0.194.0/path/mod.ts";
 import { assert, is } from "https://deno.land/x/unknownutil@v3.2.0/mod.ts#^";
 import {
@@ -10,12 +11,18 @@ import {
 } from "https://deno.land/x/workerio@v3.1.0/mod.ts#^";
 import { Disposable } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
 import { Host } from "./host/base.ts";
-import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
+import { Invoker, LoadOptions, RegisterOptions } from "./host/invoker.ts";
 import { traceReadableStream, traceWritableStream } from "./trace_stream.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 import type { Meta } from "../@denops/mod.ts";
 
 const workerScript = "./worker/script.ts";
+
+type Loaded = {
+  worker: Worker;
+  session: Session;
+  client: Client;
+};
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
@@ -23,9 +30,7 @@ const workerScript = "./worker/script.ts";
 export class Service implements Disposable {
   #plugins: Map<string, {
     script: string;
-    worker: Worker;
-    session: Session;
-    client: Client;
+    loaded?: Promise<Loaded>;
   }>;
   host: Host;
   meta: Promise<Meta>;
@@ -37,6 +42,7 @@ export class Service implements Disposable {
     this.meta = this.host.call("denops#_internal#meta#get") as Promise<Meta>;
   }
 
+  /** @deprecated */
   async register(
     name: string,
     script: string,
@@ -52,7 +58,10 @@ export class Service implements Disposable {
             `A denops plugin '${name}' is already registered. Reload`,
           );
         }
-        plugin.worker.terminate();
+        plugin.loaded?.then(({ session, worker }) => {
+          session.shutdown();
+          worker.terminate();
+        });
       } else if (options.mode === "skip") {
         if (meta.mode === "debug") {
           console.log(`A denops plugin '${name}' is already registered. Skip`);
@@ -62,63 +71,68 @@ export class Service implements Disposable {
         throw new Error(`A denops plugin '${name}' is already registered`);
       }
     }
-    const worker = new Worker(
-      new URL(workerScript, import.meta.url).href,
-      {
-        name,
-        type: "module",
-      },
-    );
-    const scriptUrl = resolveScriptUrl(script);
-    worker.postMessage({
-      // Import module with fragment so that reload works properly
-      // https://github.com/vim-denops/denops.vim/issues/227
-      scriptUrl: `${scriptUrl}#${performance.now()}`,
-      meta,
-      trace,
-    });
-    const session = buildServiceSession(
-      name,
-      readableStreamFromWorker(worker),
-      writableStreamFromWorker(worker),
-      this,
-      trace,
-    );
-    this.#plugins.set(name, {
-      script,
-      worker,
-      session,
-      client: new Client(session, { errorDeserializer }),
-    });
+    this.define(name, script);
+    await this.load(name, { trace, reload: options.mode === "reload" });
   }
 
-  async reload(
-    name: string,
-    options: ReloadOptions,
-    trace: boolean,
-  ): Promise<void> {
-    const meta = await this.meta;
+  define(name: string, script: string): void {
+    const plugin = this.#plugins.get(name);
+    plugin?.loaded?.then(({ session, worker }) => {
+      session.shutdown();
+      worker.terminate();
+    });
+    this.#plugins.set(name, { script });
+  }
+
+  load(name: string, { reload, trace }: LoadOptions): Promise<Loaded> {
     const plugin = this.#plugins.get(name);
     if (!plugin) {
-      if (options.mode === "skip") {
-        if (meta.mode === "debug") {
-          console.log(`A denops plugin '${name}' is not registered yet. Skip`);
-        }
-        return;
-      } else {
-        throw new Error(`A denops plugin '${name}' is not registered yet`);
-      }
+      throw new Error(`No denops plugin '${name}' is defined`);
     }
-    this.register(name, plugin.script, { mode: "reload" }, trace);
+    if (plugin.loaded && !reload) {
+      return plugin.loaded;
+    }
+    plugin.loaded?.then(({ session, worker }) => {
+      session.shutdown();
+      worker.terminate();
+    });
+    plugin.loaded = (async () => {
+      const worker = new Worker(
+        new URL(workerScript, import.meta.url).href,
+        {
+          name,
+          type: "module",
+        },
+      );
+      const meta = await this.meta;
+      const scriptUrl = resolveScriptUrl(plugin.script);
+      worker.postMessage({
+        // Import module with fragment so that reload works properly
+        // https://github.com/vim-denops/denops.vim/issues/227
+        scriptUrl: `${scriptUrl}#${performance.now()}`,
+        meta,
+        trace,
+      });
+      const session = await buildServiceSession(
+        name,
+        readableStreamFromWorker(worker),
+        writableStreamFromWorker(worker),
+        this,
+        trace ?? false,
+      );
+      return {
+        worker,
+        session,
+        client: new Client(session, { errorDeserializer }),
+      };
+    })();
+    return plugin.loaded;
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
     try {
-      const plugin = this.#plugins.get(name);
-      if (!plugin) {
-        throw new Error(`No plugin '${name}' is registered`);
-      }
-      return await plugin.client.call(fn, ...args);
+      const { client } = await this.load(name, { reload: false });
+      return client.call(fn, ...args);
     } catch (e) {
       // NOTE:
       // Vim/Neovim does not handle JavaScript Error instance thus use string instead
@@ -127,28 +141,27 @@ export class Service implements Disposable {
   }
 
   dispose(): void {
-    // Dispose all sessions
     for (const plugin of this.#plugins.values()) {
-      plugin.session.shutdown();
-    }
-    // Terminate all workers
-    for (const plugin of this.#plugins.values()) {
-      plugin.worker.terminate();
+      plugin.loaded?.then(({ session, worker }) => {
+        session.shutdown();
+        worker.terminate();
+      });
     }
   }
 }
 
-function buildServiceSession(
+async function buildServiceSession(
   name: string,
   reader: ReadableStream<Uint8Array>,
   writer: WritableStream<Uint8Array>,
   service: Service,
   trace: boolean,
-) {
+): Promise<Session> {
   if (trace) {
     reader = traceReadableStream(reader, { prefix: "worker -> denops: " });
     writer = traceWritableStream(writer, { prefix: "denops -> worker: " });
   }
+  const waiter = deferred<void>();
   const session = new Session(reader, writer, {
     errorSerializer,
   });
@@ -159,9 +172,14 @@ function buildServiceSession(
     console.error(`Failed to handle message ${message}`, error);
   };
   session.dispatcher = {
-    reload: (trace) => {
+    reload: async (trace) => {
       assert(trace, is.Boolean);
-      service.reload(name, { mode: "skip" }, trace);
+      await service.load(name, { trace, reload: true });
+      return Promise.resolve();
+    },
+
+    ready: () => {
+      waiter.resolve();
       return Promise.resolve();
     },
 
@@ -189,6 +207,7 @@ function buildServiceSession(
     },
   };
   session.start();
+  await waiter;
   return session;
 }
 

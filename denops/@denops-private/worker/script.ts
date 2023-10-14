@@ -84,6 +84,8 @@ async function main(
           `Failed to emit DenopsSystemPluginPost:${worker.name}: ${e}`,
         )
       );
+    // Notify that the plugin session is ready
+    client.notify("ready");
     await session.wait();
   } catch (e) {
     console.error(e);

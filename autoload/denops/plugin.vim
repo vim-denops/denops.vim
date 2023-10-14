@@ -24,6 +24,7 @@ function! denops#plugin#wait(plugin, ...) abort
   if has_key(s:loaded_plugins, a:plugin)
     return s:loaded_plugins[a:plugin]
   endif
+  call denops#plugin#load(a:plugin)
   let l:ret = denops#_internal#wait#for(
         \ l:options.timeout,
         \ { -> has_key(s:loaded_plugins, a:plugin) },
@@ -54,42 +55,69 @@ function! denops#plugin#wait_async(plugin, callback) abort
   let l:callbacks = get(s:load_callbacks, a:plugin, [])
   call add(l:callbacks, a:callback)
   let s:load_callbacks[a:plugin] = l:callbacks
+  call denops#plugin#load(a:plugin)
 endfunction
 
+" DEPRECATED
 function! denops#plugin#register(plugin, ...) abort
   if a:0 is# 0 || type(a:1) is# v:t_dict
     let l:options = a:0 > 0 ? a:1 : {}
-    let l:script = s:find_plugin(a:plugin)
+    let l:script = denops#plugin#find(a:plugin)
   else
     let l:script = a:1
     let l:options = a:0 > 1 ? a:2 : {}
   endif
-  let l:options = s:options(l:options, {
+  let l:options = extend({
         \ 'mode': 'error',
-        \})
-  return s:register(a:plugin, l:script, l:options)
-endfunction
-
-function! denops#plugin#reload(plugin, ...) abort
-  let l:options = a:0 > 0 ? a:1 : {}
-  let l:options = s:options(l:options, {
-        \ 'mode': 'error',
-        \})
+        \}, l:options)
+  let l:script = denops#_internal#path#norm(l:script)
   let l:trace = s:trace(a:plugin)
-  let l:args = [a:plugin, l:options, l:trace]
-  call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
-  return denops#server#request('invoke', ['reload', l:args])
+  let l:args = [a:plugin, l:script, l:options, l:trace]
+  call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
+  call denops#server#notify('invoke', ['register', l:args])
 endfunction
 
+function! denops#plugin#define(plugin, script) abort
+  let l:script = denops#_internal#path#norm(a:script)
+  let l:args = [a:plugin, l:script]
+  call denops#_internal#echo#debug(printf('define plugin: %s', l:args))
+  call denops#server#request('invoke', ['define', l:args])
+endfunction
+
+function! denops#plugin#load(plugin) abort
+  let l:args = [a:plugin, { 'trace': s:trace(a:plugin), 'reload': v:false }]
+  call denops#_internal#echo#debug(printf('load plugin: %s', l:args))
+  return denops#server#notify('invoke', ['load', l:args])
+endfunction
+
+" NOTE: The second argument will have no effect.
+function! denops#plugin#reload(plugin, ...) abort
+  if has_key(s:loaded_plugins, a:plugin)
+    call remove(s:loaded_plugins, a:plugin)
+  endif
+  let l:args = [a:plugin, { 'trace': s:trace(a:plugin), 'reload': v:true }]
+  call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
+  return denops#server#notify('invoke', ['load', l:args])
+endfunction
+
+function! denops#plugin#find(plugin) abort
+  for l:script in globpath(&runtimepath, denops#_internal#path#join(['denops', a:plugin, 'main.ts']), 1, 1, 1)
+    let l:plugin = fnamemodify(l:script, ':h:t')
+    if l:plugin[:0] ==# '@' || !filereadable(l:script)
+      continue
+    endif
+    return l:script
+  endfor
+  throw printf('No denops plugin for "%s" exists', a:plugin)
+endfunction
+
+" NOTE: The second argument will have no effect.
 function! denops#plugin#discover(...) abort
-  let l:options = s:options(a:0 > 0 ? a:1 : {}, {
-        \ 'mode': 'skip',
-        \})
   let l:plugins = {}
   call s:gather_plugins(l:plugins)
   call denops#_internal#echo#debug(printf('%d plugins are discovered', len(l:plugins)))
   for [l:plugin, l:script] in items(l:plugins)
-    call s:register(l:plugin, l:script, l:options)
+    call denops#plugin#define(l:plugin, l:script)
   endfor
 endfunction
 
@@ -99,7 +127,7 @@ function! denops#plugin#check_type(...) abort
     call s:gather_plugins(l:plugins)
   endif
   let l:args = [g:denops#deno, 'check']
-  let l:args += a:0 ? [s:find_plugin(a:1)] : values(l:plugins)
+  let l:args += a:0 ? [denops#plugin#find(a:1)] : values(l:plugins)
   let l:job = denops#_internal#job#start(l:args, {
         \ 'env': {
         \   'NO_COLOR': 1,
@@ -123,37 +151,10 @@ function! s:gather_plugins(plugins) abort
   endfor
 endfunction
 
-function! s:options(base, default) abort
-  let l:options = extend(a:default, a:base)
-  if l:options.mode !~# '^\(reload\|skip\|error\)$'
-    throw printf('Unknown mode "%s" is specified', l:options.mode)
-  endif
-  return l:options
-endfunction
-
-function! s:register(plugin, script, options) abort
-  let l:script = denops#_internal#path#norm(a:script)
-  let l:trace = s:trace(a:plugin)
-  let l:args = [a:plugin, l:script, a:options, l:trace]
-  call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
-  call denops#server#notify('invoke', ['register', l:args])
-endfunction
-
 function! s:trace(plugin)  abort            
   return type(g:denops#trace) is# v:t_list
         \ ? index(g:denops#trace, a:plugin) != -1 ? v:true : v:false
         \ : g:denops#trace ? v:true : v:false
-endfunction
-
-function! s:find_plugin(plugin) abort
-  for l:script in globpath(&runtimepath, denops#_internal#path#join(['denops', a:plugin, 'main.ts']), 1, 1, 1)
-    let l:plugin = fnamemodify(l:script, ':h:t')
-    if l:plugin[:0] ==# '@' || !filereadable(l:script)
-      continue
-    endif
-    return l:script
-  endfor
-  throw printf('No denops plugin for "%s" exists', a:plugin)
 endfunction
 
 function! s:DenopsSystemPluginPre() abort

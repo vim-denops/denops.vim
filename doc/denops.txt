@@ -276,47 +276,56 @@ denops#plugin#wait_async({plugin}, {callback})
 
 						*denops#plugin#register()*
 denops#plugin#register({plugin}[, {script}[, {options}]])
-	Register denops plugin. Use this function to register denops plugins
-	which is not discovered by |denops#plugin#discover()|.
-	When a {script} is omitted, a "denops/{plugin}/main.ts" file is
-	searched from |runtimepath| like discover.
-	The following attributes are available on {options}.
+	DEPRECATED:
+	Use |denops#plugin#define()| and |denops#plugin#load()| instead.
 
-	"mode"		|String| to regulate the behavior of registration when
-			a {plugin} plugin is already registered.
+						*denops#plugin#define()*
+denops#plugin#define({plugin}, {script})
+	Define a {plugin} plugin using this function. It is used to create a
+	denops plugin that is not automatically detected by
+	|denops#plugin#discover()|.
 
-			"error"		Throw an error. (Default)
-			"skip"		Skip plugin registration.
-			"reload"	Reload the plugin.
-
-	It invokes |User| |DenopsPluginPre|:{plugin} just before denops
-	execute a "main" function of the plugin and |User|
-	|DenopsPluginPost|:{plugin} just after denops execute a "main"
+	The defined plugin will be loaded upon requirement. After loading, the
+	|User| |DenopsPluginPre|:{plugin} and |DenopsPluginPost|:{plugin}
+	autocmds are triggered just before and after denops executes the "main"
 	function of the plugin.
 
-						*denops#plugin#discover()*
-denops#plugin#discover([{options}])
-	Discover denops plugins from |runtimepath| and register.
-	It gathers "main.ts" under "denops/*" directories under |runtimepath|
-	if the middle directory does not starts from "@".
-	This is automatically called on |User| |DenopsReady| autocmd invoked by
-	|denops#server#start()|.
-	It uses same {options} as |denops#plugin#register()| except that the
-	default value of "mode" is "skip".
+	Use |denops#plugin#load()| to explicitly load the plugin.
+
+						*denops#plugin#load()*
+denops#plugin#load({plugin})
+	Load a {plugin} plugin. It will have no effect if the plugin is
+	already loaded.
+	An error will be thrown if the plugin has not yet been defined.
 
 						*denops#plugin#reload()*
-denops#plugin#reload({plugin}[, {options}])
-	Reload registered denops plugin.
-	The following attributes are available on {options}.
+denops#plugin#reload({plugin})
+	Reload a {plugin} plugin. It is similar to |denops#plugin#load()|, but
+	it will first shut down the plugin if it's already loaded.
+	An error will be thrown if the plugin has not yet been defined.
 
-	"mode"		|String| to regulate the behavior of reload when
-			a {plugin} plugin is not registered yet.
+	Please note that the options in the second argument are deprecated and
+	will not have any effect.
 
-			"error"		Throw an error. (Default)
-			"skip"		Skip plugin reload.
+						*denops#plugin#find()*
+denops#plugin#find({plugin})
+	Find a denops standard plugin script file for the {plugin} plugin from
+	the |runtimepath|. This function returns a path to "main.ts" within 
+	the "denops/*" directories, except when the middle directory starts
+	with "@".
 
-	It internally calls |denops#plugin#register()| with "reload" mode when
-	the plugin is registered.
+						*denops#plugin#discover()*
+denops#plugin#discover()
+	Discover denops plugins from the |runtimepath| and define them
+	automatically. This function collects denops standard plugin script
+	files found under the |runtimepath|. For more details about the
+	standard plugin script file, refer to |denops#plugin#find()|. 
+
+	This process is automatically triggered by the |User| |DenopsReady|
+	autocmd, which is invoked by |denops#server#start()|.
+
+	Please note that the options in the second argument are deprecated and
+	will not have any effect.
 
 						*denops#plugin#check_type()*
 denops#plugin#check_type([{plugin}])
