@@ -62,7 +62,7 @@ export class DenopsImpl implements Denops {
   }
 
   async cmd(cmd: string, ctx: Context = {}): Promise<void> {
-    await this.#session.call("call", "denops#api#cmd", cmd, ctx);
+    await this.#session.notify("call", "denops#api#cmd", cmd, ctx);
   }
 
   async eval(expr: string, ctx: Context = {}): Promise<unknown> {
