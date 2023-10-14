@@ -28,20 +28,22 @@ export class Service implements Disposable {
     client: Client;
   }>;
   host: Host;
+  meta: Promise<Meta>;
 
   constructor(host: Host) {
     this.#plugins = new Map();
     this.host = host;
     this.host.register(new Invoker(this));
+    this.meta = this.host.call("denops#_internal#meta#get") as Promise<Meta>;
   }
 
-  register(
+  async register(
     name: string,
     script: string,
-    meta: Meta,
     options: RegisterOptions,
     trace: boolean,
-  ): void {
+  ): Promise<void> {
+    const meta = await this.meta;
     const plugin = this.#plugins.get(name);
     if (plugin) {
       if (options.mode === "reload") {
@@ -71,7 +73,6 @@ export class Service implements Disposable {
     worker.postMessage({ scriptUrl, meta, trace });
     const session = buildServiceSession(
       name,
-      meta,
       readableStreamFromWorker(worker),
       writableStreamFromWorker(worker),
       this,
@@ -85,12 +86,12 @@ export class Service implements Disposable {
     });
   }
 
-  reload(
+  async reload(
     name: string,
-    meta: Meta,
     options: ReloadOptions,
     trace: boolean,
-  ): void {
+  ): Promise<void> {
+    const meta = await this.meta;
     const plugin = this.#plugins.get(name);
     if (!plugin) {
       if (options.mode === "skip") {
@@ -102,9 +103,7 @@ export class Service implements Disposable {
         throw new Error(`A denops plugin '${name}' is not registered yet`);
       }
     }
-    this.register(name, plugin.script, { ...meta, mode: "release" }, {
-      mode: "reload",
-    }, trace);
+    this.register(name, plugin.script, { mode: "reload" }, trace);
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -135,7 +134,6 @@ export class Service implements Disposable {
 
 function buildServiceSession(
   name: string,
-  meta: Meta,
   reader: ReadableStream<Uint8Array>,
   writer: WritableStream<Uint8Array>,
   service: Service,
@@ -157,9 +155,7 @@ function buildServiceSession(
   session.dispatcher = {
     reload: (trace) => {
       assert(trace, is.Boolean);
-      service.reload(name, meta, {
-        mode: "skip",
-      }, trace);
+      service.reload(name, { mode: "skip" }, trace);
       return Promise.resolve();
     },
 

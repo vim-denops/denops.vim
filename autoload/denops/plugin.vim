@@ -64,27 +64,24 @@ function! denops#plugin#register(plugin, ...) abort
     let l:script = a:1
     let l:options = a:0 > 1 ? a:2 : {}
   endif
-  let l:meta = denops#_internal#meta#get()
   let l:options = s:options(l:options, {
         \ 'mode': 'error',
         \})
-  return s:register(a:plugin, l:script, l:meta, l:options)
+  return s:register(a:plugin, l:script, l:options)
 endfunction
 
 function! denops#plugin#reload(plugin, ...) abort
   let l:options = a:0 > 0 ? a:1 : {}
-  let l:meta = denops#_internal#meta#get()
   let l:options = s:options(l:options, {
         \ 'mode': 'error',
         \})
   let l:trace = s:trace(a:plugin)
-  let l:args = [a:plugin, l:meta, l:options, l:trace]
+  let l:args = [a:plugin, l:options, l:trace]
   call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
   return denops#server#request('invoke', ['reload', l:args])
 endfunction
 
 function! denops#plugin#discover(...) abort
-  let l:meta = denops#_internal#meta#get()
   let l:options = s:options(a:0 > 0 ? a:1 : {}, {
         \ 'mode': 'skip',
         \})
@@ -92,7 +89,7 @@ function! denops#plugin#discover(...) abort
   call s:gather_plugins(l:plugins)
   call denops#_internal#echo#debug(printf('%d plugins are discovered', len(l:plugins)))
   for [l:plugin, l:script] in items(l:plugins)
-    call s:register(l:plugin, l:script, l:meta, l:options)
+    call s:register(l:plugin, l:script, l:options)
   endfor
 endfunction
 
@@ -134,10 +131,10 @@ function! s:options(base, default) abort
   return l:options
 endfunction
 
-function! s:register(plugin, script, meta, options) abort
+function! s:register(plugin, script, options) abort
   let l:script = denops#_internal#path#norm(a:script)
   let l:trace = s:trace(a:plugin)
-  let l:args = [a:plugin, l:script, a:meta, a:options, l:trace]
+  let l:args = [a:plugin, l:script, a:options, l:trace]
   call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
   call denops#server#notify('invoke', ['register', l:args])
 endfunction

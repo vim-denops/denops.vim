@@ -1,6 +1,5 @@
 import { is } from "https://deno.land/x/unknownutil@v3.2.0/mod.ts#^";
 import { Service } from "../service.ts";
-import type { Meta } from "../../@denops/mod.ts";
 
 export type RegisterOptions = {
   /**
@@ -33,20 +32,18 @@ export class Invoker {
   register(
     name: string,
     script: string,
-    meta: Meta,
     options: RegisterOptions,
     trace: boolean,
   ): void {
-    this.#service.register(name, script, meta, options, trace);
+    this.#service.register(name, script, options, trace);
   }
 
   reload(
     name: string,
-    meta: Meta,
     options: ReloadOptions,
     trace: boolean,
   ): void {
-    this.#service.reload(name, meta, options, trace);
+    this.#service.reload(name, options, trace);
   }
 
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
