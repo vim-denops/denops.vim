@@ -36,12 +36,13 @@ export class DenopsImpl implements Denops {
     this.#session.dispatcher = dispatcher;
   }
 
-  async redraw(force?: boolean): Promise<void> {
-    await this.#session.call("redraw", force);
+  redraw(force?: boolean): Promise<void> {
+    // maybe we can use 'notify' here?
+    return this.#session.call("redraw", force).then();
   }
 
-  async call(fn: string, ...args: unknown[]): Promise<unknown> {
-    return await this.#session.call("call", fn, ...normArgs(args));
+  call(fn: string, ...args: unknown[]): Promise<unknown> {
+    return this.#session.call("call", fn, ...normArgs(args));
   }
 
   async batch(
@@ -61,20 +62,21 @@ export class DenopsImpl implements Denops {
     return results;
   }
 
-  async cmd(cmd: string, ctx: Context = {}): Promise<void> {
-    await this.#session.call("call", "denops#api#cmd", cmd, ctx);
+  cmd(cmd: string, ctx: Context = {}): Promise<void> {
+    // maybe we can use 'notify' here?
+    return this.#session.call("call", "denops#api#cmd", cmd, ctx).then();
   }
 
-  async eval(expr: string, ctx: Context = {}): Promise<unknown> {
-    return await this.#session.call("call", "denops#api#eval", expr, ctx);
+  eval(expr: string, ctx: Context = {}): Promise<unknown> {
+    return this.#session.call("call", "denops#api#eval", expr, ctx);
   }
 
-  async dispatch(
+  dispatch(
     name: string,
     fn: string,
     ...args: unknown[]
   ): Promise<unknown> {
-    return await this.#session.call("dispatch", name, fn, ...args);
+    return this.#session.call("dispatch", name, fn, ...args);
   }
 }
 
