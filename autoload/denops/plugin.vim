@@ -52,10 +52,12 @@ function! denops#plugin#wait_async(plugin, callback) abort
     call timer_start(0, { -> a:callback() })
     return
   endif
+  if !has_key(s:load_callbacks, a:plugin)
+    call timer_start(0, { -> denops#plugin#load(a:plugin) })
+  endif
   let l:callbacks = get(s:load_callbacks, a:plugin, [])
   call add(l:callbacks, a:callback)
   let s:load_callbacks[a:plugin] = l:callbacks
-  call denops#plugin#load(a:plugin)
 endfunction
 
 " DEPRECATED
