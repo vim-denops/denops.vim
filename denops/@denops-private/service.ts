@@ -1,5 +1,5 @@
-import { toFileUrl } from "https://deno.land/std@0.194.0/path/mod.ts";
-import { assert, is } from "https://deno.land/x/unknownutil@v3.2.0/mod.ts#^";
+import { toFileUrl } from "https://deno.land/std@0.204.0/path/mod.ts";
+import { assert, is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts#^";
 import {
   Client,
   Session,
@@ -8,7 +8,7 @@ import {
   readableStreamFromWorker,
   writableStreamFromWorker,
 } from "https://deno.land/x/workerio@v3.1.0/mod.ts#^";
-import { Disposable } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
+import { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts#^";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
 import { traceReadableStream, traceWritableStream } from "./trace_stream.ts";
