@@ -65,8 +65,12 @@ export class Vim implements Host {
     return this.#session.wait();
   }
 
-  dispose(): void {
-    this.#session.shutdown();
+  async dispose(): Promise<void> {
+    try {
+      await this.#session.shutdown();
+    } catch {
+      // Do nothing
+    }
   }
 }
 

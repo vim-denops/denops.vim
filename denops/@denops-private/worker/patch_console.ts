@@ -12,6 +12,8 @@ export function patchConsole(
   if (console[marker]) {
     return;
   }
+  // Mark
+  console[marker] = true;
   // Patch simple methods
   const simpleTargets = [
     "debug",

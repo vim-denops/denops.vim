@@ -1,8 +1,8 @@
-import * as path from "https://deno.land/std@0.194.0/path/mod.ts";
+import * as path from "https://deno.land/std@0.204.0/path/mod.ts";
 import {
   assertEquals,
   assertRejects,
-} from "https://deno.land/std@0.194.0/testing/asserts.ts";
+} from "https://deno.land/std@0.204.0/assert/mod.ts";
 import { test } from "https://deno.land/x/denops_test@v1.4.0/mod.ts#^";
 import { BatchError } from "../@denops/mod.ts";
 
