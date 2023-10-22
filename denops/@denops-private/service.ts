@@ -67,8 +67,11 @@ export class Service implements Disposable {
         type: "module",
       },
     );
+    // Import module with fragment so that reload works properly
+    // https://github.com/vim-denops/denops.vim/issues/227
+    const suffix = `#${performance.now()}`;
     const scriptUrl = resolveScriptUrl(script);
-    worker.postMessage({ scriptUrl, meta, trace });
+    worker.postMessage({ scriptUrl: `${scriptUrl}${suffix}`, meta, trace });
     const session = buildServiceSession(
       name,
       meta,
