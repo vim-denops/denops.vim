@@ -1,4 +1,8 @@
-import { assert, is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts#^";
+import {
+  assert,
+  is,
+  Predicate,
+} from "https://deno.land/x/unknownutil@v3.10.0/mod.ts#^";
 import {
   Client,
   Session,
@@ -14,6 +18,13 @@ import { traceReadableStream, traceWritableStream } from "../trace_stream.ts";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 
 const worker = self as unknown as Worker & { name: string };
+
+const isMeta: Predicate<Meta> = is.ObjectOf({
+  mode: is.LiteralOneOf(["release", "debug", "test"] as const),
+  host: is.LiteralOneOf(["vim", "nvim"] as const),
+  version: is.String,
+  platform: is.LiteralOneOf(["windows", "mac", "linux"] as const),
+});
 
 async function main(
   scriptUrl: string,
@@ -100,45 +111,15 @@ async function main(
   self.close();
 }
 
-function isMeta(v: unknown): v is Meta {
-  if (!is.Record(v)) {
-    return false;
-  }
-  if (!is.String(v.mode) || !["release", "debug", "test"].includes(v.mode)) {
-    return false;
-  }
-  if (!is.String(v.host) || !["vim", "nvim"].includes(v.host)) {
-    return false;
-  }
-  if (!is.String(v.version)) {
-    return false;
-  }
-  if (
-    !is.String(v.platform) || !["windows", "mac", "linux"].includes(v.platform)
-  ) {
-    return false;
-  }
-  return true;
-}
-
 // Patch console with worker name for easy debugging
 patchConsole(`(${worker.name})`);
 
 // Wait startup arguments and start 'main'
 worker.addEventListener("message", (event: MessageEvent<unknown>) => {
-  assert(event.data, is.Record, {
-    message: `event.data '${event.data}' must be Record`,
-  });
-  assert(event.data.scriptUrl, is.String, {
-    message: `event.data.scriptUrl '${event.data.scriptUrl}' must be String`,
-  });
-  assert(event.data.meta, isMeta, {
-    message: `event.data.meta '${event.data.meta}' must be Meta`,
-  });
-  assert(event.data.trace, is.OneOf([is.Undefined, is.Boolean]), {
-    message:
-      `event.data.trace '${event.data.trace}' must be undefined or boolean`,
-  });
+  assert(event.data, is.Record);
+  assert(event.data.scriptUrl, is.String);
+  assert(event.data.meta, isMeta);
+  assert(event.data.trace, is.OneOf([is.Undefined, is.Boolean]));
   const { scriptUrl, meta, trace } = event.data;
   main(scriptUrl, meta, trace ?? false).catch((e) => {
     console.error(

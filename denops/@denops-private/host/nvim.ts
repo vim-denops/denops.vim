@@ -84,10 +84,8 @@ export class Neovim implements Host {
       },
 
       async invoke(method: unknown, args: unknown): Promise<unknown> {
-        assert(method, isInvokerMethod, {
-          message: `method '${method}' must be a key of Invoker`,
-        });
-        assert(args, is.Array, { message: `args '${args}' must be an array` });
+        assert(method, isInvokerMethod);
+        assert(args, is.Array);
         // deno-lint-ignore no-explicit-any
         return await (invoker[method] as any)(...args);
       },
