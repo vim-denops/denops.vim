@@ -121,13 +121,13 @@ export class Service implements Disposable {
     }
   }
 
-  dispose(): void {
-    // Dispose all sessions
+  async dispose(): Promise<void> {
     for (const plugin of this.#plugins.values()) {
-      plugin.session.shutdown();
-    }
-    // Terminate all workers
-    for (const plugin of this.#plugins.values()) {
+      try {
+        await plugin.session.shutdown();
+      } catch {
+        // Do nothing
+      }
       plugin.worker.terminate();
     }
   }

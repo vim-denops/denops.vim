@@ -98,7 +98,11 @@ export class Neovim implements Host {
     await this.#session.wait();
   }
 
-  dispose(): void {
-    this.#session.shutdown();
+  async dispose(): Promise<void> {
+    try {
+      await this.#session.shutdown();
+    } catch {
+      // Do nothing
+    }
   }
 }
