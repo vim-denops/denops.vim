@@ -5,10 +5,6 @@ on:
     - cron: "0 0 * * *"
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -19,8 +15,8 @@ jobs:
           deno-version: 1.x
       - name: Configure Git
         run: |
-          git config user.name '${{ github.actor }}'
-          git config user.email '${{ github.actor }}@users.noreply.github.com'
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
       - name: Update dependencies and commit changes
         run: deno task -q upgrade:commit --summary title.txt --report body.md
       - name: Check result
@@ -37,4 +33,4 @@ jobs:
           gh pr create --title "$(cat title.txt)" --body "$(cat body.md)"
           --label "automation" --head "automation/update-dependencies"
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.PA_TOKEN }}
