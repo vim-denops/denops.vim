@@ -15,8 +15,8 @@ jobs:
           deno-version: 1.x
       - name: Configure Git
         run: |
-          git config user.name '${{ github.actor }}'
-          git config user.email '${{ github.actor }}@users.noreply.github.com'
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
       - name: Update dependencies and commit changes
         run: deno task -q upgrade:commit --summary title.txt --report body.md
       - name: Check result
