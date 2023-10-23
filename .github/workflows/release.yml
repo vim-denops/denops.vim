@@ -8,6 +8,7 @@ on:
 jobs:
   dispatch:
     runs-on: ubuntu-latest
+    if: github.repository_owner == 'vim-denops'
     strategy:
       matrix:
         # NOTE:
