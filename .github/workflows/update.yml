@@ -1,4 +1,4 @@
-name: Update
+name: update
 
 on:
   schedule:
@@ -18,19 +18,32 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
       - name: Update dependencies and commit changes
-        run: deno task -q upgrade:commit --summary title.txt --report body.md
+        run: deno task -q upgrade:commit --summary ../title.txt --report ../body.md
       - name: Check result
         id: result
         uses: andstor/file-existence-action@v2
         with:
-          files: title.txt, body.md
-      - name: Push changes
+          files: ../title.txt, ../body.md
+      - name: Read title.txt
+        id: title
         if: steps.result.outputs.files_exists == 'true'
-        run: git push -f origin HEAD:automation/update-dependencies
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: ../title.txt
+      - name: Read body.md
+        id: body
+        if: steps.result.outputs.files_exists == 'true'
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: ../body.md
       - name: Create a pull request
         if: steps.result.outputs.files_exists == 'true'
-        run: >
-          gh pr create --title "$(cat title.txt)" --body "$(cat body.md)"
-          --label "automation" --head "automation/update-dependencies"
-        env:
-          GITHUB_TOKEN: ${{ secrets.PA_TOKEN }}
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.PA_TOKEN }}
+          author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+          branch: automation/update-dependencies
+          title: ${{ steps.title.outputs.content }}
+          body: ${{ steps.body.outputs.content }}
+          labels: automation
+          delete-branch: true
