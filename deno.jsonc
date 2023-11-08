@@ -4,8 +4,7 @@
     "test": "deno test --unstable -A --parallel --shuffle --doc --coverage=.coverage",
     "check": "deno check --unstable $(find . -name '*.ts')",
     "coverage": "deno coverage --unstable .coverage",
-    "run:molt": "deno run -q -A https://deno.land/x/molt@0.7.3/cli.ts",
-    "upgrade": "deno task -q run:molt check ./**/*.ts",
-    "upgrade:commit": "deno task -q run:molt update --commit --prefix :package: ./**/*.ts"
+    "upgrade": "deno run -q -A https://deno.land/x/molt@0.11.0/cli.ts ./**/*.ts",
+    "upgrade:commit": "deno task -q upgrade --commit --prefix :package: --pre-commit=fmt"
   }
 }
