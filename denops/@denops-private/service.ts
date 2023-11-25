@@ -1,4 +1,4 @@
-import { toFileUrl } from "https://deno.land/std@0.204.0/path/mod.ts";
+import { toFileUrl } from "https://deno.land/std@0.208.0/path/mod.ts";
 import { assert, is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts#^";
 import {
   Client,
