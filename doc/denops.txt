@@ -372,6 +372,10 @@ DenopsClosed						*DenopsClosed*
 	Fired when the connection (channel) with Denops is broken.
 	It is assumed to be used to release resources such as cache.
 
+DenopsPluginRegister:{plugin}				*DenopsPluginRegister*
+	Fired just before each plugin is register.
+	{plugin} is the name of the target plugin.
+
 DenopsPluginPre:{plugin}				*DenopsPluginPre*
 	Fired before the "main" function of each plugin is called.
 	{plugin} is the name of the target plugin.
