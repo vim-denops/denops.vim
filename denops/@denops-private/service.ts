@@ -1,21 +1,9 @@
 import { toFileUrl } from "https://deno.land/std@0.204.0/path/mod.ts";
-import { assert, is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts#^";
-import {
-  Client,
-  Session,
-} from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts#^";
-import {
-  readableStreamFromWorker,
-  writableStreamFromWorker,
-} from "https://deno.land/x/workerio@v3.1.0/mod.ts#^";
 import { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts#^";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
-import { traceReadableStream, traceWritableStream } from "./trace_stream.ts";
-import { errorDeserializer, errorSerializer } from "./error.ts";
 import type { Meta } from "../@denops/mod.ts";
-
-const workerScript = "./worker/script.ts";
+import { DenopsImpl } from "./impl.ts";
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
@@ -23,9 +11,7 @@ const workerScript = "./worker/script.ts";
 export class Service implements Disposable {
   #plugins: Map<string, {
     script: string;
-    worker: Worker;
-    session: Session;
-    client: Client;
+    denops: DenopsImpl;
   }>;
   host: Host;
 
@@ -40,7 +26,7 @@ export class Service implements Disposable {
     script: string,
     meta: Meta,
     options: RegisterOptions,
-    trace: boolean,
+    _trace: boolean,
   ): void {
     const plugin = this.#plugins.get(name);
     if (plugin) {
@@ -50,7 +36,6 @@ export class Service implements Disposable {
             `A denops plugin '${name}' is already registered. Reload`,
           );
         }
-        plugin.worker.terminate();
       } else if (options.mode === "skip") {
         if (meta.mode === "debug") {
           console.log(`A denops plugin '${name}' is already registered. Skip`);
@@ -60,31 +45,45 @@ export class Service implements Disposable {
         throw new Error(`A denops plugin '${name}' is already registered`);
       }
     }
-    const worker = new Worker(
-      new URL(workerScript, import.meta.url).href,
-      {
-        name,
-        type: "module",
-      },
-    );
+    const denops = new DenopsImpl(name, meta, this);
     // Import module with fragment so that reload works properly
     // https://github.com/vim-denops/denops.vim/issues/227
     const suffix = `#${performance.now()}`;
     const scriptUrl = resolveScriptUrl(script);
-    worker.postMessage({ scriptUrl: `${scriptUrl}${suffix}`, meta, trace });
-    const session = buildServiceSession(
-      name,
-      meta,
-      readableStreamFromWorker(worker),
-      writableStreamFromWorker(worker),
-      this,
-      trace,
-    );
+    import(`${scriptUrl}${suffix}`).then(async (mod) => {
+      try {
+        await denops.cmd(
+          `doautocmd <nomodeline> User DenopsSystemPluginPre:${name}`,
+        )
+          .catch((e) =>
+            console.warn(
+              `Failed to emit DenopsSystemPluginPre:${name}: ${e}`,
+            )
+          );
+        await mod.main(denops);
+        await denops.cmd(
+          `doautocmd <nomodeline> User DenopsSystemPluginPost:${name}`,
+        )
+          .catch((e) =>
+            console.warn(
+              `Failed to emit DenopsSystemPluginPost:${name}: ${e}`,
+            )
+          );
+      } catch (e) {
+        console.error(e);
+        await denops.cmd(
+          `doautocmd <nomodeline> User DenopsSystemPluginFail:${name}`,
+        )
+          .catch((e) =>
+            console.warn(
+              `Failed to emit DenopsSystemPluginFail:${name}: ${e}`,
+            )
+          );
+      }
+    });
     this.#plugins.set(name, {
       script,
-      worker,
-      session,
-      client: new Client(session, { errorDeserializer }),
+      denops,
     });
   }
 
@@ -116,7 +115,7 @@ export class Service implements Disposable {
       if (!plugin) {
         throw new Error(`No plugin '${name}' is registered`);
       }
-      return await plugin.client.call(fn, ...args);
+      return await plugin.denops.dispatcher[fn](...args);
     } catch (e) {
       // NOTE:
       // Vim/Neovim does not handle JavaScript Error instance thus use string instead
@@ -125,76 +124,8 @@ export class Service implements Disposable {
   }
 
   async dispose(): Promise<void> {
-    for (const plugin of this.#plugins.values()) {
-      try {
-        await plugin.session.shutdown();
-      } catch {
-        // Do nothing
-      }
-      plugin.worker.terminate();
-    }
+    // Do nothing
   }
-}
-
-function buildServiceSession(
-  name: string,
-  meta: Meta,
-  reader: ReadableStream<Uint8Array>,
-  writer: WritableStream<Uint8Array>,
-  service: Service,
-  trace: boolean,
-) {
-  if (trace) {
-    reader = traceReadableStream(reader, { prefix: "worker -> denops: " });
-    writer = traceWritableStream(writer, { prefix: "denops -> worker: " });
-  }
-  const session = new Session(reader, writer, {
-    errorSerializer,
-  });
-  session.onMessageError = (error, message) => {
-    if (error instanceof Error && error.name === "Interrupted") {
-      return;
-    }
-    console.error(`Failed to handle message ${message}`, error);
-  };
-  session.dispatcher = {
-    reload: (trace) => {
-      assert(trace, is.Boolean);
-      service.reload(name, meta, {
-        mode: "skip",
-      }, trace);
-      return Promise.resolve();
-    },
-
-    redraw: async (force) => {
-      assert(force, is.OneOf([is.Boolean, is.Nullish]));
-      return await service.host.redraw(!!force);
-    },
-
-    call: async (fn, ...args) => {
-      assert(fn, is.String);
-      assert(args, is.Array);
-      return await service.host.call(fn, ...args);
-    },
-
-    batch: async (...calls) => {
-      assert(calls, is.ArrayOf(isCall));
-      return await service.host.batch(...calls);
-    },
-
-    dispatch: async (name, fn, ...args) => {
-      assert(name, is.String);
-      assert(fn, is.String);
-      assert(args, is.Array);
-      return await service.dispatch(name, fn, args);
-    },
-  };
-  session.start();
-  return session;
-}
-
-function isCall(call: unknown): call is [string, ...unknown[]] {
-  return is.Array(call) && call.length > 0 && is.String(call[0]);
 }
 
 function resolveScriptUrl(script: string): string {
