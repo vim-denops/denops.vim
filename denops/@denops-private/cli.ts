@@ -24,8 +24,12 @@ async function handleConn(conn: Deno.Conn): Promise<void> {
   const [r1, r2] = reader.tee();
 
   // Detect host from payload
+  const start = performance.now();
   const hostClass = await detectHost(r1);
   r1.cancel();
+  if (!quiet) {
+    console.warn(`Detecting host took ${performance.now() - start} ms`);
+  }
 
   if (!quiet) {
     console.warn(
