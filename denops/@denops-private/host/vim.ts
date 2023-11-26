@@ -37,7 +37,7 @@ export class Vim implements Host {
   }
 
   async batch(
-    ...calls: [string, ...unknown[]][]
+    ...calls: (readonly [string, ...unknown[]])[]
   ): Promise<[unknown[], string]> {
     return (await this.#client.call("denops#api#vim#batch", calls)) as [
       unknown[],

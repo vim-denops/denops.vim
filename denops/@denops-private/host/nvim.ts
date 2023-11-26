@@ -61,7 +61,7 @@ export class Neovim implements Host {
   }
 
   async batch(
-    ...calls: [string, ...unknown[]][]
+    ...calls: (readonly [string, ...unknown[]])[]
   ): Promise<[unknown[], string]> {
     const [ret, err] = await this.#client.call(
       "nvim_call_atomic",
