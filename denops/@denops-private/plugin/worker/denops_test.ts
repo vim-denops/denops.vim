@@ -4,7 +4,7 @@ import {
   assertRejects,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { test } from "https://deno.land/x/denops_test@v1.4.0/mod.ts";
-import { BatchError } from "../@denops/mod.ts";
+import { BatchError } from "../../../@denops/mod.ts";
 
 test({
   mode: "all",

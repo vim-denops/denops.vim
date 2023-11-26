@@ -7,11 +7,11 @@ import {
   readableStreamFromWorker,
   writableStreamFromWorker,
 } from "https://deno.land/x/workerio@v3.1.0/mod.ts";
-import type { Denops, Meta } from "../../@denops/mod.ts";
-import { DenopsImpl } from "../impl.ts";
+import type { Denops, Meta } from "../../../@denops/mod.ts";
+import { DenopsImpl } from "./denops.ts";
 import { patchConsole } from "./patch_console.ts";
-import { errorDeserializer, errorSerializer } from "../error.ts";
-import { isMeta } from "../util.ts";
+import { errorDeserializer, errorSerializer } from "../../error.ts";
+import { isMeta } from "../../util.ts";
 
 const worker = self as unknown as Worker & { name: string };
 
