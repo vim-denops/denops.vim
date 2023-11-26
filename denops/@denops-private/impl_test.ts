@@ -11,6 +11,26 @@ test({
   name: "impl",
   fn: async (denops, t) => {
     await t.step({
+      name: "denops.redraw() does nothing",
+      fn: async () => {
+        assertEquals(
+          await denops.redraw(),
+          undefined,
+        );
+
+        assertEquals(
+          await denops.redraw(true),
+          undefined,
+        );
+
+        assertEquals(
+          await denops.redraw(false),
+          undefined,
+        );
+      },
+    });
+
+    await t.step({
       name: "denops.call() calls a Vim/Neovim function and return a result",
       fn: async () => {
         assertEquals(
