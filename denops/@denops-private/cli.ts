@@ -1,4 +1,4 @@
-import { parse } from "https://deno.land/std@0.208.0/flags/mod.ts";
+import { parseArgs } from "https://deno.land/std@0.208.0/cli/mod.ts";
 import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
 import { usingResource } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import { Service } from "./service.ts";
@@ -46,7 +46,7 @@ async function handleConn(conn: Deno.Conn): Promise<void> {
   });
 }
 
-const { hostname, port, quiet, identity } = parse(Deno.args, {
+const { hostname, port, quiet, identity } = parseArgs(Deno.args, {
   string: ["hostname", "port"],
   boolean: ["quiet", "identity"],
 });
