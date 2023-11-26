@@ -20,6 +20,7 @@ endfunction
 call denops#_internal#conf#define('denops#disabled', 0)
 call denops#_internal#conf#define('denops#deno', 'deno')
 call denops#_internal#conf#define('denops#debug', 0)
+call denops#_internal#conf#define('denops#plugin_architecture_model', 'worker')
 call denops#_internal#conf#define('denops#disable_deprecation_warning_message', 0)
 
 " Internal configuration

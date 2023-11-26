@@ -88,6 +88,19 @@ VARIABLE						*denops-variable*
 
 	Default: 0
 
+*g:denops#plugin_architecture_model*
+	The name of internal plugin architecture model. One of the followings
+	are available.
+
+	"worker"	Isolate each plugins in each worker process. This is
+			the default model.
+
+	"naive"		Directly import each plugins in the main process. This
+			may improve performance of plugin loading. It is an
+			experimental feature and may cause unexpected errors.
+
+	Default: "worker"
+
 *g:denops#disable_deprecation_warning_message*
 	Set 1 to disable deprecation warning messages.
 

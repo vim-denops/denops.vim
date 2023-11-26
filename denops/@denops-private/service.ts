@@ -1,3 +1,7 @@
+import {
+  is,
+  PredicateType,
+} from "https://deno.land/x/unknownutil@v3.10.0/mod.ts";
 import { toFileUrl } from "https://deno.land/std@0.208.0/path/mod.ts";
 import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import type { Host } from "./host/base.ts";
@@ -5,20 +9,31 @@ import { Invoker } from "./host/invoker.ts";
 import type { Meta } from "../@denops/mod.ts";
 import type { Plugin } from "./plugin/base.ts";
 import { WorkerPlugin } from "./plugin/worker/plugin.ts";
+import { NaivePlugin } from "./plugin/naive/plugin.ts";
+
+export const isPluginArchitectureModel = is.LiteralOneOf(
+  ["worker", "naive"] as const,
+);
+
+export type PluginArchitectureModel = PredicateType<
+  typeof isPluginArchitectureModel
+>;
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service implements Disposable {
   #plugins: Map<string, Plugin>;
+  #model: PluginArchitectureModel;
   readonly host: Host;
   readonly meta: Meta;
 
-  constructor(host: Host, meta: Meta) {
+  constructor(host: Host, meta: Meta, model: PluginArchitectureModel) {
     this.#plugins = new Map();
     this.host = host;
     this.host.register(new Invoker(this));
     this.meta = meta;
+    this.#model = model;
   }
 
   register(
@@ -41,9 +56,15 @@ export class Service implements Disposable {
         err,
       );
     });
+    const PluginCls = this.#model === "worker" ? WorkerPlugin : NaivePlugin;
+    if (this.meta.mode === "debug") {
+      console.log(
+        `Register a denops plugin '${name}' with '${PluginCls.name}' model`,
+      );
+    }
     this.#plugins.set(
       name,
-      new WorkerPlugin(name, resolveScriptUrl(script), this),
+      new PluginCls(name, resolveScriptUrl(script), this),
     );
   }
 
