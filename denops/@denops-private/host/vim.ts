@@ -1,3 +1,4 @@
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import {
   Client,
   Message,
@@ -5,6 +6,18 @@ import {
 } from "https://deno.land/x/vim_channel_command@v2.0.0/mod.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import type { Host } from "./base.ts";
+
+const isCallReturn = is.TupleOf([is.Unknown, is.String] as const);
+
+const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
+
+const isInvokeMessage = is.TupleOf(
+  [
+    is.LiteralOf("invoke"),
+    is.String,
+    is.Array,
+  ] as const,
+);
 
 export class Vim implements Host {
   #session: Session;
@@ -24,25 +37,24 @@ export class Vim implements Host {
     return Promise.resolve();
   }
 
-  async call(fn: string, ...args: unknown[]): Promise<unknown> {
-    const [ret, err] = (await this.#client.call(
-      "denops#api#vim#call",
-      fn,
-      args,
-    )) as [unknown, string];
-    if (err !== "") {
-      throw new Error(`Failed to call '${fn}(${args.join(", ")})': ${err}`);
-    }
-    return ret;
+  call(fn: string, ...args: unknown[]): Promise<unknown> {
+    return this.#client.call("denops#api#vim#call", fn, args).then(
+      (result) => {
+        const [ret, err] = ensure(result, isCallReturn);
+        if (err !== "") {
+          throw new Error(`Failed to call '${fn}(${args.join(", ")})': ${err}`);
+        }
+        return ret;
+      },
+    );
   }
 
-  async batch(
-    ...calls: [string, ...unknown[]][]
-  ): Promise<[unknown[], string]> {
-    return (await this.#client.call("denops#api#vim#batch", calls)) as [
-      unknown[],
-      string,
-    ];
+  batch(
+    ...calls: (readonly [string, ...unknown[]])[]
+  ): Promise<readonly [unknown[], string]> {
+    return this.#client.call("denops#api#vim#batch", calls).then((result) =>
+      ensure(result, isBatchReturn)
+    );
   }
 
   register(invoker: Invoker): void {
@@ -87,16 +99,4 @@ async function dispatch(invoker: Invoker, expr: unknown): Promise<unknown> {
       `Unexpected JSON channel message is received: ${JSON.stringify(expr)}`,
     );
   }
-}
-
-type InvokeMessage = ["invoke", string, unknown[]];
-
-function isInvokeMessage(data: unknown): data is InvokeMessage {
-  return (
-    Array.isArray(data) &&
-    data.length === 3 &&
-    data[0] === "invoke" &&
-    typeof data[1] === "string" &&
-    Array.isArray(data[2])
-  );
 }

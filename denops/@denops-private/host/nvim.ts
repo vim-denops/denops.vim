@@ -1,4 +1,8 @@
-import { assert, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
+import {
+  assert,
+  ensure,
+  is,
+} from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import {
   Client,
   Session,
@@ -7,6 +11,16 @@ import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { getVersionOr } from "../version.ts";
 import type { Host } from "./base.ts";
+
+const isNvimCallFunctionReturn = is.TupleOf(
+  [
+    is.Array,
+    is.OneOf([
+      is.Null,
+      is.TupleOf([is.Number, is.Number, is.String] as const),
+    ]),
+  ] as const,
+);
 
 export class Neovim implements Host {
   #session: Session;
@@ -60,17 +74,19 @@ export class Neovim implements Host {
     return this.#client.call("nvim_call_function", fn, args);
   }
 
-  async batch(
-    ...calls: [string, ...unknown[]][]
-  ): Promise<[unknown[], string]> {
-    const [ret, err] = await this.#client.call(
+  batch(
+    ...calls: (readonly [string, ...unknown[]])[]
+  ): Promise<readonly [unknown[], string]> {
+    return this.#client.call(
       "nvim_call_atomic",
       calls.map(([fn, ...args]) => ["nvim_call_function", [fn, args]]),
-    ) as [unknown[], [number, number, string] | null];
-    if (err) {
-      return [ret, err[2]];
-    }
-    return [ret, ""];
+    ).then((result) => {
+      const [ret, err] = ensure(result, isNvimCallFunctionReturn);
+      if (err) {
+        return [ret, err[2]];
+      }
+      return [ret, ""];
+    });
   }
 
   register(invoker: Invoker): void {
@@ -92,8 +108,8 @@ export class Neovim implements Host {
     };
   }
 
-  async waitClosed(): Promise<void> {
-    await this.#session.wait();
+  waitClosed(): Promise<void> {
+    return this.#session.wait();
   }
 
   async dispose(): Promise<void> {
