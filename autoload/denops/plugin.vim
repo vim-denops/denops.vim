@@ -135,6 +135,7 @@ function! s:options(base, default) abort
 endfunction
 
 function! s:register(plugin, script, meta, options) abort
+  execute printf('doautocmd <nomodeline> User DenopsSystemPluginRegister:%s', a:plugin)
   let l:script = denops#_internal#path#norm(a:script)
   let l:trace = s:trace(a:plugin)
   let l:args = [a:plugin, l:script, a:meta, a:options, l:trace]
@@ -159,16 +160,21 @@ function! s:find_plugin(plugin) abort
   throw printf('No denops plugin for "%s" exists', a:plugin)
 endfunction
 
-function! s:DenopsSystemPluginPre() abort
-  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginPre:\zs.*')
-  execute printf('doautocmd <nomodeline> User DenopsPluginPre:%s', l:plugin)
-endfunction
-
 " Split function to create new callstack independent for loop,
 " because overwrited callback references when
 " before timer processing timings.
 function! s:delay_callback(callback) abort
   call timer_start(0, { -> a:callback() })
+endfunction
+
+function! s:DenopsSystemPluginRegister() abort
+  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginRegister:\zs.*')
+  execute printf('doautocmd <nomodeline> User DenopsPluginRegister:%s', l:plugin)
+endfunction
+
+function! s:DenopsSystemPluginPre() abort
+  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginPre:\zs.*')
+  execute printf('doautocmd <nomodeline> User DenopsPluginPre:%s', l:plugin)
 endfunction
 
 function! s:DenopsSystemPluginPost() abort
@@ -198,6 +204,7 @@ endfunction
 
 augroup denops_autoload_plugin_internal
   autocmd!
+  autocmd User DenopsSystemPluginRegister:* call s:DenopsSystemPluginRegister()
   autocmd User DenopsSystemPluginPre:* call s:DenopsSystemPluginPre()
   autocmd User DenopsSystemPluginPost:* call s:DenopsSystemPluginPost()
   autocmd User DenopsSystemPluginFail:* call s:DenopsSystemPluginFail()
