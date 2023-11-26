@@ -268,49 +268,29 @@ denops#plugin#wait_async({plugin}, {callback})
 	called in order of registration. Note that the {callback} is called
 	from |timer_start()| in any cases to keep consistent behavior.
 
+						*denops#plugin#discover()*
+denops#plugin#discover()
+	Discover denops plugins from |runtimepath| and register.
+	It gathers "main.ts" under "denops/*" directories under |runtimepath|
+	if the middle directory does not starts from "@".
+	This is automatically called on |User| |DenopsReady| autocmd invoked by
+	|denops#server#start()|.
+
 						*denops#plugin#register()*
-denops#plugin#register({plugin}[, {script}[, {options}]])
+denops#plugin#register({plugin}, {script})
 	Register denops plugin. Use this function to register denops plugins
 	which is not discovered by |denops#plugin#discover()|.
-	When a {script} is omitted, a "denops/{plugin}/main.ts" file is
-	searched from |runtimepath| like discover.
-	The following attributes are available on {options}.
-
-	"mode"		|String| to regulate the behavior of registration when
-			a {plugin} plugin is already registered.
-
-			"error"		Throw an error. (Default)
-			"skip"		Skip plugin registration.
-			"reload"	Reload the plugin.
+	It does nothing when the {plugin} is already registered.
 
 	It invokes |User| |DenopsPluginPre|:{plugin} just before denops
 	execute a "main" function of the plugin and |User|
 	|DenopsPluginPost|:{plugin} just after denops execute a "main"
 	function of the plugin.
 
-						*denops#plugin#discover()*
-denops#plugin#discover([{options}])
-	Discover denops plugins from |runtimepath| and register.
-	It gathers "main.ts" under "denops/*" directories under |runtimepath|
-	if the middle directory does not starts from "@".
-	This is automatically called on |User| |DenopsReady| autocmd invoked by
-	|denops#server#start()|.
-	It uses same {options} as |denops#plugin#register()| except that the
-	default value of "mode" is "skip".
-
 						*denops#plugin#reload()*
-denops#plugin#reload({plugin}[, {options}])
+denops#plugin#reload({plugin})
 	Reload registered denops plugin.
-	The following attributes are available on {options}.
-
-	"mode"		|String| to regulate the behavior of reload when
-			a {plugin} plugin is not registered yet.
-
-			"error"		Throw an error. (Default)
-			"skip"		Skip plugin reload.
-
-	It internally calls |denops#plugin#register()| with "reload" mode when
-	the plugin is registered.
+	It does nothing when the {plugin} is not registered.
 
 						*denops#plugin#check_type()*
 denops#plugin#check_type([{plugin}])

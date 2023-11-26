@@ -57,38 +57,54 @@ function! denops#plugin#wait_async(plugin, callback) abort
 endfunction
 
 function! denops#plugin#register(plugin, ...) abort
-  if a:0 is# 0 || type(a:1) is# v:t_dict
-    let l:options = a:0 > 0 ? a:1 : {}
-    let l:script = s:find_plugin(a:plugin)
-  else
-    let l:script = a:1
-    let l:options = a:0 > 1 ? a:2 : {}
+  if a:0 is# 0
+    " denops#plugin#register({plugin}) is deprecated.
+    call denops#_internal#echo#deprecate(
+          \ 'The {script} argument of `denops#plugin#register` will be non optional. Please specify the script path of the plugin.',
+          \)
+    return denops#plugin#register(a:plugin, s:find_plugin(a:plugin))
+  elseif a:0 is# 1 && type(a:1) is# v:t_dict
+    " denops#plugin#register({plugin}, {option}) is deprecated.
+    call denops#_internal#echo#deprecate(
+          \ 'The {option} argument of `denops#plugin#register` is removed.',
+          \)
+    return denops#plugin#register(a:plugin, s:find_plugin(a:plugin))
+  elseif a:0 >= 2
+    " denops#plugin#register({plugin}, {script}, {option}) is deprecated.
+    call denops#_internal#echo#deprecate(
+          \ 'The {option} argument of `denops#plugin#register` is removed.',
+          \)
+    return denops#plugin#register(a:plugin, a:1)
   endif
-  let l:options = s:options(l:options, {
-        \ 'mode': 'error',
-        \})
-  return s:register(a:plugin, l:script, l:options)
+
+  let l:script = a:1
+  return s:register(a:plugin, l:script)
 endfunction
 
 function! denops#plugin#reload(plugin, ...) abort
-  let l:options = a:0 > 0 ? a:1 : {}
-  let l:options = s:options(l:options, {
-        \ 'mode': 'error',
-        \})
-  let l:args = [a:plugin, l:options]
+  if a:0 >= 1
+    " denops#plugin#reload({plugin}, {option}) is deprecated.
+    call denops#_internal#echo#deprecate(
+          \ 'The {option} argument of `denops#plugin#reload` is removed.',
+          \)
+  endif
+  let l:args = [a:plugin]
   call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
   return denops#server#notify('invoke', ['reload', l:args])
 endfunction
 
 function! denops#plugin#discover(...) abort
-  let l:options = s:options(a:0 > 0 ? a:1 : {}, {
-        \ 'mode': 'skip',
-        \})
+  if a:0 >= 1
+    " denops#plugin#discover({option}) is deprecated.
+    call denops#_internal#echo#deprecate(
+          \ 'The {option} argument of `denops#plugin#discover` is removed.',
+          \)
+  endif
   let l:plugins = {}
   call s:gather_plugins(l:plugins)
   call denops#_internal#echo#debug(printf('%d plugins are discovered', len(l:plugins)))
   for [l:plugin, l:script] in items(l:plugins)
-    call s:register(l:plugin, l:script, l:options)
+    call s:register(l:plugin, l:script)
   endfor
 endfunction
 
@@ -122,18 +138,10 @@ function! s:gather_plugins(plugins) abort
   endfor
 endfunction
 
-function! s:options(base, default) abort
-  let l:options = extend(a:default, a:base)
-  if l:options.mode !~# '^\(reload\|skip\|error\)$'
-    throw printf('Unknown mode "%s" is specified', l:options.mode)
-  endif
-  return l:options
-endfunction
-
-function! s:register(plugin, script, options) abort
+function! s:register(plugin, script) abort
   execute printf('doautocmd <nomodeline> User DenopsSystemPluginRegister:%s', a:plugin)
   let l:script = denops#_internal#path#norm(a:script)
-  let l:args = [a:plugin, l:script, a:options]
+  let l:args = [a:plugin, l:script]
   call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
   call denops#server#notify('invoke', ['register', l:args])
 endfunction
