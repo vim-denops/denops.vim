@@ -1,5 +1,5 @@
-import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts#^";
-import { Invoker } from "./invoker.ts";
+import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
+import type { Invoker } from "./invoker.ts";
 
 /**
  * Host (Vim/Neovim) which is visible from Service
