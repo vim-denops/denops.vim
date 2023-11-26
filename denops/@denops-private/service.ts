@@ -11,7 +11,6 @@ import {
 import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import type { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
-import { traceReadableStream, traceWritableStream } from "./trace_stream.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 import type { Meta } from "../@denops/mod.ts";
 
@@ -40,7 +39,6 @@ export class Service implements Disposable {
     script: string,
     meta: Meta,
     options: RegisterOptions,
-    trace: boolean,
   ): void {
     const plugin = this.#plugins.get(name);
     if (plugin) {
@@ -71,14 +69,13 @@ export class Service implements Disposable {
     // https://github.com/vim-denops/denops.vim/issues/227
     const suffix = `#${performance.now()}`;
     const scriptUrl = resolveScriptUrl(script);
-    worker.postMessage({ scriptUrl: `${scriptUrl}${suffix}`, meta, trace });
+    worker.postMessage({ scriptUrl: `${scriptUrl}${suffix}`, meta });
     const session = buildServiceSession(
       name,
       meta,
       readableStreamFromWorker(worker),
       writableStreamFromWorker(worker),
       this,
-      trace,
     );
     this.#plugins.set(name, {
       script,
@@ -92,7 +89,6 @@ export class Service implements Disposable {
     name: string,
     meta: Meta,
     options: ReloadOptions,
-    trace: boolean,
   ): void {
     const plugin = this.#plugins.get(name);
     if (!plugin) {
@@ -107,7 +103,7 @@ export class Service implements Disposable {
     }
     this.register(name, plugin.script, { ...meta, mode: "release" }, {
       mode: "reload",
-    }, trace);
+    });
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -142,12 +138,7 @@ function buildServiceSession(
   reader: ReadableStream<Uint8Array>,
   writer: WritableStream<Uint8Array>,
   service: Service,
-  trace: boolean,
 ) {
-  if (trace) {
-    reader = traceReadableStream(reader, { prefix: "worker -> denops: " });
-    writer = traceWritableStream(writer, { prefix: "denops -> worker: " });
-  }
   const session = new Session(reader, writer, {
     errorSerializer,
   });
@@ -162,7 +153,7 @@ function buildServiceSession(
       assert(trace, is.Boolean);
       service.reload(name, meta, {
         mode: "skip",
-      }, trace);
+      });
       return Promise.resolve();
     },
 

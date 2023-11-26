@@ -87,19 +87,6 @@ VARIABLE						*denops-variable*
 
 	Default: 0
 
-*g:denops#trace*
-	Set 1 to enable trace mode for all plugins or set string array to
-	enable trace mode on particular plugins.
->
-	" For all plugins
-	let g:denops#trace = 1
-
-	" For some plugins
-	let g:denops#trace = ['gin', 'ddu']
-<
-
-	Default: 0
-
 *g:denops#disable_deprecation_warning_message*
 	Set 1 to disable deprecation warning messages.
 
