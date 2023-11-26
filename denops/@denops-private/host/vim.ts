@@ -11,6 +11,12 @@ const isCallReturn = is.TupleOf([is.Unknown, is.String] as const);
 
 const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
 
+const isVoidMessage = is.TupleOf(
+  [
+    is.LiteralOf("void"),
+  ] as const,
+);
+
 const isInvokeMessage = is.TupleOf(
   [
     is.LiteralOf("invoke"),
@@ -76,7 +82,9 @@ export class Vim implements Host {
   }
 
   async #dispatch(expr: unknown): Promise<unknown> {
-    if (isInvokeMessage(expr)) {
+    if (isVoidMessage(expr)) {
+      // Do nothing
+    } else if (isInvokeMessage(expr)) {
       if (!this.#invoker) {
         throw new Error("Invoker is not registered");
       }
