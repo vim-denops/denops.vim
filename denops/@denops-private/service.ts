@@ -1,9 +1,5 @@
 import { toFileUrl } from "https://deno.land/std@0.208.0/path/mod.ts";
-import {
-  assert,
-  ensure,
-  is,
-} from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
+import { assert, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import {
   Client,
   Session,
@@ -17,7 +13,6 @@ import type { Host } from "./host/base.ts";
 import { Invoker } from "./host/invoker.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 import type { Meta } from "../@denops/mod.ts";
-import { isMeta } from "./util.ts";
 
 const workerScript = "./worker/script.ts";
 
@@ -33,26 +28,23 @@ type Plugin = {
  */
 export class Service implements Disposable {
   #plugins: Map<string, Plugin>;
-  host: Host;
-  meta: Promise<Meta>;
+  readonly host: Host;
+  readonly meta: Meta;
 
-  constructor(host: Host) {
+  constructor(host: Host, meta: Meta) {
     this.#plugins = new Map();
     this.host = host;
     this.host.register(new Invoker(this));
-    this.meta = host.call("denops#_internal#meta#get").then((m) =>
-      ensure(m, isMeta)
-    );
+    this.meta = meta;
   }
 
-  async register(
+  register(
     name: string,
     script: string,
-  ): Promise<void> {
-    const meta = await this.meta;
+  ): void {
     const plugin = this.#plugins.get(name);
     if (plugin) {
-      if (meta.mode === "debug") {
+      if (this.meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is already registered. Skip`);
       }
       return;
@@ -68,7 +60,7 @@ export class Service implements Disposable {
     // https://github.com/vim-denops/denops.vim/issues/227
     const suffix = `#${performance.now()}`;
     const scriptUrl = resolveScriptUrl(script);
-    worker.postMessage({ scriptUrl: `${scriptUrl}${suffix}`, meta });
+    worker.postMessage({ scriptUrl: `${scriptUrl}${suffix}`, meta: this.meta });
     const session = buildServiceSession(
       name,
       readableStreamFromWorker(worker),
@@ -83,16 +75,17 @@ export class Service implements Disposable {
     });
   }
 
-  async reload(name: string): Promise<void> {
-    const meta = await this.meta;
+  reload(name: string): void {
     const plugin = this.#plugins.get(name);
     if (!plugin) {
-      if (meta.mode === "debug") {
+      if (this.meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is not registered yet. Skip`);
       }
       return;
     }
-    await disposePlugin(plugin);
+    disposePlugin(plugin).catch(() => {
+      // Do nothing
+    });
     this.#plugins.delete(name);
     this.register(name, plugin.script);
   }

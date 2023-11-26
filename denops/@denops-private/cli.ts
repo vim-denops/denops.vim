@@ -1,9 +1,11 @@
+import { ensure } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import { parseArgs } from "https://deno.land/std@0.208.0/cli/mod.ts";
 import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
 import { usingResource } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
+import { isMeta } from "./util.ts";
 
 type Host = typeof Vim | typeof Neovim;
 
@@ -39,7 +41,8 @@ async function handleConn(conn: Deno.Conn): Promise<void> {
 
   // Create host and service
   await usingResource(new hostClass(r2, writer), async (host) => {
-    await usingResource(new Service(host), async (_service) => {
+    const meta = ensure(await host.call("denops#_internal#meta#get"), isMeta);
+    await usingResource(new Service(host, meta), async (_service) => {
       await host.call("execute", "doautocmd <nomodeline> User DenopsReady");
       await host.waitClosed();
       if (!quiet) {
