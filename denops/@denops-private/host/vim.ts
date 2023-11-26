@@ -22,12 +22,26 @@ const isInvokeMessage = is.TupleOf(
 export class Vim implements Host {
   #session: Session;
   #client: Client;
+  #invoker?: Invoker;
 
   constructor(
     reader: ReadableStream<Uint8Array>,
     writer: WritableStream<Uint8Array>,
   ) {
     this.#session = new Session(reader, writer);
+    this.#session.onMessage = (message: Message) => {
+      const [msgid, expr] = message;
+      this.#dispatch(expr)
+        .then((result) => [result, null] as const)
+        .catch((error) => [null, error] as const)
+        .then(([result, error]) => {
+          if (msgid) {
+            this.#client.reply(msgid, [result, error]);
+          } else if (error !== null) {
+            console.error(error);
+          }
+        });
+    };
     this.#session.start();
     this.#client = new Client(this.#session);
   }
@@ -58,19 +72,25 @@ export class Vim implements Host {
   }
 
   register(invoker: Invoker): void {
-    this.#session.onMessage = (message: Message) => {
-      const [msgid, expr] = message;
-      dispatch(invoker, expr)
-        .then((result) => [result, null] as const)
-        .catch((error) => [null, error] as const)
-        .then(([result, error]) => {
-          if (msgid) {
-            this.#client.reply(msgid, [result, error]);
-          } else if (error !== null) {
-            console.error(error);
-          }
-        });
-    };
+    this.#invoker = invoker;
+  }
+
+  async #dispatch(expr: unknown): Promise<unknown> {
+    if (isInvokeMessage(expr)) {
+      if (!this.#invoker) {
+        throw new Error("Invoker is not registered");
+      }
+      const [_, method, args] = expr;
+      if (!isInvokerMethod(method)) {
+        throw new Error(`Method '${method}' is not defined in the invoker`);
+      }
+      // deno-lint-ignore no-explicit-any
+      return await (this.#invoker[method] as any)(...args);
+    } else {
+      throw new Error(
+        `Unexpected JSON channel message is received: ${JSON.stringify(expr)}`,
+      );
+    }
   }
 
   waitClosed(): Promise<void> {
@@ -83,20 +103,5 @@ export class Vim implements Host {
     } catch {
       // Do nothing
     }
-  }
-}
-
-async function dispatch(invoker: Invoker, expr: unknown): Promise<unknown> {
-  if (isInvokeMessage(expr)) {
-    const [_, method, args] = expr;
-    if (!isInvokerMethod(method)) {
-      throw new Error(`Method '${method}' is not defined in the invoker`);
-    }
-    // deno-lint-ignore no-explicit-any
-    return await (invoker[method] as any)(...args);
-  } else {
-    throw new Error(
-      `Unexpected JSON channel message is received: ${JSON.stringify(expr)}`,
-    );
   }
 }
