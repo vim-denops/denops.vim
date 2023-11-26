@@ -90,6 +90,7 @@ VARIABLE						*denops-variable*
 *g:denops#debug*
 	Set 1 to enable debug mode. In debug mode, the additional debug
 	messages of denops itself will be shown.
+	This variable must be configured prior to the denops initialization.
 
 	Default: 0
 
