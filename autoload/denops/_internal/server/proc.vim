@@ -67,10 +67,12 @@ function! s:start(options) abort
   let l:args += g:denops#server#deno_args
   let l:args += [
         \ s:SCRIPT,
-        \ '--quiet',
         \ '--identity',
         \ '--port', '0',
         \]
+  if !g:denops#debug
+    let l:args += ['--quiet']
+  endif
   let l:store = {'prepared': 0}
   let s:stopped_on_purpose = 0
   let s:job = denops#_internal#job#start(l:args, {

@@ -28,7 +28,7 @@ async function handleConn(conn: Deno.Conn): Promise<void> {
   r1.cancel();
 
   if (!quiet) {
-    console.log(
+    console.warn(
       `${remoteAddr.hostname}:${remoteAddr.port} (${hostClass.name}) is connected`,
     );
   }
@@ -38,7 +38,7 @@ async function handleConn(conn: Deno.Conn): Promise<void> {
     await usingResource(new Service(host), async (service) => {
       await service.host.waitClosed();
       if (!quiet) {
-        console.log(
+        console.warn(
           `${remoteAddr.hostname}:${remoteAddr.port} (${hostClass.name}) is closed`,
         );
       }
@@ -61,7 +61,7 @@ if (identity) {
   console.log(`${localAddr.hostname}:${localAddr.port}`);
 }
 if (!quiet) {
-  console.log(
+  console.warn(
     `Listen denops clients on ${localAddr.hostname}:${localAddr.port}`,
   );
 }
