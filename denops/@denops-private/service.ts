@@ -1,5 +1,9 @@
 import { toFileUrl } from "https://deno.land/std@0.208.0/path/mod.ts";
-import { assert, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
+import {
+  assert,
+  ensure,
+  is,
+} from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import {
   Client,
   Session,
@@ -13,6 +17,7 @@ import type { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 import type { Meta } from "../@denops/mod.ts";
+import { isMeta } from "./util.ts";
 
 const workerScript = "./worker/script.ts";
 
@@ -27,19 +32,23 @@ export class Service implements Disposable {
     client: Client;
   }>;
   host: Host;
+  meta: Promise<Meta>;
 
   constructor(host: Host) {
     this.#plugins = new Map();
     this.host = host;
     this.host.register(new Invoker(this));
+    this.meta = host.call("denops#_internal#meta#get").then((m) =>
+      ensure(m, isMeta)
+    );
   }
 
-  register(
+  async register(
     name: string,
     script: string,
-    meta: Meta,
     options: RegisterOptions,
-  ): void {
+  ): Promise<void> {
+    const meta = await this.meta;
     const plugin = this.#plugins.get(name);
     if (plugin) {
       if (options.mode === "reload") {
@@ -72,7 +81,6 @@ export class Service implements Disposable {
     worker.postMessage({ scriptUrl: `${scriptUrl}${suffix}`, meta });
     const session = buildServiceSession(
       name,
-      meta,
       readableStreamFromWorker(worker),
       writableStreamFromWorker(worker),
       this,
@@ -85,11 +93,11 @@ export class Service implements Disposable {
     });
   }
 
-  reload(
+  async reload(
     name: string,
-    meta: Meta,
     options: ReloadOptions,
-  ): void {
+  ): Promise<void> {
+    const meta = await this.meta;
     const plugin = this.#plugins.get(name);
     if (!plugin) {
       if (options.mode === "skip") {
@@ -101,9 +109,7 @@ export class Service implements Disposable {
         throw new Error(`A denops plugin '${name}' is not registered yet`);
       }
     }
-    this.register(name, plugin.script, { ...meta, mode: "release" }, {
-      mode: "reload",
-    });
+    this.register(name, plugin.script, { mode: "reload" });
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -134,7 +140,6 @@ export class Service implements Disposable {
 
 function buildServiceSession(
   name: string,
-  meta: Meta,
   reader: ReadableStream<Uint8Array>,
   writer: WritableStream<Uint8Array>,
   service: Service,
@@ -151,9 +156,7 @@ function buildServiceSession(
   session.dispatcher = {
     reload: (trace) => {
       assert(trace, is.Boolean);
-      service.reload(name, meta, {
-        mode: "skip",
-      });
+      service.reload(name, { mode: "skip" });
       return Promise.resolve();
     },
 
