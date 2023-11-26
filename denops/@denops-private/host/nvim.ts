@@ -1,12 +1,12 @@
-import { assert, is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts#^";
+import { assert, is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts";
 import {
   Client,
   Session,
-} from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts#^";
+} from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { getVersionOr } from "../version.ts";
-import { Host } from "./base.ts";
+import type { Host } from "./base.ts";
 
 export class Neovim implements Host {
   #session: Session;

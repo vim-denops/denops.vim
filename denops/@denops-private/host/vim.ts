@@ -4,7 +4,7 @@ import {
   Session,
 } from "https://deno.land/x/vim_channel_command@v2.0.0/mod.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
-import { Host } from "./base.ts";
+import type { Host } from "./base.ts";
 
 export class Vim implements Host {
   #session: Session;

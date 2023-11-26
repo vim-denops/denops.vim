@@ -1,15 +1,15 @@
 import { toFileUrl } from "https://deno.land/std@0.204.0/path/mod.ts";
-import { assert, is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts#^";
+import { assert, is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts";
 import {
   Client,
   Session,
-} from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts#^";
+} from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts";
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
-} from "https://deno.land/x/workerio@v3.1.0/mod.ts#^";
-import { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts#^";
-import { Host } from "./host/base.ts";
+} from "https://deno.land/x/workerio@v3.1.0/mod.ts";
+import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
+import type { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
 import { traceReadableStream, traceWritableStream } from "./trace_stream.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";

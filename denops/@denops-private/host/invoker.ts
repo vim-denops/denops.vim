@@ -1,5 +1,5 @@
-import { is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts#^";
-import { Service } from "../service.ts";
+import { is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts";
+import type { Service } from "../service.ts";
 import type { Meta } from "../../@denops/mod.ts";
 
 export type RegisterOptions = {

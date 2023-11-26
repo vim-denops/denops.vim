@@ -2,15 +2,15 @@ import {
   assert,
   is,
   Predicate,
-} from "https://deno.land/x/unknownutil@v3.10.0/mod.ts#^";
+} from "https://deno.land/x/unknownutil@v3.10.0/mod.ts";
 import {
   Client,
   Session,
-} from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts#^";
+} from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts";
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
-} from "https://deno.land/x/workerio@v3.1.0/mod.ts#^";
+} from "https://deno.land/x/workerio@v3.1.0/mod.ts";
 import type { Denops, Meta } from "../../@denops/mod.ts";
 import { DenopsImpl } from "../impl.ts";
 import { patchConsole } from "./patch_console.ts";
