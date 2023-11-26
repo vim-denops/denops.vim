@@ -1,3 +1,4 @@
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts";
 import {
   BatchError,
   Context,
@@ -11,6 +12,8 @@ type Session = {
   call(method: string, ...params: unknown[]): Promise<unknown>;
   notify(method: string, ...params: unknown[]): Promise<void>;
 };
+
+const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
 
 export class DenopsImpl implements Denops {
   readonly context: Record<string | number | symbol, unknown> = {};
@@ -36,45 +39,43 @@ export class DenopsImpl implements Denops {
     this.#session.dispatcher = dispatcher;
   }
 
-  async redraw(force?: boolean): Promise<void> {
-    await this.#session.call("redraw", force);
+  redraw(force?: boolean): Promise<void> {
+    return this.#session.call("redraw", force).then();
   }
 
-  async call(fn: string, ...args: unknown[]): Promise<unknown> {
-    return await this.#session.call("call", fn, ...normArgs(args));
+  call(fn: string, ...args: unknown[]): Promise<unknown> {
+    return this.#session.call("call", fn, ...normArgs(args));
   }
 
-  async batch(
+  batch(
     ...calls: [string, ...unknown[]][]
   ): Promise<unknown[]> {
-    const normCalls = calls.map(([fn, ...args]) => [fn, ...normArgs(args)]);
-    const [results, errmsg] = await this.#session.call(
-      "batch",
-      ...normCalls,
-    ) as [
-      unknown[],
-      string,
-    ];
-    if (errmsg !== "") {
-      throw new BatchError(errmsg, results);
-    }
-    return results;
+    const normCalls = calls.map(([fn, ...args]) =>
+      [fn, ...normArgs(args)] as const
+    );
+    return this.#session.call("batch", ...normCalls).then((ret) => {
+      const [results, errmsg] = ensure(ret, isBatchReturn);
+      if (errmsg !== "") {
+        throw new BatchError(errmsg, results);
+      }
+      return results;
+    });
   }
 
-  async cmd(cmd: string, ctx: Context = {}): Promise<void> {
-    await this.#session.call("call", "denops#api#cmd", cmd, ctx);
+  cmd(cmd: string, ctx: Context = {}): Promise<void> {
+    return this.#session.call("call", "denops#api#cmd", cmd, ctx).then();
   }
 
-  async eval(expr: string, ctx: Context = {}): Promise<unknown> {
-    return await this.#session.call("call", "denops#api#eval", expr, ctx);
+  eval(expr: string, ctx: Context = {}): Promise<unknown> {
+    return this.#session.call("call", "denops#api#eval", expr, ctx);
   }
 
-  async dispatch(
+  dispatch(
     name: string,
     fn: string,
     ...args: unknown[]
   ): Promise<unknown> {
-    return await this.#session.call("dispatch", name, fn, ...args);
+    return this.#session.call("dispatch", name, fn, ...args);
   }
 }
 
