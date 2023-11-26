@@ -32,6 +32,15 @@ export class Service implements Disposable {
       }
       return;
     }
+    this.host.call(
+      "execute",
+      `doautocmd <nomodeline> User DenopsSystemPluginRegister:${name}`,
+    ).catch((err) => {
+      console.error(
+        `Failed to emit DenopsSystemPluginRegister:${name}`,
+        err,
+      );
+    });
     this.#plugins.set(
       name,
       new WorkerPlugin(name, resolveScriptUrl(script), this),

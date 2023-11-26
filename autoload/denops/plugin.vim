@@ -139,7 +139,6 @@ function! s:gather_plugins(plugins) abort
 endfunction
 
 function! s:register(plugin, script) abort
-  execute printf('doautocmd <nomodeline> User DenopsSystemPluginRegister:%s', a:plugin)
   let l:script = denops#_internal#path#norm(a:script)
   let l:args = [a:plugin, l:script]
   call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
