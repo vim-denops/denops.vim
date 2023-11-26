@@ -79,7 +79,7 @@ function! denops#plugin#reload(plugin, ...) abort
         \})
   let l:args = [a:plugin, l:meta, l:options]
   call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
-  return denops#server#request('invoke', ['reload', l:args])
+  return denops#server#notify('invoke', ['reload', l:args])
 endfunction
 
 function! denops#plugin#discover(...) abort
