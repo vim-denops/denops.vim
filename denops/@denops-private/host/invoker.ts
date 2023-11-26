@@ -8,11 +8,11 @@ export class Invoker {
     this.#service = service;
   }
 
-  register(name: string, script: string): Promise<void> {
+  register(name: string, script: string): void {
     return this.#service.register(name, script);
   }
 
-  reload(name: string): Promise<void> {
+  reload(name: string): void {
     return this.#service.reload(name);
   }
 
