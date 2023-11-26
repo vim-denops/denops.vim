@@ -39,8 +39,9 @@ async function handleConn(conn: Deno.Conn): Promise<void> {
 
   // Create host and service
   await usingResource(new hostClass(r2, writer), async (host) => {
-    await usingResource(new Service(host), async (service) => {
-      await service.host.waitClosed();
+    await usingResource(new Service(host), async (_service) => {
+      await host.call("execute", "doautocmd <nomodeline> User DenopsReady");
+      await host.waitClosed();
       if (!quiet) {
         console.warn(
           `${remoteAddr.hostname}:${remoteAddr.port} (${hostClass.name}) is closed`,

@@ -93,7 +93,7 @@ function! s:connect(addr, options) abort
   let s:addr = a:addr
   let s:options = a:options
   call denops#_internal#echo#debug(printf('Channel connected (%s)', a:addr))
-  doautocmd <nomodeline> User DenopsReady
+  call s:rpcnotify(s:chan, 'void', [])
 endfunction
 
 function! s:on_close(options) abort
