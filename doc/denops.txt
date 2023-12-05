@@ -81,6 +81,12 @@ VARIABLE						*denops-variable*
 	Deno if 'deno' is not in PATH.
 	Default: 'deno'
 
+*g:denops#deno_dir*
+	Cache directory of Deno. If unspecified, the cache directory is
+        determined by the DENO_DIR environment variable or internally by
+        'deno'.
+	Default: |v:null|
+
 *g:denops#debug*
 	Set 1 to enable debug mode. In debug mode, the additional debug
 	messages of denops itself will be shown.
