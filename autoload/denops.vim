@@ -19,6 +19,7 @@ endfunction
 " Configuration
 call denops#_internal#conf#define('denops#disabled', 0)
 call denops#_internal#conf#define('denops#deno', 'deno')
+call denops#_internal#conf#define('denops#deno_dir', v:null)
 call denops#_internal#conf#define('denops#debug', 0)
 call denops#_internal#conf#define('denops#trace', 0)
 call denops#_internal#conf#define('denops#disable_deprecation_warning_message', 0)

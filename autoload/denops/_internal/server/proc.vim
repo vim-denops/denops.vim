@@ -71,13 +71,17 @@ function! s:start(options) abort
         \ '--identity',
         \ '--port', '0',
         \]
+  let l:env = {
+        \   'NO_COLOR': 1,
+        \   'DENO_NO_PROMPT': 1,
+        \ }
+  if g:denops#deno_dir isnot# v:null
+    let l:env['DENO_DIR'] = g:denops#deno_dir
+  endif
   let l:store = {'prepared': 0}
   let s:stopped_on_purpose = 0
   let s:job = denops#_internal#job#start(l:args, {
-        \ 'env': {
-        \   'NO_COLOR': 1,
-        \   'DENO_NO_PROMPT': 1,
-        \ },
+        \ 'env': l:env,
         \ 'on_stdout': { _job, data, _event -> s:on_stdout(l:store, data) },
         \ 'on_stderr': { _job, data, _event -> s:on_stderr(data) },
         \ 'on_exit': { _job, status, _event -> s:on_exit(a:options, status) },
