@@ -2,8 +2,6 @@ name: reviewdog
 
 on:
   push:
-    branches:
-      - main
     paths:
       - "**.vim"
       - ".github/workflows/reviewdog.yml"
@@ -16,7 +14,7 @@ jobs:
   vimlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: reviewdog/action-vint@v1
         with:
           github_token: ${{ secrets.github_token }}
