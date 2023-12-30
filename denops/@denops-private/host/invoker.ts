@@ -33,17 +33,15 @@ export class Invoker {
     name: string,
     script: string,
     options: RegisterOptions,
-    trace: boolean,
   ): void {
-    this.#service.register(name, script, options, trace);
+    this.#service.register(name, script, options);
   }
 
   reload(
     name: string,
     options: ReloadOptions,
-    trace: boolean,
   ): void {
-    this.#service.reload(name, options, trace);
+    this.#service.reload(name, options);
   }
 
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {

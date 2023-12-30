@@ -73,8 +73,7 @@ function! denops#plugin#reload(plugin, ...) abort
   let l:options = s:options(l:options, {
         \ 'mode': 'error',
         \})
-  let l:trace = s:trace(a:plugin)
-  let l:args = [a:plugin, l:options, l:trace]
+  let l:args = [a:plugin, l:options]
   call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
   call denops#_internal#server#chan#notify('invoke', ['reload', l:args])
 endfunction
@@ -132,16 +131,9 @@ endfunction
 function! s:register(plugin, script, options) abort
   execute printf('doautocmd <nomodeline> User DenopsSystemPluginRegister:%s', a:plugin)
   let l:script = denops#_internal#path#norm(a:script)
-  let l:trace = s:trace(a:plugin)
-  let l:args = [a:plugin, l:script, a:options, l:trace]
+  let l:args = [a:plugin, l:script, a:options]
   call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
   call denops#_internal#server#chan#notify('invoke', ['register', l:args])
-endfunction
-
-function! s:trace(plugin)  abort
-  return type(g:denops#trace) is# v:t_list
-        \ ? index(g:denops#trace, a:plugin) != -1 ? v:true : v:false
-        \ : g:denops#trace ? v:true : v:false
 endfunction
 
 function! s:find_plugin(plugin) abort

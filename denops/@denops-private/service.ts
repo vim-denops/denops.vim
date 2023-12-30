@@ -11,7 +11,6 @@ import {
 import { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts#^";
 import { Host } from "./host/base.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
-import { traceReadableStream, traceWritableStream } from "./trace_stream.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 import type { Meta } from "../@denops/mod.ts";
 
@@ -41,7 +40,6 @@ export class Service implements Disposable {
     name: string,
     script: string,
     options: RegisterOptions,
-    trace: boolean,
   ): void {
     const plugin = this.#plugins.get(name);
     if (plugin) {
@@ -75,14 +73,12 @@ export class Service implements Disposable {
     worker.postMessage({
       scriptUrl: `${scriptUrl}${suffix}`,
       meta: this.meta,
-      trace,
     });
     const session = buildServiceSession(
       name,
       readableStreamFromWorker(worker),
       writableStreamFromWorker(worker),
       this,
-      trace,
     );
     this.#plugins.set(name, {
       script,
@@ -95,7 +91,6 @@ export class Service implements Disposable {
   reload(
     name: string,
     options: ReloadOptions,
-    trace: boolean,
   ): void {
     const plugin = this.#plugins.get(name);
     if (!plugin) {
@@ -108,7 +103,7 @@ export class Service implements Disposable {
         throw new Error(`A denops plugin '${name}' is not registered yet`);
       }
     }
-    this.register(name, plugin.script, { mode: "reload" }, trace);
+    this.register(name, plugin.script, { mode: "reload" });
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -142,12 +137,7 @@ function buildServiceSession(
   reader: ReadableStream<Uint8Array>,
   writer: WritableStream<Uint8Array>,
   service: Service,
-  trace: boolean,
 ) {
-  if (trace) {
-    reader = traceReadableStream(reader, { prefix: "worker -> denops: " });
-    writer = traceWritableStream(writer, { prefix: "denops -> worker: " });
-  }
   const session = new Session(reader, writer, {
     errorSerializer,
   });
@@ -158,9 +148,8 @@ function buildServiceSession(
     console.error(`Failed to handle message ${message}`, error);
   };
   session.dispatcher = {
-    reload: (trace) => {
-      assert(trace, is.Boolean);
-      service.reload(name, { mode: "skip" }, trace);
+    reload: () => {
+      service.reload(name, { mode: "skip" });
       return Promise.resolve();
     },
 

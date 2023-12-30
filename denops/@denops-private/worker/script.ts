@@ -10,7 +10,6 @@ import {
 import type { Denops, Meta } from "../../@denops/mod.ts";
 import { DenopsImpl } from "../impl.ts";
 import { patchConsole } from "./patch_console.ts";
-import { traceReadableStream, traceWritableStream } from "../trace_stream.ts";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { isMeta } from "../util.ts";
 
@@ -19,7 +18,6 @@ const worker = self as unknown as Worker & { name: string };
 const isMessageData = is.ObjectOf({
   scriptUrl: is.String,
   meta: isMeta,
-  trace: is.OneOf([is.Undefined, is.Boolean]),
 });
 
 function emit(denops: Denops, name: string): Promise<void> {
@@ -30,14 +28,9 @@ function emit(denops: Denops, name: string): Promise<void> {
 async function main(
   scriptUrl: string,
   meta: Meta,
-  trace: boolean,
 ): Promise<void> {
-  let reader = readableStreamFromWorker(worker);
-  let writer = writableStreamFromWorker(worker);
-  if (trace) {
-    reader = traceReadableStream(reader, { prefix: "worker -> plugin: " });
-    writer = traceWritableStream(writer, { prefix: "plugin -> worker: " });
-  }
+  const reader = readableStreamFromWorker(worker);
+  const writer = writableStreamFromWorker(worker);
   const session = new Session(reader, writer, { errorSerializer });
   session.onMessageError = (error, message) => {
     if (error instanceof Error && error.name === "Interrupted") {
@@ -96,8 +89,8 @@ patchConsole(`(${worker.name})`);
 
 // Wait startup arguments and start 'main'
 worker.addEventListener("message", (event: MessageEvent<unknown>) => {
-  const { scriptUrl, meta, trace } = ensure(event.data, isMessageData);
-  main(scriptUrl, meta, trace ?? false).catch((e) => {
+  const { scriptUrl, meta } = ensure(event.data, isMessageData);
+  main(scriptUrl, meta).catch((e) => {
     console.error(
       `Unexpected error occurred in '${scriptUrl}': ${e}`,
     );
