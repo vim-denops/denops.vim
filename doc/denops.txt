@@ -231,7 +231,7 @@ denops#server#connect()
 	is closed unexpectedly.
 
 						*denops#server#close()*
-denops#server#stop()
+denops#server#close()
 	Close the channel. It does nothing when the channel is not established
 	yet.
 
