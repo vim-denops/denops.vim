@@ -20,23 +20,22 @@ if exists('*wait')
   let s:wait = function('wait')
 else
   " NOTE:
-  " The line 'call getchar(0)' is required to enable Ctrl-C
+  " The line 'call getcharstr(0)' is required to enable Ctrl-C
   " interruption in Vim on Windows.
   " See https://github.com/vim-denops/denops.vim/issues/182
-  function! s:sleep(duration) abort
-    call getchar(0)
-    execute printf('sleep %dm', a:duration)
-  endfunction
-
   function! s:wait(timeout, condition, interval) abort
     let l:s = reltime()
+    let l:waiter = printf('sleep %dm', a:interval)
+    let l:consumed = ''
     try
       while !a:condition()
         if reltimefloat(reltime(l:s)) * 1000 > a:timeout
           return -1
         endif
-        call s:sleep(a:interval)
+        let l:consumed ..= getcharstr(0)
+        execute l:waiter
       endwhile
+      silent! call feedkeys(l:consumed, 'it')
     catch /^Vim:Interrupt$/
       return -2
     endtry
