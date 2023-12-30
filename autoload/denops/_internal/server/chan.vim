@@ -72,14 +72,18 @@ function! denops#_internal#server#chan#is_connected() abort
 endfunction
 
 function! denops#_internal#server#chan#notify(method, params) abort
-  if s:chan is# v:null
+  if g:denops#disabled
+    return
+  elseif s:chan is# v:null
     throw '[denops] Channel is not ready yet'
   endif
   return s:rpcnotify(s:chan, a:method, a:params)
 endfunction
 
 function! denops#_internal#server#chan#request(method, params) abort
-  if s:chan is# v:null
+  if g:denops#disabled
+    return
+  elseif s:chan is# v:null
     throw '[denops] Channel is not ready yet'
   endif
   return s:rpcrequest(s:chan, a:method, a:params)

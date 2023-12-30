@@ -75,20 +75,6 @@ function! denops#server#status() abort
   return s:STATUS_STOPPED
 endfunction
 
-function! denops#server#notify(method, params) abort
-  if g:denops#disabled
-    return
-  endif
-  return denops#_internal#server#chan#notify(a:method, a:params)
-endfunction
-
-function! denops#server#request(method, params) abort
-  if g:denops#disabled
-    return
-  endif
-  return denops#_internal#server#chan#request(a:method, a:params)
-endfunction
-
 function! s:DenopsProcessListen(expr) abort
   let l:addr = matchstr(a:expr, '\<DenopsProcessListen:\zs.*')
   call denops#_internal#server#chan#connect(l:addr, {

@@ -80,7 +80,7 @@ function! denops#plugin#reload(plugin, ...) abort
   let l:trace = s:trace(a:plugin)
   let l:args = [a:plugin, l:meta, l:options, l:trace]
   call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
-  return denops#server#request('invoke', ['reload', l:args])
+  return denops#_internal#server#chan#request('invoke', ['reload', l:args])
 endfunction
 
 function! denops#plugin#discover(...) abort
@@ -140,7 +140,7 @@ function! s:register(plugin, script, meta, options) abort
   let l:trace = s:trace(a:plugin)
   let l:args = [a:plugin, l:script, a:meta, a:options, l:trace]
   call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
-  call denops#server#notify('invoke', ['register', l:args])
+  call denops#_internal#server#chan#notify('invoke', ['register', l:args])
 endfunction
 
 function! s:trace(plugin)  abort            
