@@ -46,7 +46,7 @@ if has('nvim')
   endfunction
 else
   " https://github.com/neovim/neovim/blob/f629f83/src/nvim/event/process.c#L24-L26
-  let s:KILL_TIMEOUT_MS = 2000
+  const s:KILL_TIMEOUT_MS = 2000
 
   function! s:start(args, options) abort
     let l:options = {

@@ -4,11 +4,11 @@ let s:options = v:null
 let s:closed_on_purpose = 0
 let s:exiting = 0
 
-let s:host = has('nvim') ? 'nvim' : 'vim'
-let s:rpcconnect = function(printf('denops#_internal#rpc#%s#connect', s:host))
-let s:rpcclose = function(printf('denops#_internal#rpc#%s#close', s:host))
-let s:rpcnotify = function(printf('denops#_internal#rpc#%s#notify', s:host))
-let s:rpcrequest = function(printf('denops#_internal#rpc#%s#request', s:host))
+const s:HOST = has('nvim') ? 'nvim' : 'vim'
+const s:RPCCONNECT = function(printf('denops#_internal#rpc#%s#connect', s:HOST))
+const s:RPCCLOSE = function(printf('denops#_internal#rpc#%s#close', s:HOST))
+const s:RPCNOTIFY = function(printf('denops#_internal#rpc#%s#notify', s:HOST))
+const s:RPCREQUEST = function(printf('denops#_internal#rpc#%s#request', s:HOST))
 
 " Args:
 "   addr: string
@@ -63,7 +63,7 @@ function! denops#_internal#server#chan#close() abort
     throw '[denops] Channel does not exist yet'
   endif
   let s:closed_on_purpose = 1
-  call s:rpcclose(s:chan)
+  call s:RPCCLOSE(s:chan)
   let s:chan = v:null
 endfunction
 
@@ -75,25 +75,25 @@ function! denops#_internal#server#chan#notify(method, params) abort
   if s:chan is# v:null
     throw '[denops] Channel is not ready yet'
   endif
-  return s:rpcnotify(s:chan, a:method, a:params)
+  return s:RPCNOTIFY(s:chan, a:method, a:params)
 endfunction
 
 function! denops#_internal#server#chan#request(method, params) abort
   if s:chan is# v:null
     throw '[denops] Channel is not ready yet'
   endif
-  return s:rpcrequest(s:chan, a:method, a:params)
+  return s:RPCREQUEST(s:chan, a:method, a:params)
 endfunction
 
 function! s:connect(addr, options) abort
   let s:closed_on_purpose = 0
-  let s:chan = s:rpcconnect(a:addr, {
+  let s:chan = s:RPCCONNECT(a:addr, {
         \ 'on_close': { -> s:on_close(a:options) },
         \})
   let s:addr = a:addr
   let s:options = a:options
   call denops#_internal#echo#debug(printf('Channel connected (%s)', a:addr))
-  call s:rpcnotify(s:chan, 'void', [])
+  call s:RPCNOTIFY(s:chan, 'void', [])
 endfunction
 
 function! s:on_close(options) abort
