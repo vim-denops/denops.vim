@@ -129,7 +129,6 @@ function! s:options(base, default) abort
 endfunction
 
 function! s:register(plugin, script, options) abort
-  execute printf('doautocmd <nomodeline> User DenopsSystemPluginRegister:%s', a:plugin)
   let l:script = denops#_internal#path#norm(a:script)
   let l:args = [a:plugin, l:script, a:options]
   call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
@@ -145,11 +144,6 @@ function! s:find_plugin(plugin) abort
     return l:script
   endfor
   throw printf('No denops plugin for "%s" exists', a:plugin)
-endfunction
-
-function! s:DenopsSystemPluginRegister() abort
-  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginRegister:\zs.*')
-  execute printf('doautocmd <nomodeline> User DenopsPluginRegister:%s', l:plugin)
 endfunction
 
 function! s:DenopsSystemPluginPre() abort
@@ -183,7 +177,6 @@ endfunction
 
 augroup denops_autoload_plugin_internal
   autocmd!
-  autocmd User DenopsSystemPluginRegister:* call s:DenopsSystemPluginRegister()
   autocmd User DenopsSystemPluginPre:* call s:DenopsSystemPluginPre()
   autocmd User DenopsSystemPluginPost:* call s:DenopsSystemPluginPost()
   autocmd User DenopsSystemPluginFail:* call s:DenopsSystemPluginFail()
