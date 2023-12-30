@@ -25,6 +25,7 @@ const isNvimCallFunctionReturn = is.TupleOf(
 export class Neovim implements Host {
   #session: Session;
   #client: Client;
+  #invoker?: Invoker;
 
   constructor(
     reader: ReadableStream<Uint8Array>,
@@ -33,6 +34,25 @@ export class Neovim implements Host {
     this.#session = new Session(reader, writer, {
       errorSerializer,
     });
+    this.#session.dispatcher = {
+      nvim_error_event(type, message) {
+        console.error(`nvim_error_event(${type})`, message);
+      },
+
+      void() {
+        return Promise.resolve();
+      },
+
+      invoke: async (method: unknown, args: unknown): Promise<unknown> => {
+        if (this.#invoker === undefined) {
+          throw new Error("Invoker is not registered");
+        }
+        assert(method, isInvokerMethod);
+        assert(args, is.Array);
+        // deno-lint-ignore no-explicit-any
+        return await (this.#invoker[method] as any)(...args);
+      },
+    };
     this.#session.onMessageError = (error, message) => {
       if (error instanceof Error && error.name === "Interrupted") {
         return;
@@ -89,22 +109,7 @@ export class Neovim implements Host {
   }
 
   register(invoker: Invoker): void {
-    this.#session.dispatcher = {
-      nvim_error_event(type, message) {
-        console.error(`nvim_error_event(${type})`, message);
-      },
-
-      void() {
-        return Promise.resolve();
-      },
-
-      async invoke(method: unknown, args: unknown): Promise<unknown> {
-        assert(method, isInvokerMethod);
-        assert(args, is.Array);
-        // deno-lint-ignore no-explicit-any
-        return await (invoker[method] as any)(...args);
-      },
-    };
+    this.#invoker = invoker;
   }
 
   waitClosed(): Promise<void> {
