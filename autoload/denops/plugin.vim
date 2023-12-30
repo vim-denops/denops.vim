@@ -80,7 +80,7 @@ function! denops#plugin#reload(plugin, ...) abort
   let l:trace = s:trace(a:plugin)
   let l:args = [a:plugin, l:meta, l:options, l:trace]
   call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
-  return denops#_internal#server#chan#request('invoke', ['reload', l:args])
+  call denops#_internal#server#chan#notify('invoke', ['reload', l:args])
 endfunction
 
 function! denops#plugin#discover(...) abort
