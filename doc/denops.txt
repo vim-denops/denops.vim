@@ -143,6 +143,14 @@ VARIABLE						*denops-variable*
 	The number of reconnect count on connection failure.
 	Default: 3
 
+*g:denops#server#wait_interval*
+	Interval in milliseconds for |denops#server#wait()|.
+	Default: 10
+
+*g:denops#server#wait_timeout*
+	Timeout in milliseconds for |denops#server#wait()|.
+	Default: 30000
+
 *g:denops#plugin#wait_interval*
 	Interval in milliseconds for |denops#plugin#wait()|.
 	Default: 10
@@ -246,10 +254,35 @@ denops#server#status()
 	Status		Description~
 	"stopped"	Server is stopped.
 	"starting"	Server is starting.
+	"preparing"	Server is preparing (initializing).
 	"running"	Server is running (ready).
 
 	Note that "starting" is never returned when a |denops-shared-server|
 	is used.
+
+						*denops#server#wait()*
+denops#server#wait([{options}])
+	Wait synchronously until a |DenopsReady| autocmd is fired. It returns
+	immediately when the autocmd is already fired.
+	It returns -1 if it timed out, -2 if the server is not started or
+	interrupted.
+	Developers need to consider this return value to decide whether to
+	continue with the subsequent process.
+	The following attributes are available on {options}.
+
+	"interval"	Interval in milliseconds for |sleep| in internal loop.
+			Default: |g:denops#server#wait_interval|
+	"timeout"	Timeout in milliseconds to block.
+			Default: |g:denops#server#wait_timeout|
+	"silent"	1 to silence error messages.
+			Default: 0
+
+						*denops#server#wait_async()*
+denops#server#wait_async({callback})
+	Wait asynchronously until a |DenopsReady| autocmd is fired and invoke
+	a {callback}. It invokes the {callback} immediately when the autocmd
+	is already fired. If this function is called multiple times, callbacks
+	registered are called in order of registration.
 
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({plugin})
