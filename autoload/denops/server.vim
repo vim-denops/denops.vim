@@ -1,6 +1,6 @@
-let s:STATUS_STOPPED = 'stopped'
-let s:STATUS_STARTING = 'starting'
-let s:STATUS_RUNNING = 'running'
+const s:STATUS_STOPPED = 'stopped'
+const s:STATUS_STARTING = 'starting'
+const s:STATUS_RUNNING = 'running'
 
 
 " Local server
@@ -73,20 +73,6 @@ function! denops#server#status() abort
     return s:STATUS_STARTING
   endif
   return s:STATUS_STOPPED
-endfunction
-
-function! denops#server#notify(method, params) abort
-  if g:denops#disabled
-    return
-  endif
-  return denops#_internal#server#chan#notify(a:method, a:params)
-endfunction
-
-function! denops#server#request(method, params) abort
-  if g:denops#disabled
-    return
-  endif
-  return denops#_internal#server#chan#request(a:method, a:params)
 endfunction
 
 function! s:DenopsProcessListen(expr) abort

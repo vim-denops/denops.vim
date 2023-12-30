@@ -1,8 +1,8 @@
-let s:sep = has('win32') ? '\' : '/'
-let s:root = expand('<sfile>:h:h:h:h')
+const s:SEP = has('win32') ? '\' : '/'
+const s:ROOT = expand('<sfile>:h:h:h:h')
 
 function! denops#_internal#path#join(paths) abort
-  return join(a:paths, s:sep)
+  return join(a:paths, s:SEP)
 endfunction
 
 function! denops#_internal#path#norm(path) abort
@@ -19,7 +19,7 @@ if has('win32unix')
   endfunction
 
   function! s:script(paths) abort
-    return s:norm(denops#_internal#path#join([s:root, 'denops'] + a:paths))
+    return s:norm(denops#_internal#path#join([s:ROOT, 'denops'] + a:paths))
   endfunction
 else
   function! s:norm(path) abort
@@ -27,6 +27,6 @@ else
   endfunction
 
   function! s:script(paths) abort
-    return denops#_internal#path#join([s:root, 'denops'] + a:paths)
+    return denops#_internal#path#join([s:ROOT, 'denops'] + a:paths)
   endfunction
 endif

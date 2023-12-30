@@ -1,4 +1,4 @@
-let s:SCRIPT = denops#_internal#path#script(['@denops-private', 'cli.ts'])
+const s:SCRIPT = denops#_internal#path#script(['@denops-private', 'cli.ts'])
 
 let s:job = v:null
 let s:options = v:null

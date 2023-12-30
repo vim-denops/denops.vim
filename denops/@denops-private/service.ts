@@ -1,5 +1,5 @@
 import { toFileUrl } from "https://deno.land/std@0.204.0/path/mod.ts";
-import { assert, is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts#^";
+import { assert, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import {
   Client,
   Session,
@@ -166,27 +166,27 @@ function buildServiceSession(
       return Promise.resolve();
     },
 
-    redraw: async (force) => {
+    redraw: (force) => {
       assert(force, is.OneOf([is.Boolean, is.Nullish]));
-      return await service.host.redraw(!!force);
+      return service.host.redraw(!!force);
     },
 
-    call: async (fn, ...args) => {
+    call: (fn, ...args) => {
       assert(fn, is.String);
       assert(args, is.Array);
-      return await service.host.call(fn, ...args);
+      return service.host.call(fn, ...args);
     },
 
-    batch: async (...calls) => {
+    batch: (...calls) => {
       assert(calls, is.ArrayOf(isCall));
-      return await service.host.batch(...calls);
+      return service.host.batch(...calls);
     },
 
-    dispatch: async (name, fn, ...args) => {
+    dispatch: (name, fn, ...args) => {
       assert(name, is.String);
       assert(fn, is.String);
       assert(args, is.Array);
-      return await service.dispatch(name, fn, args);
+      return service.dispatch(name, fn, args);
     },
   };
   session.start();
