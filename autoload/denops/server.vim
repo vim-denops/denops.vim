@@ -5,7 +5,7 @@ const s:STATUS_RUNNING = 'running'
 
 " Local server
 function! denops#server#start() abort
-  if g:denops#disabled || denops#_internal#server#proc#is_started() 
+  if g:denops#disabled || denops#_internal#server#proc#is_started()
     return
   endif
   return denops#_internal#server#proc#start({
@@ -19,7 +19,7 @@ function! denops#server#start() abort
 endfunction
 
 function! denops#server#stop() abort
-  if !denops#_internal#server#proc#is_started() 
+  if !denops#_internal#server#proc#is_started()
     return
   endif
   call denops#_internal#server#proc#stop()

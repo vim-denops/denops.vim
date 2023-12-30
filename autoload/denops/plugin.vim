@@ -109,7 +109,7 @@ function! denops#plugin#check_type(...) abort
         \   'DENO_NO_PROMPT': 1,
         \ },
         \ 'on_stderr': { _job, data, _event -> denops#_internal#echo#info(data) },
-        \ 'on_exit': { _job, status, _event -> status 
+        \ 'on_exit': { _job, status, _event -> status
         \   ? denops#_internal#echo#error('Type check failed:', status)
         \   : denops#_internal#echo#info('Type check succeeded')
         \ },
@@ -143,7 +143,7 @@ function! s:register(plugin, script, meta, options) abort
   call denops#_internal#server#chan#notify('invoke', ['register', l:args])
 endfunction
 
-function! s:trace(plugin)  abort            
+function! s:trace(plugin)  abort
   return type(g:denops#trace) is# v:t_list
         \ ? index(g:denops#trace, a:plugin) != -1 ? v:true : v:false
         \ : g:denops#trace ? v:true : v:false
