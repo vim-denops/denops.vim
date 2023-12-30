@@ -10,7 +10,7 @@ import {
 } from "https://deno.land/x/workerio@v3.1.0/mod.ts#^";
 import { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts#^";
 import { Host } from "./host/base.ts";
-import { Invoker, RegisterOptions, ReloadOptions } from "./host/invoker.ts";
+import { Invoker } from "./host/invoker.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 import type { Meta } from "../@denops/mod.ts";
 
@@ -36,28 +36,17 @@ export class Service implements Disposable {
     this.meta = meta;
   }
 
-  register(
+  load(
     name: string,
     script: string,
-    options: RegisterOptions,
+    suffix = "",
   ): void {
     const plugin = this.#plugins.get(name);
     if (plugin) {
-      if (options.mode === "reload") {
-        if (this.meta.mode === "debug") {
-          console.log(
-            `A denops plugin '${name}' is already registered. Reload`,
-          );
-        }
-        plugin.worker.terminate();
-      } else if (options.mode === "skip") {
-        if (this.meta.mode === "debug") {
-          console.log(`A denops plugin '${name}' is already registered. Skip`);
-        }
-        return;
-      } else {
-        throw new Error(`A denops plugin '${name}' is already registered`);
+      if (this.meta.mode === "debug") {
+        console.log(`A denops plugin '${name}' is already loaded. Skip`);
       }
+      return;
     }
     const worker = new Worker(
       new URL(workerScript, import.meta.url).href,
@@ -66,9 +55,6 @@ export class Service implements Disposable {
         type: "module",
       },
     );
-    // Import module with fragment so that reload works properly
-    // https://github.com/vim-denops/denops.vim/issues/227
-    const suffix = `#${performance.now()}`;
     const scriptUrl = resolveScriptUrl(script);
     worker.postMessage({
       scriptUrl: `${scriptUrl}${suffix}`,
@@ -90,20 +76,19 @@ export class Service implements Disposable {
 
   reload(
     name: string,
-    options: ReloadOptions,
   ): void {
     const plugin = this.#plugins.get(name);
     if (!plugin) {
-      if (options.mode === "skip") {
-        if (this.meta.mode === "debug") {
-          console.log(`A denops plugin '${name}' is not registered yet. Skip`);
-        }
-        return;
-      } else {
-        throw new Error(`A denops plugin '${name}' is not registered yet`);
+      if (this.meta.mode === "debug") {
+        console.log(`A denops plugin '${name}' is not registered yet. Skip`);
       }
+      return;
     }
-    this.register(name, plugin.script, { mode: "reload" });
+    plugin.worker.terminate();
+    // Import module with fragment so that reload works properly
+    // https://github.com/vim-denops/denops.vim/issues/227
+    const suffix = `#${performance.now()}`;
+    this.load(name, plugin.script, suffix);
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -149,7 +134,7 @@ function buildServiceSession(
   };
   session.dispatcher = {
     reload: () => {
-      service.reload(name, { mode: "skip" });
+      service.reload(name);
       return Promise.resolve();
     },
 

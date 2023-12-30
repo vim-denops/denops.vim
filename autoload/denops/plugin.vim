@@ -54,39 +54,41 @@ function! denops#plugin#wait_async(plugin, callback) abort
   let s:load_callbacks[a:plugin] = l:callbacks
 endfunction
 
+" DEPRECATED
+" Some plugins (e.g. dein.vim) use this function with options thus we cannot
+" change the interface of this function.
+" That's why we introduce 'load' function that replaces this function.
 function! denops#plugin#register(plugin, ...) abort
+  call denops#_internal#echo#deprecate(
+        \ 'denops#plugin#register() is deprecated. Use denops#plugin#load() instead.',
+        \)
   if a:0 is# 0 || type(a:1) is# v:t_dict
-    let l:options = a:0 > 0 ? a:1 : {}
     let l:script = s:find_plugin(a:plugin)
   else
     let l:script = a:1
-    let l:options = a:0 > 1 ? a:2 : {}
   endif
-  let l:options = s:options(l:options, {
-        \ 'mode': 'error',
-        \})
-  return s:register(a:plugin, l:script, l:options)
+  return denops#plugin#load(a:plugin, l:script)
 endfunction
 
-function! denops#plugin#reload(plugin, ...) abort
-  let l:options = a:0 > 0 ? a:1 : {}
-  let l:options = s:options(l:options, {
-        \ 'mode': 'error',
-        \})
-  let l:args = [a:plugin, l:options]
+function! denops#plugin#load(plugin, script) abort
+  let l:script = denops#_internal#path#norm(a:script)
+  let l:args = [a:plugin, l:script]
+  call denops#_internal#echo#debug(printf('load plugin: %s', l:args))
+  call denops#_internal#server#chan#notify('invoke', ['load', l:args])
+endfunction
+
+function! denops#plugin#reload(plugin) abort
+  let l:args = [a:plugin]
   call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
   call denops#_internal#server#chan#notify('invoke', ['reload', l:args])
 endfunction
 
-function! denops#plugin#discover(...) abort
-  let l:options = s:options(a:0 > 0 ? a:1 : {}, {
-        \ 'mode': 'skip',
-        \})
+function! denops#plugin#discover() abort
   let l:plugins = {}
   call s:gather_plugins(l:plugins)
   call denops#_internal#echo#debug(printf('%d plugins are discovered', len(l:plugins)))
   for [l:plugin, l:script] in items(l:plugins)
-    call s:register(l:plugin, l:script, l:options)
+    call denops#plugin#load(l:plugin, l:script)
   endfor
 endfunction
 
@@ -126,13 +128,6 @@ function! s:options(base, default) abort
     throw printf('Unknown mode "%s" is specified', l:options.mode)
   endif
   return l:options
-endfunction
-
-function! s:register(plugin, script, options) abort
-  let l:script = denops#_internal#path#norm(a:script)
-  let l:args = [a:plugin, l:script, a:options]
-  call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
-  call denops#_internal#server#chan#notify('invoke', ['register', l:args])
 endfunction
 
 function! s:find_plugin(plugin) abort
