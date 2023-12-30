@@ -1,4 +1,4 @@
-import { is } from "https://deno.land/x/unknownutil@v3.10.0/mod.ts#^";
+import { is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import { Service } from "../service.ts";
 import type { Meta } from "../../@denops/mod.ts";
 
