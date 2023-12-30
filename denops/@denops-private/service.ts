@@ -27,32 +27,33 @@ export class Service implements Disposable {
     session: Session;
     client: Client;
   }>;
-  host: Host;
+  readonly host: Host;
+  readonly meta: Meta;
 
-  constructor(host: Host) {
+  constructor(host: Host, meta: Meta) {
     this.#plugins = new Map();
     this.host = host;
     this.host.register(new Invoker(this));
+    this.meta = meta;
   }
 
   register(
     name: string,
     script: string,
-    meta: Meta,
     options: RegisterOptions,
     trace: boolean,
   ): void {
     const plugin = this.#plugins.get(name);
     if (plugin) {
       if (options.mode === "reload") {
-        if (meta.mode === "debug") {
+        if (this.meta.mode === "debug") {
           console.log(
             `A denops plugin '${name}' is already registered. Reload`,
           );
         }
         plugin.worker.terminate();
       } else if (options.mode === "skip") {
-        if (meta.mode === "debug") {
+        if (this.meta.mode === "debug") {
           console.log(`A denops plugin '${name}' is already registered. Skip`);
         }
         return;
@@ -71,10 +72,13 @@ export class Service implements Disposable {
     // https://github.com/vim-denops/denops.vim/issues/227
     const suffix = `#${performance.now()}`;
     const scriptUrl = resolveScriptUrl(script);
-    worker.postMessage({ scriptUrl: `${scriptUrl}${suffix}`, meta, trace });
+    worker.postMessage({
+      scriptUrl: `${scriptUrl}${suffix}`,
+      meta: this.meta,
+      trace,
+    });
     const session = buildServiceSession(
       name,
-      meta,
       readableStreamFromWorker(worker),
       writableStreamFromWorker(worker),
       this,
@@ -90,14 +94,13 @@ export class Service implements Disposable {
 
   reload(
     name: string,
-    meta: Meta,
     options: ReloadOptions,
     trace: boolean,
   ): void {
     const plugin = this.#plugins.get(name);
     if (!plugin) {
       if (options.mode === "skip") {
-        if (meta.mode === "debug") {
+        if (this.meta.mode === "debug") {
           console.log(`A denops plugin '${name}' is not registered yet. Skip`);
         }
         return;
@@ -105,9 +108,7 @@ export class Service implements Disposable {
         throw new Error(`A denops plugin '${name}' is not registered yet`);
       }
     }
-    this.register(name, plugin.script, { ...meta, mode: "release" }, {
-      mode: "reload",
-    }, trace);
+    this.register(name, plugin.script, { mode: "reload" }, trace);
   }
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -138,7 +139,6 @@ export class Service implements Disposable {
 
 function buildServiceSession(
   name: string,
-  meta: Meta,
   reader: ReadableStream<Uint8Array>,
   writer: WritableStream<Uint8Array>,
   service: Service,
@@ -160,9 +160,7 @@ function buildServiceSession(
   session.dispatcher = {
     reload: (trace) => {
       assert(trace, is.Boolean);
-      service.reload(name, meta, {
-        mode: "skip",
-      }, trace);
+      service.reload(name, { mode: "skip" }, trace);
       return Promise.resolve();
     },
 
