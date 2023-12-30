@@ -278,8 +278,7 @@ denops#plugin#wait_async({plugin}, {callback})
 	{callback}. It invokes the {callback} immediately when the {plugin}
 	plugin is already loaded. If this function is called multiple times
 	for same {plugin} plugin, callbacks registered for the plugin are
-	called in order of registration. Note that the {callback} is called
-	from |timer_start()| in any cases to keep consistent behavior.
+	called in order of registration.
 
 						*denops#plugin#register()*
 denops#plugin#register({plugin}[, {script}[, {options}]])

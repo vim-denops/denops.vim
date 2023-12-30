@@ -46,9 +46,7 @@ function! denops#plugin#wait_async(plugin, callback) abort
     if s:loaded_plugins[a:plugin] isnot# 0
       return
     endif
-    " Some features behave differently in functions invoked from timer_start()
-    " so use it even for immediate execution to keep consistent behavior.
-    call timer_start(0, { -> a:callback() })
+    call a:callback()
     return
   endif
   let l:callbacks = get(s:load_callbacks, a:plugin, [])
@@ -157,13 +155,6 @@ function! s:find_plugin(plugin) abort
   throw printf('No denops plugin for "%s" exists', a:plugin)
 endfunction
 
-" Split function to create new callstack independent for loop,
-" because overwrited callback references when
-" before timer processing timings.
-function! s:delay_callback(callback) abort
-  call timer_start(0, { -> a:callback() })
-endfunction
-
 function! s:DenopsSystemPluginRegister() abort
   let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginRegister:\zs.*')
   execute printf('doautocmd <nomodeline> User DenopsPluginRegister:%s', l:plugin)
@@ -176,17 +167,6 @@ endfunction
 
 function! s:DenopsSystemPluginPost() abort
   let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginPost:\zs.*')
-  let s:loaded_plugins[l:plugin] = 0
-  if has_key(s:load_callbacks, l:plugin)
-    let l:callbacks = remove(s:load_callbacks, l:plugin)
-    " Vim uses FILO for a task execution registered by timer_start().
-    " That's why reverse 'callbacks' in the case of Vim to keep consistent
-    " behavior.
-    let l:callbacks = has('nvim') ? l:callbacks : reverse(l:callbacks)
-    for l:Callback in l:callbacks
-      call s:delay_callback(l:Callback)
-    endfor
-  endif
   execute printf('doautocmd <nomodeline> User DenopsPluginPost:%s', l:plugin)
 endfunction
 
@@ -199,12 +179,23 @@ function! s:DenopsSystemPluginFail() abort
   execute printf('doautocmd <nomodeline> User DenopsPluginFail:%s', l:plugin)
 endfunction
 
+function! s:DenopsPluginPost() abort
+  let l:plugin = matchstr(expand('<amatch>'), 'DenopsPluginPost:\zs.*')
+  let s:loaded_plugins[l:plugin] = 0
+  if has_key(s:load_callbacks, l:plugin)
+    for l:Callback in remove(s:load_callbacks, l:plugin)
+      call l:Callback()
+    endfor
+  endif
+endfunction
+
 augroup denops_autoload_plugin_internal
   autocmd!
   autocmd User DenopsSystemPluginRegister:* call s:DenopsSystemPluginRegister()
   autocmd User DenopsSystemPluginPre:* call s:DenopsSystemPluginPre()
   autocmd User DenopsSystemPluginPost:* call s:DenopsSystemPluginPost()
   autocmd User DenopsSystemPluginFail:* call s:DenopsSystemPluginFail()
+  autocmd User DenopsPluginPost:* ++nested call s:DenopsPluginPost()
   autocmd User DenopsClosed let s:loaded_plugins = {}
 augroup END
 
