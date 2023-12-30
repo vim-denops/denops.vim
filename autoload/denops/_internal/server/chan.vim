@@ -1,14 +1,14 @@
+const s:HOST = has('nvim') ? 'nvim' : 'vim'
+const s:rpcconnect = function(printf('denops#_internal#rpc#%s#connect', s:HOST))
+const s:rpcclose = function(printf('denops#_internal#rpc#%s#close', s:HOST))
+const s:rpcnotify = function(printf('denops#_internal#rpc#%s#notify', s:HOST))
+const s:rpcrequest = function(printf('denops#_internal#rpc#%s#request', s:HOST))
+
 let s:chan = v:null
 let s:addr = v:null
 let s:options = v:null
 let s:closed_on_purpose = 0
 let s:exiting = 0
-
-let s:host = has('nvim') ? 'nvim' : 'vim'
-let s:rpcconnect = function(printf('denops#_internal#rpc#%s#connect', s:host))
-let s:rpcclose = function(printf('denops#_internal#rpc#%s#close', s:host))
-let s:rpcnotify = function(printf('denops#_internal#rpc#%s#notify', s:host))
-let s:rpcrequest = function(printf('denops#_internal#rpc#%s#request', s:host))
 
 " Args:
 "   addr: string

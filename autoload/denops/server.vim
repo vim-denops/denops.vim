@@ -1,6 +1,6 @@
-let s:STATUS_STOPPED = 'stopped'
-let s:STATUS_STARTING = 'starting'
-let s:STATUS_RUNNING = 'running'
+const s:STATUS_STOPPED = 'stopped'
+const s:STATUS_STARTING = 'starting'
+const s:STATUS_RUNNING = 'running'
 
 
 " Local server

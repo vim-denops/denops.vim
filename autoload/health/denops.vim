@@ -1,6 +1,6 @@
-let s:deno_version = '1.32.0'
-let s:vim_version = '9.0.1499'
-let s:neovim_version = '0.8.0'
+const s:DENO_VERSION = '1.32.0'
+const s:VIM_VERSION = '9.0.1499'
+const s:NEOVIM_VERSION = '0.8.0'
 
 function! s:compare_version(v1, v2) abort
   let l:v1 = map(split(a:v1, '\.'), { _, v -> v + 0 })
@@ -46,7 +46,7 @@ function! s:check_deno_version() abort
   let l:deno_version = s:get_deno_version(g:denops#deno)
   call s:report_info(printf(
         \ 'Supported Deno version: `%s`',
-        \ s:deno_version,
+        \ s:DENO_VERSION,
         \))
   call s:report_info(printf(
         \ 'Detected Deno version: `%s`',
@@ -55,10 +55,10 @@ function! s:check_deno_version() abort
   if empty(l:deno_version)
     call s:report_error('Unable to detect version of deno, make sure your deno runtime is correct.')
     return
-  elseif s:compare_version(l:deno_version, s:deno_version) < 0
+  elseif s:compare_version(l:deno_version, s:DENO_VERSION) < 0
     call s:report_error(printf(
           \ 'Unsupported Deno version is detected. You need to upgrade it to `%s` or later.',
-          \ s:deno_version,
+          \ s:DENO_VERSION,
           \))
     return
   endif
@@ -68,16 +68,16 @@ endfunction
 function! s:check_vim_version() abort
   call s:report_info(printf(
         \ 'Supported Vim version: `%s`',
-        \ s:vim_version,
+        \ s:VIM_VERSION,
         \))
   call s:report_info(printf(
         \ 'Detected Vim version: `%s`',
         \ denops#_internal#meta#get().version,
         \))
-  if !has(printf('patch-%s', s:vim_version))
+  if !has(printf('patch-%s', s:VIM_VERSION))
     call s:report_error(printf(
           \ 'Unsupported Vim version is detected. You need to upgrade it to `%s` or later.',
-          \ s:vim_version,
+          \ s:VIM_VERSION,
           \))
     return
   endif
@@ -87,16 +87,16 @@ endfunction
 function! s:check_neovim_version() abort
   call s:report_info(printf(
         \ 'Supported Neovim version: `%s`',
-        \ s:neovim_version,
+        \ s:NEOVIM_VERSION,
         \))
   call s:report_info(printf(
         \ 'Detected Neovim version: `%s`',
         \ denops#_internal#meta#get().version,
         \))
-  if !has(printf('nvim-%s', s:neovim_version))
+  if !has(printf('nvim-%s', s:NEOVIM_VERSION))
     call s:report_error(printf(
           \ 'Unsupported Neovim version is detected. You need to upgrade it to `%s` or later.',
-          \ s:neovim_version,
+          \ s:NEOVIM_VERSION,
           \))
     return
   endif
