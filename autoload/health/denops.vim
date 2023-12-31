@@ -1,6 +1,6 @@
 const s:DENO_VERSION = '1.32.0'
 const s:VIM_VERSION = '9.0.2189'
-const s:NEOVIM_VERSION = '0.8.0'
+const s:NEOVIM_VERSION = '0.9.4'
 
 function! s:compare_version(v1, v2) abort
   let l:v1 = map(split(a:v1, '\.'), { _, v -> v + 0 })
