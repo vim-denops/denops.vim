@@ -11,16 +11,14 @@ export class Invoker {
   load(
     name: string,
     script: string,
-  ): void {
-    this.#service.load(name, script).catch((err) => {
-      console.error(`Failed to load plugin '${name}`, err);
-    });
+  ): Promise<void> {
+    return this.#service.load(name, script);
   }
 
   reload(
     name: string,
-  ): void {
-    this.#service.reload(name);
+  ): Promise<void> {
+    return this.#service.reload(name);
   }
 
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {

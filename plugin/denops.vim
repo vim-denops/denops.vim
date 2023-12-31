@@ -19,8 +19,6 @@ endif
 
 augroup denops_plugin_internal
   autocmd!
-  autocmd User DenopsPluginWorkerPre:* :
-  autocmd User DenopsPluginWorkerPost:* :
   autocmd User DenopsPluginPre:* :
   autocmd User DenopsPluginPost:* :
   autocmd User DenopsPluginFail:* :

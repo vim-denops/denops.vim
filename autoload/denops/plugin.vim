@@ -168,8 +168,6 @@ endfunction
 
 augroup denops_autoload_plugin_internal
   autocmd!
-  autocmd User DenopsSystemPluginWorkerPre:* call s:relay_autocmd('DenopsPluginWorkerPre')
-  autocmd User DenopsSystemPluginWorkerPost:* call s:relay_autocmd('DenopsPluginWorkerPost')
   autocmd User DenopsSystemPluginPre:* call s:relay_autocmd('DenopsPluginPre')
   autocmd User DenopsSystemPluginPost:* ++nested call s:DenopsSystemPluginPost()
   autocmd User DenopsSystemPluginFail:* call s:DenopsSystemPluginFail()
