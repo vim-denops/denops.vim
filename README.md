@@ -114,15 +114,6 @@ following support policy when updating the major version:
 [homebrew]: https://brew.sh/
 [vim-win32-installer]: https://github.com/vim/vim-win32-installer
 
-## Versioning
-
-Before v1.10.0, we defined that the version of denops.vim indicates that code
-versions of the entire repository. However, we changed this assumption from
-version v1.10.0. Now we defined the version of denops.vim indicates the version
-of the code in the `denops/@denops` directory that is published to deno.land as
-`denops_core`. That's why we won't bump versions when there are no changes on
-code in that directory.
-
 ## Developers
 
 Denops is mainly developed by members of [vim-jp][vim-jp].

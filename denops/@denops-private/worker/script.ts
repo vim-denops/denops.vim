@@ -1,3 +1,4 @@
+import type { Denops, Meta } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import {
   Client,
@@ -7,7 +8,6 @@ import {
   readableStreamFromWorker,
   writableStreamFromWorker,
 } from "https://deno.land/x/workerio@v3.1.0/mod.ts";
-import type { Denops, Meta } from "../../@denops/mod.ts";
 import { DenopsImpl } from "../impl.ts";
 import { patchConsole } from "./patch_console.ts";
 import { errorDeserializer, errorSerializer } from "../error.ts";

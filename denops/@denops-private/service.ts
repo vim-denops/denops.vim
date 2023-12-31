@@ -1,3 +1,4 @@
+import type { Meta } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
 import { toFileUrl } from "https://deno.land/std@0.204.0/path/mod.ts";
 import { assert, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import {
@@ -12,7 +13,6 @@ import { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import { Host } from "./host/base.ts";
 import { Invoker } from "./host/invoker.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";
-import type { Meta } from "../@denops/mod.ts";
 
 const workerScript = "./worker/script.ts";
 
