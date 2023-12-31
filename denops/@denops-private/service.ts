@@ -3,12 +3,12 @@ import { assert, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import {
   Client,
   Session,
-} from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts#^";
+} from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts";
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
-} from "https://deno.land/x/workerio@v3.1.0/mod.ts#^";
-import { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts#^";
+} from "https://deno.land/x/workerio@v3.1.0/mod.ts";
+import { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import { Host } from "./host/base.ts";
 import { Invoker } from "./host/invoker.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";
