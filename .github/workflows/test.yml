@@ -88,14 +88,14 @@ jobs:
         env:
           DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
       - name: Test
-        run: deno task test
+        run: deno task test:coverage
         env:
           DENOPS_TEST_DENOPS_PATH: "./"
           DENOPS_TEST_VIM_EXECUTABLE: ${{ steps.vim.outputs.executable }}
           DENOPS_TEST_NVIM_EXECUTABLE: ${{ steps.nvim.outputs.executable }}
         timeout-minutes: 5
       - run: |
-          deno coverage --unstable .coverage --lcov > coverage.lcov
+          deno task coverage --lcov > coverage.lcov
       - uses: codecov/codecov-action@v3
         with:
           os: ${{ runner.os }}
