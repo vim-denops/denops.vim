@@ -1,5 +1,5 @@
 const s:DENO_VERSION = '1.32.0'
-const s:VIM_VERSION = '9.0.1499'
+const s:VIM_VERSION = '9.0.2189'
 const s:NEOVIM_VERSION = '0.8.0'
 
 function! s:compare_version(v1, v2) abort
