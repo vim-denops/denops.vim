@@ -1,4 +1,4 @@
-const s:DENO_VERSION = '1.32.0'
+const s:DENO_VERSION = '1.38.5'
 const s:VIM_VERSION = '9.0.2189'
 const s:NEOVIM_VERSION = '0.9.4'
 

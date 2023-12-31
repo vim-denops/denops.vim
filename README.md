@@ -3,7 +3,7 @@
 <strong>Denops</strong><br>
 <sup>An ecosystem of Vim/Neovim which allows developers to write plugins in Deno.</sup>
 
-[![Deno 1.32 or above](https://img.shields.io/badge/Deno-Support%201.32.0-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v1.32.0)
+[![Deno 1.38.5 or above](https://img.shields.io/badge/Deno-Support%201.38.5-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v1.38.5)
 [![Vim 9.0.2189 or above](https://img.shields.io/badge/Vim-Support%209.0.2189-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v9.0.2189)
 [![Neovim 0.9.4 or above](https://img.shields.io/badge/Neovim-Support%200.9.4-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.9.4)
 
