@@ -90,19 +90,7 @@ VARIABLE						*denops-variable*
 *g:denops#debug*
 	Set 1 to enable debug mode. In debug mode, the additional debug
 	messages of denops itself will be shown.
-
-	Default: 0
-
-*g:denops#trace*
-	Set 1 to enable trace mode for all plugins or set string array to
-	enable trace mode on particular plugins.
->
-	" For all plugins
-	let g:denops#trace = 1
-
-	" For some plugins
-	let g:denops#trace = ['gin', 'ddu']
-<
+	This variable must be configured prior to the denops initialization.
 
 	Default: 0
 
@@ -141,6 +129,14 @@ VARIABLE						*denops-variable*
 *g:denops#server#reconnect_threshold*
 	The number of reconnect count on connection failure.
 	Default: 3
+
+*g:denops#server#wait_interval*
+	Interval in milliseconds for |denops#server#wait()|.
+	Default: 10
+
+*g:denops#server#wait_timeout*
+	Timeout in milliseconds for |denops#server#wait()|.
+	Default: 30000
 
 *g:denops#plugin#wait_interval*
 	Interval in milliseconds for |denops#plugin#wait()|.
@@ -230,7 +226,7 @@ denops#server#connect()
 	is closed unexpectedly.
 
 						*denops#server#close()*
-denops#server#stop()
+denops#server#close()
 	Close the channel. It does nothing when the channel is not established
 	yet.
 
@@ -245,10 +241,35 @@ denops#server#status()
 	Status		Description~
 	"stopped"	Server is stopped.
 	"starting"	Server is starting.
+	"preparing"	Server is preparing (initializing).
 	"running"	Server is running (ready).
 
 	Note that "starting" is never returned when a |denops-shared-server|
 	is used.
+
+						*denops#server#wait()*
+denops#server#wait([{options}])
+	Wait synchronously until a |DenopsReady| autocmd is fired. It returns
+	immediately when the autocmd is already fired.
+	It returns -1 if it timed out, -2 if the server is not started or
+	interrupted.
+	Developers need to consider this return value to decide whether to
+	continue with the subsequent process.
+	The following attributes are available on {options}.
+
+	"interval"	Interval in milliseconds for |sleep| in internal loop.
+			Default: |g:denops#server#wait_interval|
+	"timeout"	Timeout in milliseconds to block.
+			Default: |g:denops#server#wait_timeout|
+	"silent"	1 to silence error messages.
+			Default: 0
+
+						*denops#server#wait_async()*
+denops#server#wait_async({callback})
+	Wait asynchronously until a |DenopsReady| autocmd is fired and invoke
+	a {callback}. It invokes the {callback} immediately when the autocmd
+	is already fired. If this function is called multiple times, callbacks
+	registered are called in order of registration.
 
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({plugin})
@@ -277,52 +298,51 @@ denops#plugin#wait_async({plugin}, {callback})
 	{callback}. It invokes the {callback} immediately when the {plugin}
 	plugin is already loaded. If this function is called multiple times
 	for same {plugin} plugin, callbacks registered for the plugin are
-	called in order of registration. Note that the {callback} is called
-	from |timer_start()| in any cases to keep consistent behavior.
+	called in order of registration.
 
 						*denops#plugin#register()*
 denops#plugin#register({plugin}[, {script}[, {options}]])
-	Register denops plugin. Use this function to register denops plugins
-	which is not discovered by |denops#plugin#discover()|.
-	When a {script} is omitted, a "denops/{plugin}/main.ts" file is
-	searched from |runtimepath| like discover.
-	The following attributes are available on {options}.
+	DEPRECATED: Use |denops#plugin#load()| instead.
 
-	"mode"		|String| to regulate the behavior of registration when
-			a {plugin} plugin is already registered.
+	Developers who would like to support previous denops should fallback
+	to this function like
+>
+	try
+	  call denops#plugin#load(
+	        \ "denops-hello",
+	        \ "/path/to/denops-hello/main.ts",
+	        \)
+	catch /^Vim\%((\a\+)\)\=:E117:/
+	  " Fallback to `register` for backward compatibility
+	  call denops#plugin#register(
+	        \ "denops-hello",
+	        \ "/path/to/denops-hello/main.ts",
+	        \ {"mode": "skip"},
+	        \)
+	endtry
+<
+	Note that the {options} are ignored and always treated as skip mode.
 
-			"error"		Throw an error. (Default)
-			"skip"		Skip plugin registration.
-			"reload"	Reload the plugin.
+						*denops#plugin#discover()*
+denops#plugin#discover()
+	Discover denops plugins from |runtimepath| and load.
+	It gathers "main.ts" under "denops/*" directories under |runtimepath|
+	if the middle directory does not starts from "@".
+	This is automatically called on |User| |DenopsReady| autocmd invoked by
+	|denops#server#start()|.
 
+						*denops#plugin#load()*
+denops#plugin#load({plugin}, {script})
+	Load denops plugin. Use this function to load denops plugins that are
+	not discovered by |denops#plugin#discover()|.
 	It invokes |User| |DenopsPluginPre|:{plugin} just before denops
 	execute a "main" function of the plugin and |User|
 	|DenopsPluginPost|:{plugin} just after denops execute a "main"
 	function of the plugin.
 
-						*denops#plugin#discover()*
-denops#plugin#discover([{options}])
-	Discover denops plugins from |runtimepath| and register.
-	It gathers "main.ts" under "denops/*" directories under |runtimepath|
-	if the middle directory does not starts from "@".
-	This is automatically called on |User| |DenopsReady| autocmd invoked by
-	|denops#server#start()|.
-	It uses same {options} as |denops#plugin#register()| except that the
-	default value of "mode" is "skip".
-
 						*denops#plugin#reload()*
-denops#plugin#reload({plugin}[, {options}])
-	Reload registered denops plugin.
-	The following attributes are available on {options}.
-
-	"mode"		|String| to regulate the behavior of reload when
-			a {plugin} plugin is not registered yet.
-
-			"error"		Throw an error. (Default)
-			"skip"		Skip plugin reload.
-
-	It internally calls |denops#plugin#register()| with "reload" mode when
-	the plugin is registered.
+denops#plugin#reload({plugin})
+	Reload denops plugin.
 
 						*denops#plugin#check_type()*
 denops#plugin#check_type([{plugin}])
@@ -377,10 +397,6 @@ DenopsReady						*DenopsReady*
 DenopsClosed						*DenopsClosed*
 	Fired when the connection (channel) with Denops is broken.
 	It is assumed to be used to release resources such as cache.
-
-DenopsPluginRegister:{plugin}				*DenopsPluginRegister*
-	Fired just before each plugin is register.
-	{plugin} is the name of the target plugin.
 
 DenopsPluginPre:{plugin}				*DenopsPluginPre*
 	Fired before the "main" function of each plugin is called.

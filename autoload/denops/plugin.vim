@@ -46,9 +46,7 @@ function! denops#plugin#wait_async(plugin, callback) abort
     if s:loaded_plugins[a:plugin] isnot# 0
       return
     endif
-    " Some features behave differently in functions invoked from timer_start()
-    " so use it even for immediate execution to keep consistent behavior.
-    call timer_start(0, { -> a:callback() })
+    call a:callback()
     return
   endif
   let l:callbacks = get(s:load_callbacks, a:plugin, [])
@@ -56,43 +54,41 @@ function! denops#plugin#wait_async(plugin, callback) abort
   let s:load_callbacks[a:plugin] = l:callbacks
 endfunction
 
+" DEPRECATED
+" Some plugins (e.g. dein.vim) use this function with options thus we cannot
+" change the interface of this function.
+" That's why we introduce 'load' function that replaces this function.
 function! denops#plugin#register(plugin, ...) abort
+  call denops#_internal#echo#deprecate(
+        \ 'denops#plugin#register() is deprecated. Use denops#plugin#load() instead.',
+        \)
   if a:0 is# 0 || type(a:1) is# v:t_dict
-    let l:options = a:0 > 0 ? a:1 : {}
     let l:script = s:find_plugin(a:plugin)
   else
     let l:script = a:1
-    let l:options = a:0 > 1 ? a:2 : {}
   endif
-  let l:meta = denops#_internal#meta#get()
-  let l:options = s:options(l:options, {
-        \ 'mode': 'error',
-        \})
-  return s:register(a:plugin, l:script, l:meta, l:options)
+  return denops#plugin#load(a:plugin, l:script)
 endfunction
 
-function! denops#plugin#reload(plugin, ...) abort
-  let l:options = a:0 > 0 ? a:1 : {}
-  let l:meta = denops#_internal#meta#get()
-  let l:options = s:options(l:options, {
-        \ 'mode': 'error',
-        \})
-  let l:trace = s:trace(a:plugin)
-  let l:args = [a:plugin, l:meta, l:options, l:trace]
+function! denops#plugin#load(plugin, script) abort
+  let l:script = denops#_internal#path#norm(a:script)
+  let l:args = [a:plugin, l:script]
+  call denops#_internal#echo#debug(printf('load plugin: %s', l:args))
+  call denops#_internal#server#chan#notify('invoke', ['load', l:args])
+endfunction
+
+function! denops#plugin#reload(plugin) abort
+  let l:args = [a:plugin]
   call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
   call denops#_internal#server#chan#notify('invoke', ['reload', l:args])
 endfunction
 
-function! denops#plugin#discover(...) abort
-  let l:meta = denops#_internal#meta#get()
-  let l:options = s:options(a:0 > 0 ? a:1 : {}, {
-        \ 'mode': 'skip',
-        \})
+function! denops#plugin#discover() abort
   let l:plugins = {}
   call s:gather_plugins(l:plugins)
   call denops#_internal#echo#debug(printf('%d plugins are discovered', len(l:plugins)))
   for [l:plugin, l:script] in items(l:plugins)
-    call s:register(l:plugin, l:script, l:meta, l:options)
+    call denops#plugin#load(l:plugin, l:script)
   endfor
 endfunction
 
@@ -134,21 +130,6 @@ function! s:options(base, default) abort
   return l:options
 endfunction
 
-function! s:register(plugin, script, meta, options) abort
-  execute printf('doautocmd <nomodeline> User DenopsSystemPluginRegister:%s', a:plugin)
-  let l:script = denops#_internal#path#norm(a:script)
-  let l:trace = s:trace(a:plugin)
-  let l:args = [a:plugin, l:script, a:meta, a:options, l:trace]
-  call denops#_internal#echo#debug(printf('register plugin: %s', l:args))
-  call denops#_internal#server#chan#notify('invoke', ['register', l:args])
-endfunction
-
-function! s:trace(plugin)  abort
-  return type(g:denops#trace) is# v:t_list
-        \ ? index(g:denops#trace, a:plugin) != -1 ? v:true : v:false
-        \ : g:denops#trace ? v:true : v:false
-endfunction
-
 function! s:find_plugin(plugin) abort
   for l:script in globpath(&runtimepath, denops#_internal#path#join(['denops', a:plugin, 'main.ts']), 1, 1, 1)
     let l:plugin = fnamemodify(l:script, ':h:t')
@@ -160,18 +141,6 @@ function! s:find_plugin(plugin) abort
   throw printf('No denops plugin for "%s" exists', a:plugin)
 endfunction
 
-" Split function to create new callstack independent for loop,
-" because overwrited callback references when
-" before timer processing timings.
-function! s:delay_callback(callback) abort
-  call timer_start(0, { -> a:callback() })
-endfunction
-
-function! s:DenopsSystemPluginRegister() abort
-  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginRegister:\zs.*')
-  execute printf('doautocmd <nomodeline> User DenopsPluginRegister:%s', l:plugin)
-endfunction
-
 function! s:DenopsSystemPluginPre() abort
   let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginPre:\zs.*')
   execute printf('doautocmd <nomodeline> User DenopsPluginPre:%s', l:plugin)
@@ -179,17 +148,6 @@ endfunction
 
 function! s:DenopsSystemPluginPost() abort
   let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginPost:\zs.*')
-  let s:loaded_plugins[l:plugin] = 0
-  if has_key(s:load_callbacks, l:plugin)
-    let l:callbacks = remove(s:load_callbacks, l:plugin)
-    " Vim uses FILO for a task execution registered by timer_start().
-    " That's why reverse 'callbacks' in the case of Vim to keep consistent
-    " behavior.
-    let l:callbacks = has('nvim') ? l:callbacks : reverse(l:callbacks)
-    for l:Callback in l:callbacks
-      call s:delay_callback(l:Callback)
-    endfor
-  endif
   execute printf('doautocmd <nomodeline> User DenopsPluginPost:%s', l:plugin)
 endfunction
 
@@ -202,12 +160,22 @@ function! s:DenopsSystemPluginFail() abort
   execute printf('doautocmd <nomodeline> User DenopsPluginFail:%s', l:plugin)
 endfunction
 
+function! s:DenopsPluginPost() abort
+  let l:plugin = matchstr(expand('<amatch>'), 'DenopsPluginPost:\zs.*')
+  let s:loaded_plugins[l:plugin] = 0
+  if has_key(s:load_callbacks, l:plugin)
+    for l:Callback in remove(s:load_callbacks, l:plugin)
+      call l:Callback()
+    endfor
+  endif
+endfunction
+
 augroup denops_autoload_plugin_internal
   autocmd!
-  autocmd User DenopsSystemPluginRegister:* call s:DenopsSystemPluginRegister()
   autocmd User DenopsSystemPluginPre:* call s:DenopsSystemPluginPre()
   autocmd User DenopsSystemPluginPost:* call s:DenopsSystemPluginPost()
   autocmd User DenopsSystemPluginFail:* call s:DenopsSystemPluginFail()
+  autocmd User DenopsPluginPost:* ++nested call s:DenopsPluginPost()
   autocmd User DenopsClosed let s:loaded_plugins = {}
 augroup END
 

@@ -1,27 +1,5 @@
 import { is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import { Service } from "../service.ts";
-import type { Meta } from "../../@denops/mod.ts";
-
-export type RegisterOptions = {
-  /**
-   * The behavior of register when the plugin is already registered.
-   *
-   * reload:  Reload the plugin
-   * skip:    Skip registration
-   * error:   Throw an error
-   */
-  mode?: "reload" | "skip" | "error";
-};
-
-export type ReloadOptions = {
-  /**
-   * The behavior of reload when the plugin is not registered yet.
-   *
-   * skip:    Skip reload
-   * error:   Throw an error
-   */
-  mode?: "skip" | "error";
-};
 
 export class Invoker {
   #service: Service;
@@ -30,23 +8,17 @@ export class Invoker {
     this.#service = service;
   }
 
-  register(
+  load(
     name: string,
     script: string,
-    meta: Meta,
-    options: RegisterOptions,
-    trace: boolean,
   ): void {
-    this.#service.register(name, script, meta, options, trace);
+    this.#service.load(name, script);
   }
 
   reload(
     name: string,
-    meta: Meta,
-    options: ReloadOptions,
-    trace: boolean,
   ): void {
-    this.#service.reload(name, meta, options, trace);
+    this.#service.reload(name);
   }
 
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {

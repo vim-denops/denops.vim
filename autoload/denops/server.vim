@@ -1,7 +1,10 @@
 const s:STATUS_STOPPED = 'stopped'
 const s:STATUS_STARTING = 'starting'
+const s:STATUS_PREPARING = 'preparing'
 const s:STATUS_RUNNING = 'running'
 
+let s:is_ready = v:false
+let s:ready_callbacks = []
 
 " Local server
 function! denops#server#start() abort
@@ -31,7 +34,6 @@ function! denops#server#restart() abort
   endif
   call denops#server#start()
 endfunction
-
 
 " Shared server
 function! denops#server#connect() abort
@@ -66,13 +68,56 @@ function! denops#server#reconnect() abort
   call denops#server#connect()
 endfunction
 
+" Common
 function! denops#server#status() abort
   if denops#_internal#server#chan#is_connected()
-    return s:STATUS_RUNNING
+    return s:is_ready ? s:STATUS_RUNNING : s:STATUS_PREPARING
   elseif denops#_internal#server#proc#is_started()
     return s:STATUS_STARTING
   endif
   return s:STATUS_STOPPED
+endfunction
+
+function! denops#server#wait(...) abort
+  let l:options = extend({
+        \ 'interval': g:denops#server#wait_interval,
+        \ 'timeout': g:denops#server#wait_timeout,
+        \ 'silent': 0,
+        \}, a:0 ? a:1 : {},
+        \)
+  if denops#server#status() ==# 'stopped'
+    if !l:options.silent
+      call denops#_internal#echo#error(
+            \ 'Failed to wait `DenopsReady` autocmd. Denops server itself is not started.',
+            \)
+    endif
+    return -2
+  endif
+  if s:is_ready
+    return v:true
+  endif
+  let l:ret = denops#_internal#wait#for(
+        \ l:options.timeout,
+        \ { -> s:is_ready },
+        \ l:options.interval,
+        \)
+  if l:ret is# -1
+    if !l:options.silent
+      call denops#_internal#echo#error(printf(
+            \ 'Failed to wait `DenopsReady` autocmd. It took more than %d milliseconds and timed out.',
+            \ l:options.timeout,
+            \))
+    endif
+    return -1
+  endif
+endfunction
+
+function! denops#server#wait_async(callback) abort
+  if s:is_ready
+    call a:callback()
+    return
+  endif
+  call add(s:ready_callbacks, a:callback)
 endfunction
 
 function! s:DenopsProcessListen(expr) abort
@@ -87,9 +132,20 @@ function! s:DenopsProcessListen(expr) abort
         \})
 endfunction
 
+function! s:DenopsReady() abort
+  let s:is_ready = v:true
+  let l:callbacks = s:ready_callbacks
+  let s:ready_callbacks = []
+  for l:Callback in l:callbacks
+    call l:Callback()
+  endfor
+endfunction
+
 augroup denops_server_internal
   autocmd!
   autocmd User DenopsProcessListen:* call s:DenopsProcessListen(expand('<amatch>'))
+  autocmd User DenopsReady ++nested call s:DenopsReady()
+  autocmd User DenopsClosed let s:is_ready = v:false
 augroup END
 
 call denops#_internal#conf#define('denops#server#deno_args', [
@@ -109,3 +165,6 @@ call denops#_internal#conf#define('denops#server#restart_threshold', 3)
 call denops#_internal#conf#define('denops#server#reconnect_delay', 100)
 call denops#_internal#conf#define('denops#server#reconnect_interval', 1000)
 call denops#_internal#conf#define('denops#server#reconnect_threshold', 3)
+
+call denops#_internal#conf#define('denops#server#wait_interval', 200)
+call denops#_internal#conf#define('denops#server#wait_timeout', 30000)
