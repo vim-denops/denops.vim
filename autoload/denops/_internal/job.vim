@@ -30,6 +30,7 @@ if has('nvim')
   function! s:stop(job) abort
     try
       call jobstop(a:job)
+      call jobwait([a:job])
     catch /^Vim\%((\a\+)\)\=:E900/
       " NOTE:
       " Vim does not raise exception even the job has already closed so fail
