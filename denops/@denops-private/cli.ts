@@ -1,5 +1,5 @@
 import { ensure } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
-import { parse } from "https://deno.land/std@0.204.0/flags/mod.ts";
+import { parse } from "https://deno.land/std@0.210.0/flags/mod.ts";
 import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
 import { usingResource } from "https://deno.land/x/disposable@v1.2.0/mod.ts#^";
 import { Service } from "./service.ts";
