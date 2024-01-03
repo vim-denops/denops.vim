@@ -3,7 +3,7 @@ import {
   assertEquals,
   assertRejects,
 } from "https://deno.land/std@0.210.0/assert/mod.ts";
-import { test } from "https://deno.land/x/denops_test@v1.4.0/mod.ts#^";
+import { test } from "https://deno.land/x/denops_test@v1.5.1/mod.ts";
 import { BatchError } from "../@denops/mod.ts";
 
 test({
