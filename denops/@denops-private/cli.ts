@@ -39,7 +39,7 @@ async function handleConn(conn: Deno.Conn): Promise<void> {
   await usingResource(new hostClass(r2, writer), async (host) => {
     const meta = ensure(await host.call("denops#_internal#meta#get"), isMeta);
     await usingResource(new Service(host, meta), async (_service) => {
-      await host.call("execute", "doautocmd <nomodeline> User DenopsReady");
+      await host.call("execute", "doautocmd <nomodeline> User DenopsReady", "");
       await host.waitClosed();
       if (!quiet) {
         console.log(
