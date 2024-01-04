@@ -2,16 +2,17 @@ import { ensure } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import { parse } from "https://deno.land/std@0.204.0/flags/mod.ts";
 import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
 import { usingResource } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
+import type { HostConstructor } from "./host.ts";
 import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
 import { isMeta } from "./util.ts";
 
-type Host = typeof Vim | typeof Neovim;
-
 const marks = new TextEncoder().encode('[{tf"0123456789');
 
-async function detectHost(reader: ReadableStream<Uint8Array>): Promise<Host> {
+async function detectHost(
+  reader: ReadableStream<Uint8Array>,
+): Promise<HostConstructor> {
   const mark = (await pop(reader))?.at(0);
   reader.cancel();
   if (mark && marks.includes(mark)) {

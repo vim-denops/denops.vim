@@ -34,6 +34,13 @@ export interface Host extends Disposable {
   waitClosed(): Promise<void>;
 }
 
+export type HostConstructor = {
+  new (
+    readable: ReadableStream<Uint8Array>,
+    writable: WritableStream<Uint8Array>,
+  ): Host;
+};
+
 export class Invoker {
   #service: Service;
 
