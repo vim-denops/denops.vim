@@ -11,16 +11,14 @@ import { DenopsImpl } from "./denops.ts";
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service implements Disposable {
-  #plugins: Map<string, Plugin>;
-
-  readonly host: Host;
-  readonly meta: Meta;
+  #plugins: Map<string, Plugin> = new Map();
+  #meta: Meta;
+  #host: Host;
 
   constructor(host: Host, meta: Meta) {
-    this.#plugins = new Map();
-    this.host = host;
-    this.host.register(new Invoker(this));
-    this.meta = meta;
+    this.#host = host;
+    this.#host.register(new Invoker(this));
+    this.#meta = meta;
   }
 
   load(
@@ -30,12 +28,12 @@ export class Service implements Disposable {
   ): Promise<void> {
     let plugin = this.#plugins.get(name);
     if (plugin) {
-      if (this.meta.mode === "debug") {
+      if (this.#meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is already loaded. Skip`);
       }
       return Promise.resolve();
     }
-    const denops = new DenopsImpl(this, name);
+    const denops = new DenopsImpl(name, this.#meta, this.#host, this);
     plugin = new Plugin(denops, name, script);
     this.#plugins.set(name, plugin);
     return plugin.load(suffix);
@@ -46,7 +44,7 @@ export class Service implements Disposable {
   ): Promise<void> {
     const plugin = this.#plugins.get(name);
     if (!plugin) {
-      if (this.meta.mode === "debug") {
+      if (this.#meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is not registered yet. Skip`);
       }
       return Promise.resolve();

@@ -6,34 +6,39 @@ import type {
 } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import { BatchError } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
+import type { Host } from "./host.ts";
 import type { Service } from "./service.ts";
 
 const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
 
 export class DenopsImpl implements Denops {
-  readonly context: Record<string | number | symbol, unknown> = {};
   readonly name: string;
+  readonly meta: Meta;
+  readonly context: Record<PropertyKey, unknown> = {};
+
   dispatcher: Dispatcher = {};
+
+  #host: Host;
   #service: Service;
 
   constructor(
-    service: Service,
     name: string,
+    meta: Meta,
+    host: Host,
+    service: Service,
   ) {
-    this.#service = service;
     this.name = name;
-  }
-
-  get meta(): Meta {
-    return this.#service.meta;
+    this.meta = meta;
+    this.#host = host;
+    this.#service = service;
   }
 
   redraw(force?: boolean): Promise<void> {
-    return this.#service.host.redraw(force);
+    return this.#host.redraw(force);
   }
 
   call(fn: string, ...args: unknown[]): Promise<unknown> {
-    return this.#service.host.call(fn, ...normArgs(args));
+    return this.#host.call(fn, ...normArgs(args));
   }
 
   async batch(
@@ -42,7 +47,7 @@ export class DenopsImpl implements Denops {
     const normCalls = calls.map(([fn, ...args]) =>
       [fn, ...normArgs(args)] as const
     );
-    const result = await this.#service.host.batch(...normCalls);
+    const result = await this.#host.batch(...normCalls);
     const [results, errmsg] = ensure(result, isBatchReturn);
     if (errmsg !== "") {
       throw new BatchError(errmsg, results);
@@ -51,11 +56,11 @@ export class DenopsImpl implements Denops {
   }
 
   async cmd(cmd: string, ctx: Context = {}): Promise<void> {
-    await this.#service.host.call("denops#api#cmd", cmd, ctx);
+    await this.#host.call("denops#api#cmd", cmd, ctx);
   }
 
   eval(expr: string, ctx: Context = {}): Promise<unknown> {
-    return this.#service.host.call("denops#api#eval", expr, ctx);
+    return this.#host.call("denops#api#eval", expr, ctx);
   }
 
   dispatch(
