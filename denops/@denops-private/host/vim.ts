@@ -4,8 +4,7 @@ import {
   Message,
   Session,
 } from "https://deno.land/x/vim_channel_command@v2.0.0/mod.ts";
-import { Invoker, isInvokerMethod } from "./invoker.ts";
-import { Host } from "./base.ts";
+import { Host, Invoker, isInvokerMethod } from "../host.ts";
 
 const isCallReturn = is.TupleOf([is.Unknown, is.String] as const);
 

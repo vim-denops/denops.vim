@@ -7,10 +7,9 @@ import {
   Client,
   Session,
 } from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts";
-import { Invoker, isInvokerMethod } from "./invoker.ts";
+import { Host, Invoker, isInvokerMethod } from "../host.ts";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { getVersionOr } from "../version.ts";
-import { Host } from "./base.ts";
 
 const isNvimCallFunctionReturn = is.TupleOf(
   [
