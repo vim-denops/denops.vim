@@ -18,7 +18,10 @@ async function detectHost(reader: ReadableStream<Uint8Array>): Promise<Host> {
   return Neovim;
 }
 
-async function handleConn(conn: Deno.Conn): Promise<void> {
+async function handleConn(
+  conn: Deno.Conn,
+  { quiet }: { quiet?: boolean },
+): Promise<void> {
   const remoteAddr = conn.remoteAddr as Deno.NetAddr;
   const reader = conn.readable;
   const writer = conn.writable;
@@ -50,26 +53,34 @@ async function handleConn(conn: Deno.Conn): Promise<void> {
   });
 }
 
-const { hostname, port, quiet, identity } = parse(Deno.args, {
-  string: ["hostname", "port"],
-  boolean: ["quiet", "identity"],
-});
+async function main(): Promise<void> {
+  const { hostname, port, quiet, identity } = parse(Deno.args, {
+    string: ["hostname", "port"],
+    boolean: ["quiet", "identity"],
+  });
 
-const listener = Deno.listen({
-  hostname: hostname ?? "127.0.0.1",
-  port: Number(port ?? "32123"),
-});
-const localAddr = listener.addr as Deno.NetAddr;
+  const listener = Deno.listen({
+    hostname: hostname ?? "127.0.0.1",
+    port: Number(port ?? "32123"),
+  });
+  const localAddr = listener.addr as Deno.NetAddr;
 
-if (identity) {
-  console.log(`${localAddr.hostname}:${localAddr.port}`);
+  if (identity) {
+    console.log(`${localAddr.hostname}:${localAddr.port}`);
+  }
+  if (!quiet) {
+    console.log(
+      `Listen denops clients on ${localAddr.hostname}:${localAddr.port}`,
+    );
+  }
+
+  for await (const conn of listener) {
+    handleConn(conn, { quiet }).catch((err) =>
+      console.error("Unexpected error", err)
+    );
+  }
 }
-if (!quiet) {
-  console.log(
-    `Listen denops clients on ${localAddr.hostname}:${localAddr.port}`,
-  );
-}
 
-for await (const conn of listener) {
-  handleConn(conn).catch((err) => console.error("Unexpected error", err));
+if (import.meta.main) {
+  await main();
 }
