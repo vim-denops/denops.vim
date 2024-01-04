@@ -6,7 +6,7 @@ import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import { toFileUrl } from "https://deno.land/std@0.210.0/path/mod.ts";
 import { Host } from "./host/base.ts";
 import { Invoker } from "./host/invoker.ts";
-import { DenopsImpl } from "./impl.ts";
+import { DenopsImpl } from "./denops.ts";
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
