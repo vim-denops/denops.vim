@@ -23,6 +23,11 @@ export interface Host extends Disposable {
   ): Promise<[unknown[], string]>;
 
   /**
+   * Call host function and do nothing
+   */
+  notify(fn: string, ...args: unknown[]): void;
+
+  /**
    * Initialize host
    */
   init(service: Service): Promise<void>;

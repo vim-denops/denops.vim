@@ -92,6 +92,10 @@ export class Neovim implements Host {
     return [ret, ""];
   }
 
+  notify(fn: string, ...args: unknown[]): void {
+    this.#client.notify("nvim_call_function", fn, args);
+  }
+
   async init(service: Service): Promise<void> {
     const version = await getVersionOr({});
     await this.#client.call(

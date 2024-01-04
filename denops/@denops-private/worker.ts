@@ -24,6 +24,15 @@ async function detectHost(
   return Neovim;
 }
 
+function formatArgs(args: unknown[]): string[] {
+  return args.map((v) => {
+    if (typeof v === "string") {
+      return v;
+    }
+    return JSON.stringify(v);
+  });
+}
+
 async function main(): Promise<void> {
   const worker = self as unknown as Worker;
   const writer = writableStreamFromWorker(worker);
@@ -34,6 +43,38 @@ async function main(): Promise<void> {
 
   await usingResource(new hostCtor(reader, writer), async (host) => {
     const meta = ensure(await host.call("denops#_internal#meta#get"), isMeta);
+    // Patch console
+    console.log = (...args: unknown[]) => {
+      host.notify(
+        "denops#_internal#echo#log",
+        ...formatArgs(args),
+      );
+    };
+    console.info = (...args: unknown[]) => {
+      host.notify(
+        "denops#_internal#echo#info",
+        ...formatArgs(args),
+      );
+    };
+    console.debug = meta.mode !== "debug" ? () => {} : (...args: unknown[]) => {
+      host.notify(
+        "denops#_internal#echo#debug",
+        ...formatArgs(args),
+      );
+    };
+    console.warn = (...args: unknown[]) => {
+      host.notify(
+        "denops#_internal#echo#warn",
+        ...formatArgs(args),
+      );
+    };
+    console.error = (...args: unknown[]) => {
+      host.notify(
+        "denops#_internal#echo#error",
+        ...formatArgs(args),
+      );
+    };
+    // Start service
     await usingResource(new Service(meta), async (service) => {
       await host.init(service);
       await host.call("execute", "doautocmd <nomodeline> User DenopsReady", "");

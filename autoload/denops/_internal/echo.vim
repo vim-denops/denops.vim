@@ -5,6 +5,10 @@ function! denops#_internal#echo#deprecate(...) abort
   call s:echomsg('WarningMsg', a:000)
 endfunction
 
+function! denops#_internal#echo#log(...) abort
+  call s:echomsg('None', a:000)
+endfunction
+
 function! denops#_internal#echo#debug(...) abort
   if !g:denops#debug
     return
@@ -13,7 +17,7 @@ function! denops#_internal#echo#debug(...) abort
 endfunction
 
 function! denops#_internal#echo#info(...) abort
-  call s:echomsg('None', a:000)
+  call s:echomsg('Title', a:000)
 endfunction
 
 function! denops#_internal#echo#warn(...) abort
