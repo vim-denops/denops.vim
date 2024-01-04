@@ -12,6 +12,7 @@ type Host = typeof Vim | typeof Neovim;
 async function detectHost(reader: ReadableStream<Uint8Array>): Promise<Host> {
   const marks = new TextEncoder().encode('[{tf"0123456789');
   const mark = (await pop(reader))?.at(0);
+  reader.cancel();
   if (mark && marks.includes(mark)) {
     return Vim;
   }
@@ -23,30 +24,26 @@ async function handleConn(
   { quiet }: { quiet?: boolean },
 ): Promise<void> {
   const remoteAddr = conn.remoteAddr as Deno.NetAddr;
-  const reader = conn.readable;
   const writer = conn.writable;
-
-  const [r1, r2] = reader.tee();
+  const [reader, detector] = conn.readable.tee();
 
   // Detect host from payload
-  const hostClass = await detectHost(r1);
-  r1.cancel();
+  const hostCtor = await detectHost(detector);
 
   if (!quiet) {
     console.log(
-      `${remoteAddr.hostname}:${remoteAddr.port} (${hostClass.name}) is connected`,
+      `${remoteAddr.hostname}:${remoteAddr.port} (${hostCtor.name}) is connected`,
     );
   }
 
-  // Create host and service
-  await usingResource(new hostClass(r2, writer), async (host) => {
+  await usingResource(new hostCtor(reader, writer), async (host) => {
     const meta = ensure(await host.call("denops#_internal#meta#get"), isMeta);
     await usingResource(new Service(host, meta), async (_service) => {
       await host.call("execute", "doautocmd <nomodeline> User DenopsReady", "");
       await host.waitClosed();
       if (!quiet) {
         console.log(
-          `${remoteAddr.hostname}:${remoteAddr.port} (${hostClass.name}) is closed`,
+          `${remoteAddr.hostname}:${remoteAddr.port} (${hostCtor.name}) is closed`,
         );
       }
     });
