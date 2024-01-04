@@ -1,5 +1,5 @@
 import { toFileUrl } from "https://deno.land/std@0.210.0/path/mod.ts";
-import type { Denops } from "https://deno.land/x/denops@v6.0.0/mod.ts";
+import type { Denops } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
 
 export class Plugin {
   #denops: Denops;
