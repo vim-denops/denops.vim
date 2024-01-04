@@ -6,10 +6,14 @@ import type {
 } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import { BatchError } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
-import type { Host } from "./host.ts";
-import type { Service } from "./service.ts";
+import type { Host as HostOrigin } from "./host.ts";
+import type { Service as ServiceOrigin } from "./service.ts";
 
 const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
+
+export type Host = Pick<HostOrigin, "redraw" | "call" | "batch">;
+
+export type Service = Pick<ServiceOrigin, "dispatch">;
 
 export class DenopsImpl implements Denops {
   readonly name: string;
