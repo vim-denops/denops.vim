@@ -1,6 +1,5 @@
 import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
-import { is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
-import { Service } from "./service.ts";
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 
 /**
  * Host (Vim/Neovim) which is visible from Service
@@ -21,7 +20,7 @@ export interface Host extends Disposable {
    */
   batch(
     ...calls: (readonly [string, ...unknown[]])[]
-  ): Promise<readonly [unknown[], string]>;
+  ): Promise<[unknown[], string]>;
 
   /**
    * Initialize host
@@ -41,41 +40,53 @@ export type HostConstructor = {
   ): Host;
 };
 
-export class Invoker {
-  #service: Service;
-
-  constructor(service: Service) {
-    this.#service = service;
-  }
-
-  load(
-    name: string,
-    script: string,
-  ): Promise<void> {
-    return this.#service.load(name, script);
-  }
-
-  reload(
-    name: string,
-  ): Promise<void> {
-    return this.#service.reload(name);
-  }
-
-  dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
-    return this.#service.dispatch(name, fn, args);
-  }
-
+// Minimum interface of Service that Host is relies on
+export type Service = {
+  bind(host: Host): void;
+  load(name: string, script: string): Promise<void>;
+  reload(name: string): Promise<void>;
+  dispatch(name: string, fn: string, args: unknown[]): Promise<unknown>;
   dispatchAsync(
     name: string,
     fn: string,
     args: unknown[],
     success: string, // Callback ID
     failure: string, // Callback ID
-  ): Promise<void> {
-    return this.#service.dispatchAsync(name, fn, args, success, failure);
+  ): Promise<void>;
+};
+
+export function invoke(
+  service: Omit<Service, "bind">,
+  name: string,
+  args: unknown[],
+): Promise<unknown> {
+  switch (name) {
+    case "load":
+      return service.load(
+        ...ensure(args, is.TupleOf([is.String, is.String] as const)),
+      );
+    case "reload":
+      return service.reload(
+        ...ensure(args, is.TupleOf([is.String] as const)),
+      );
+    case "dispatch":
+      return service.dispatch(
+        ...ensure(args, is.TupleOf([is.String, is.String, is.Array] as const)),
+      );
+    case "dispatchAsync":
+      return service.dispatchAsync(
+        ...ensure(
+          args,
+          is.TupleOf(
+            [is.String, is.String, is.Array, is.String, is.String] as const,
+          ),
+        ),
+      );
+    default:
+      throw new Error(`Service does not have a method '${name}'`);
   }
 }
 
-export function isInvokerMethod(value: unknown): value is keyof Invoker {
-  return is.String(value) && value in Invoker.prototype;
+export function formatCall(fn: string, ...args: unknown[]): string {
+  return `${fn}(${args.map((v) => JSON.stringify(v)).join(", ")})`;
 }

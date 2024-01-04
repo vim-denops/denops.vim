@@ -46,7 +46,7 @@ export class DenopsImpl implements Denops {
   }
 
   async batch(
-    ...calls: [string, ...unknown[]][]
+    ...calls: (readonly [string, ...unknown[]])[]
   ): Promise<unknown[]> {
     const normCalls = calls.map(([fn, ...args]) =>
       [fn, ...normArgs(args)] as const

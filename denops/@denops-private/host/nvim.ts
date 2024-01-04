@@ -1,30 +1,16 @@
-import {
-  assert,
-  ensure,
-  is,
-} from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import {
   Client,
   Session,
 } from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts";
-import { Host, Invoker, isInvokerMethod } from "../host.ts";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { getVersionOr } from "../version.ts";
-
-const isNvimCallFunctionReturn = is.TupleOf(
-  [
-    is.Array,
-    is.OneOf([
-      is.Null,
-      is.TupleOf([is.Number, is.Number, is.String] as const),
-    ]),
-  ] as const,
-);
+import { formatCall, Host, invoke, Service } from "../host.ts";
 
 export class Neovim implements Host {
   #session: Session;
   #client: Client;
-  #invoker?: Invoker;
+  #service?: Service;
 
   constructor(
     reader: ReadableStream<Uint8Array>,
@@ -34,22 +20,23 @@ export class Neovim implements Host {
       errorSerializer,
     });
     this.#session.dispatcher = {
-      nvim_error_event(type, message) {
-        console.error(`nvim_error_event(${type})`, message);
-      },
-
       void() {
         return Promise.resolve();
       },
 
-      invoke: async (method: unknown, args: unknown): Promise<unknown> => {
-        if (this.#invoker === undefined) {
-          throw new Error("Invoker is not registered");
+      invoke: (method: unknown, args: unknown): Promise<unknown> => {
+        if (!this.#service) {
+          throw new Error("No service is registered in the host");
         }
-        assert(method, isInvokerMethod);
-        assert(args, is.Array);
-        // deno-lint-ignore no-explicit-any
-        return await (this.#invoker[method] as any)(...args);
+        return invoke(
+          this.#service,
+          ensure(method, is.String),
+          ensure(args, is.Array),
+        );
+      },
+
+      nvim_error_event(type, message) {
+        console.error(`nvim_error_event(${type})`, message);
       },
     };
     this.#session.onMessageError = (error, message) => {
@@ -69,18 +56,18 @@ export class Neovim implements Host {
     return Promise.resolve();
   }
 
-  call(fn: string, ...args: unknown[]): Promise<unknown> {
+  async call(fn: string, ...args: unknown[]): Promise<unknown> {
     return this.#client.call("nvim_call_function", fn, args);
   }
 
   async batch(
     ...calls: (readonly [string, ...unknown[]])[]
-  ): Promise<readonly [unknown[], string]> {
+  ): Promise<[unknown[], string]> {
     const result = await this.#client.call(
       "nvim_call_atomic",
       calls.map(([fn, ...args]) => ["nvim_call_function", [fn, args]]),
     );
-    const [ret, err] = ensure(result, isNvimCallFunctionReturn);
+    const [ret, err] = ensure(result, isNvimCallAtomicReturn);
     if (err) {
       return [ret, err[2]];
     }
@@ -107,8 +94,8 @@ export class Neovim implements Host {
           "https://github.com/vim-denops/denops-logos/blob/main/20210403-main/denops.png?raw=true",
       },
     );
-    service.bind(this);
-    this.#invoker = new Invoker(service);
+    this.#service = service;
+    this.#service.bind(this);
   }
 
   waitClosed(): Promise<void> {
@@ -123,3 +110,15 @@ export class Neovim implements Host {
     }
   }
 }
+
+// nvim_call_atomics returns a tuple of [return values, error details]
+const isNvimCallAtomicReturn = is.TupleOf(
+  [
+    is.Array,
+    is.OneOf([
+      is.Null,
+      // the index, the error type, the error message
+      is.TupleOf([is.Number, is.Number, is.String] as const),
+    ]),
+  ] as const,
+);
