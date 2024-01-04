@@ -44,6 +44,13 @@ export class Vim implements Host {
       fn,
       args,
     );
+    if (result === "ERROR") {
+      // Not sure why but Vim just returns "ERROR" when 'denops.vim' is not in 'runtimepath'.
+      // This makes debugging nightmare so we throw an error with better message here.
+      throw new Error(
+        `Vim just returns "ERROR" for 'denops#api#vim#call()'. Check if 'denops.vim' exist in 'runtimepath' properly`,
+      );
+    }
     const [ret, err] = ensure(result, isCallReturn);
     if (err !== "") {
       throw new Error(`Failed to call ${formatCall(fn, ...args)}: ${err}`);
@@ -55,6 +62,13 @@ export class Vim implements Host {
     ...calls: (readonly [string, ...unknown[]])[]
   ): Promise<[unknown[], string]> {
     const result = await this.#client.call("denops#api#vim#batch", calls);
+    if (result === "ERROR") {
+      // Not sure why but Vim just returns "ERROR" when 'denops.vim' is not in 'runtimepath'.
+      // This makes debugging nightmare so we throw an error with better message here.
+      throw new Error(
+        `Vim just returns "ERROR" for 'denops#api#vim#batch()'. Check if 'denops.vim' exist in 'runtimepath' properly`,
+      );
+    }
     const [ret, err] = ensure(result, isBatchReturn) as [unknown[], string];
     if (err) {
       const index = ret.length;
