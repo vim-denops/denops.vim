@@ -62,26 +62,6 @@ export class Neovim implements Host {
     this.#client = new Client(this.#session, {
       errorDeserializer,
     });
-    getVersionOr({}).then((version) => {
-      this.#client.notify(
-        "nvim_set_client_info",
-        "denops",
-        version,
-        "msgpack-rpc",
-        {
-          invoke: {
-            async: false,
-            nargs: 2,
-          },
-        },
-        {
-          "website": "https://github.com/vim-denops/denops.vim",
-          "license": "MIT",
-          "logo":
-            "https://github.com/vim-denops/denops-logos/blob/main/20210403-main/denops.png?raw=true",
-        },
-      );
-    });
   }
 
   redraw(_force?: boolean): Promise<void> {
@@ -107,8 +87,28 @@ export class Neovim implements Host {
     return [ret, ""];
   }
 
-  register(invoker: Invoker): void {
-    this.#invoker = invoker;
+  async init(service: Service): Promise<void> {
+    const version = await getVersionOr({});
+    await this.#client.call(
+      "nvim_set_client_info",
+      "denops",
+      version,
+      "msgpack-rpc",
+      {
+        invoke: {
+          async: false,
+          nargs: 2,
+        },
+      },
+      {
+        "website": "https://github.com/vim-denops/denops.vim",
+        "license": "MIT",
+        "logo":
+          "https://github.com/vim-denops/denops-logos/blob/main/20210403-main/denops.png?raw=true",
+      },
+    );
+    service.bind(this);
+    this.#invoker = new Invoker(service);
   }
 
   waitClosed(): Promise<void> {

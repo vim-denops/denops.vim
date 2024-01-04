@@ -5,8 +5,7 @@ import type {
 import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import { toFileUrl } from "https://deno.land/std@0.210.0/path/mod.ts";
 import { toErrorObject } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
-import { Host, Invoker } from "./host.ts";
-import { DenopsImpl } from "./denops.ts";
+import { DenopsImpl, Host } from "./denops.ts";
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
@@ -14,12 +13,14 @@ import { DenopsImpl } from "./denops.ts";
 export class Service implements Disposable {
   #plugins: Map<string, Plugin> = new Map();
   #meta: Meta;
-  #host: Host;
+  #host?: Host;
 
-  constructor(host: Host, meta: Meta) {
-    this.#host = host;
-    this.#host.register(new Invoker(this));
+  constructor(meta: Meta) {
     this.#meta = meta;
+  }
+
+  bind(host: Host): void {
+    this.#host = host;
   }
 
   load(
@@ -27,6 +28,9 @@ export class Service implements Disposable {
     script: string,
     suffix = "",
   ): Promise<void> {
+    if (!this.#host) {
+      throw new Error("No host is bound to the service");
+    }
     let plugin = this.#plugins.get(name);
     if (plugin) {
       if (this.#meta.mode === "debug") {
@@ -46,7 +50,7 @@ export class Service implements Disposable {
     const plugin = this.#plugins.get(name);
     if (!plugin) {
       if (this.#meta.mode === "debug") {
-        console.log(`A denops plugin '${name}' is not registered yet. Skip`);
+        console.log(`A denops plugin '${name}' is not loaded yet. Skip`);
       }
       return Promise.resolve();
     }
@@ -57,17 +61,19 @@ export class Service implements Disposable {
     return this.load(name, plugin.script, suffix);
   }
 
+  async #dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
+    const plugin = this.#plugins.get(name);
+    if (!plugin) {
+      throw new Error(`No plugin '${name}' is loaded`);
+    }
+    return await plugin.call(fn, ...args);
+  }
+
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
     try {
-      const plugin = this.#plugins.get(name);
-      if (!plugin) {
-        throw new Error(`No plugin '${name}' is registered`);
-      }
-      return await plugin.call(fn, ...args);
+      return await this.#dispatch(name, fn, args);
     } catch (e) {
-      // NOTE:
-      // Vim/Neovim does not handle JavaScript Error instance thus use string instead
-      throw `${e.stack ?? e.toString()}`;
+      throw toVimError(e);
     }
   }
 
@@ -78,12 +84,15 @@ export class Service implements Disposable {
     success: string, // Callback ID
     failure: string, // Callback ID
   ): Promise<void> {
+    if (!this.#host) {
+      throw new Error("No host is bound to the service");
+    }
     try {
-      const r = await this.dispatch(name, fn, args);
+      const r = await this.#dispatch(name, fn, args);
       try {
         await this.#host.call("denops#callback#call", success, r);
       } catch (e) {
-        console.error(`${e.stack ?? e.toString()}`);
+        console.error(`Failed to call success callback '${success}': ${e}`);
       }
     } catch (e) {
       try {
@@ -92,7 +101,7 @@ export class Service implements Disposable {
           : { name: typeof e, message: String(e) };
         await this.#host.call("denops#callback#call", failure, err);
       } catch (e) {
-        console.error(`${e.stack ?? e.toString()}`);
+        console.error(`Failed to call failure callback '${failure}': ${e}`);
       }
     }
   }
@@ -121,7 +130,7 @@ class Plugin {
       await mod.main(this.#denops);
       await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
     } catch (e) {
-      console.error(e);
+      console.error(`Failed to load plguin '${this.name}': ${e}`);
       await emit(this.#denops, `DenopsSystemPluginFail:${this.name}`);
     }
   }
@@ -135,7 +144,7 @@ async function emit(denops: Denops, name: string): Promise<void> {
   try {
     await denops.cmd(`doautocmd <nomodeline> User ${name}`);
   } catch (e) {
-    console.warn(`Failed to emit ${name}: ${e}`);
+    console.error(`Failed to emit ${name}: ${e}`);
   }
 }
 
@@ -145,4 +154,13 @@ function resolveScriptUrl(script: string): string {
   } catch {
     return new URL(script, import.meta.url).href;
   }
+}
+
+// NOTE:
+// Vim/Neovim does not handle JavaScript Error instance thus use string instead
+function toVimError(err: unknown): string {
+  if (err instanceof Error) {
+    return err.stack ?? err.toString();
+  }
+  return String(err);
 }

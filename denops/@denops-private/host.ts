@@ -24,9 +24,9 @@ export interface Host extends Disposable {
   ): Promise<readonly [unknown[], string]>;
 
   /**
-   * Register invoker
+   * Initialize host
    */
-  register(invoker: Invoker): void;
+  init(service: Service): Promise<void>;
 
   /**
    * Wait host close

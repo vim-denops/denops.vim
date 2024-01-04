@@ -3,9 +3,9 @@ import { parse } from "https://deno.land/std@0.204.0/flags/mod.ts";
 import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
 import { usingResource } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import type { HostConstructor } from "./host.ts";
-import { Service } from "./service.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
+import { Service } from "./service.ts";
 import { isMeta } from "./util.ts";
 
 const marks = new TextEncoder().encode('[{tf"0123456789');
@@ -40,7 +40,8 @@ async function handleConn(
 
   await usingResource(new hostCtor(reader, writer), async (host) => {
     const meta = ensure(await host.call("denops#_internal#meta#get"), isMeta);
-    await usingResource(new Service(host, meta), async (_service) => {
+    await usingResource(new Service(meta), async (service) => {
+      await host.init(service);
       await host.call("execute", "doautocmd <nomodeline> User DenopsReady", "");
       await host.waitClosed();
       if (!quiet) {

@@ -72,8 +72,10 @@ export class Vim implements Host {
     return ensure(result, isBatchReturn);
   }
 
-  register(invoker: Invoker): void {
-    this.#invoker = invoker;
+  init(service: Service): Promise<void> {
+    service.bind(this);
+    this.#invoker = new Invoker(service);
+    return Promise.resolve();
   }
 
   waitClosed(): Promise<void> {
