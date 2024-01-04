@@ -4,6 +4,7 @@ import type {
 } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
 import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import { toFileUrl } from "https://deno.land/std@0.210.0/path/mod.ts";
+import { toErrorObject } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
 import { Host, Invoker } from "./host.ts";
 import { DenopsImpl } from "./denops.ts";
 
@@ -67,6 +68,32 @@ export class Service implements Disposable {
       // NOTE:
       // Vim/Neovim does not handle JavaScript Error instance thus use string instead
       throw `${e.stack ?? e.toString()}`;
+    }
+  }
+
+  async dispatchAsync(
+    name: string,
+    fn: string,
+    args: unknown[],
+    success: string, // Callback ID
+    failure: string, // Callback ID
+  ): Promise<void> {
+    try {
+      const r = await this.dispatch(name, fn, args);
+      try {
+        await this.#host.call("denops#callback#call", success, r);
+      } catch (e) {
+        console.error(`${e.stack ?? e.toString()}`);
+      }
+    } catch (e) {
+      try {
+        const err = e instanceof Error
+          ? toErrorObject(e)
+          : { name: typeof e, message: String(e) };
+        await this.#host.call("denops#callback#call", failure, err);
+      } catch (e) {
+        console.error(`${e.stack ?? e.toString()}`);
+      }
     }
   }
 
