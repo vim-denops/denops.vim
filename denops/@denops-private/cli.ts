@@ -9,8 +9,9 @@ import { isMeta } from "./util.ts";
 
 type Host = typeof Vim | typeof Neovim;
 
+const marks = new TextEncoder().encode('[{tf"0123456789');
+
 async function detectHost(reader: ReadableStream<Uint8Array>): Promise<Host> {
-  const marks = new TextEncoder().encode('[{tf"0123456789');
   const mark = (await pop(reader))?.at(0);
   reader.cancel();
   if (mark && marks.includes(mark)) {
