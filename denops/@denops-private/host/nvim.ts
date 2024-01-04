@@ -57,7 +57,19 @@ export class Neovim implements Host {
   }
 
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
-    return this.#client.call("nvim_call_function", fn, args);
+    try {
+      return await this.#client.call("nvim_call_function", fn, args);
+    } catch (err) {
+      if (isNvimErrorObject(err)) {
+        const [code, message] = err;
+        throw new Error(
+          `Failed to call ${
+            formatCall(fn, ...args)
+          }: ${message} (code: ${code})`,
+        );
+      }
+      throw err;
+    }
   }
 
   async batch(
@@ -69,7 +81,13 @@ export class Neovim implements Host {
     );
     const [ret, err] = ensure(result, isNvimCallAtomicReturn);
     if (err) {
-      return [ret, err[2]];
+      const [index, code, message] = err;
+      return [
+        ret,
+        `Failed to call ${
+          formatCall(...calls[index])
+        }: ${message} (code: ${code})`,
+      ];
     }
     return [ret, ""];
   }
@@ -110,6 +128,11 @@ export class Neovim implements Host {
     }
   }
 }
+
+// nvim_call_function throws a special error object
+// https://github.com/neovim/neovim/blob/5dc0bdfe98b59bb03226167ed541d17cc5af30b1/src/nvim/api/vimscript.c#L260
+// https://github.com/neovim/neovim/blob/5dc0bdfe98b59bb03226167ed541d17cc5af30b1/src/nvim/api/private/defs.h#L63-L66
+const isNvimErrorObject = is.TupleOf([is.Number, is.String] as const);
 
 // nvim_call_atomics returns a tuple of [return values, error details]
 const isNvimCallAtomicReturn = is.TupleOf(
