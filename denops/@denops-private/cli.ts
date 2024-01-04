@@ -31,7 +31,7 @@ async function handleConn(
   const hostCtor = await detectHost(detector);
 
   if (!quiet) {
-    console.log(
+    console.info(
       `${remoteAddr.hostname}:${remoteAddr.port} (${hostCtor.name}) is connected`,
     );
   }
@@ -42,7 +42,7 @@ async function handleConn(
       await host.call("execute", "doautocmd <nomodeline> User DenopsReady", "");
       await host.waitClosed();
       if (!quiet) {
-        console.log(
+        console.info(
           `${remoteAddr.hostname}:${remoteAddr.port} (${hostCtor.name}) is closed`,
         );
       }
@@ -63,17 +63,22 @@ async function main(): Promise<void> {
   const localAddr = listener.addr as Deno.NetAddr;
 
   if (identity) {
+    // WARNING:
+    // This output must be the first line of the stdout to proerply identity the address.
     console.log(`${localAddr.hostname}:${localAddr.port}`);
   }
   if (!quiet) {
-    console.log(
+    console.info(
       `Listen denops clients on ${localAddr.hostname}:${localAddr.port}`,
     );
   }
 
   for await (const conn of listener) {
     handleConn(conn, { quiet }).catch((err) =>
-      console.error("Unexpected error", err)
+      console.error(
+        "Internal error occurred and Host/Denops connection is dropped",
+        err,
+      )
     );
   }
 }
