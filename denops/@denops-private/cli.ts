@@ -1,56 +1,37 @@
-import { ensure } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
+import {
+  readableStreamFromWorker,
+  writableStreamFromWorker,
+} from "https://deno.land/x/workerio@v3.1.0/mod.ts";
 import { parse } from "https://deno.land/std@0.204.0/flags/mod.ts";
-import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
-import { usingResource } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
-import type { HostConstructor } from "./host.ts";
-import { Vim } from "./host/vim.ts";
-import { Neovim } from "./host/nvim.ts";
-import { Service } from "./service.ts";
-import { isMeta } from "./util.ts";
 
-const marks = new TextEncoder().encode('[{tf"0123456789');
-
-async function detectHost(
-  reader: ReadableStream<Uint8Array>,
-): Promise<HostConstructor> {
-  const mark = (await pop(reader))?.at(0);
-  reader.cancel();
-  if (mark && marks.includes(mark)) {
-    return Vim;
-  }
-  return Neovim;
-}
+const script = new URL("./worker.ts", import.meta.url);
 
 async function handleConn(
   conn: Deno.Conn,
   { quiet }: { quiet?: boolean },
 ): Promise<void> {
   const remoteAddr = conn.remoteAddr as Deno.NetAddr;
-  const writer = conn.writable;
-  const [reader, detector] = conn.readable.tee();
-
-  // Detect host from payload
-  const hostCtor = await detectHost(detector);
-
+  const name = `${remoteAddr.hostname}:${remoteAddr.port}`;
   if (!quiet) {
-    console.info(
-      `${remoteAddr.hostname}:${remoteAddr.port} (${hostCtor.name}) is connected`,
-    );
+    console.info(`${name} is connected`);
   }
 
-  await usingResource(new hostCtor(reader, writer), async (host) => {
-    const meta = ensure(await host.call("denops#_internal#meta#get"), isMeta);
-    await usingResource(new Service(meta), async (service) => {
-      await host.init(service);
-      await host.call("execute", "doautocmd <nomodeline> User DenopsReady", "");
-      await host.waitClosed();
-      if (!quiet) {
-        console.info(
-          `${remoteAddr.hostname}:${remoteAddr.port} (${hostCtor.name}) is closed`,
-        );
-      }
-    });
+  const worker = new Worker(script, {
+    name,
+    type: "module",
   });
+  const reader = readableStreamFromWorker(worker);
+  const writer = writableStreamFromWorker(worker);
+
+  try {
+    await Promise.race([
+      reader.pipeTo(conn.writable),
+      conn.readable.pipeTo(writer),
+    ]);
+  } finally {
+    // Terminate worker to avoid leak
+    worker.terminate();
+  }
 }
 
 async function main(): Promise<void> {
