@@ -9,7 +9,7 @@ import {
   assertSpyCalls,
   stub,
 } from "https://deno.land/std@0.211.0/testing/mock.ts";
-import type { Meta } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
+import type { Meta } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";
 import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
