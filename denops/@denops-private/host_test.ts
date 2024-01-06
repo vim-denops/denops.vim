@@ -1,9 +1,9 @@
-import { assertThrows } from "https://deno.land/std@0.210.0/assert/mod.ts";
+import { assertThrows } from "https://deno.land/std@0.211.0/assert/mod.ts";
 import {
   assertSpyCall,
   assertSpyCalls,
   stub,
-} from "https://deno.land/std@0.210.0/testing/mock.ts";
+} from "https://deno.land/std@0.211.0/testing/mock.ts";
 import { AssertError } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
 import { invoke, Service } from "./host.ts";
 import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";

@@ -2,7 +2,7 @@ import type { Meta } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
 import {
   assertSpyCall,
   stub,
-} from "https://deno.land/std@0.210.0/testing/mock.ts";
+} from "https://deno.land/std@0.211.0/testing/mock.ts";
 import { DenopsImpl, Host, Service } from "./denops.ts";
 import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
 

@@ -3,12 +3,12 @@ import {
   assertMatch,
   assertRejects,
   assertThrows,
-} from "https://deno.land/std@0.210.0/assert/mod.ts";
+} from "https://deno.land/std@0.211.0/assert/mod.ts";
 import {
   assertSpyCall,
   assertSpyCalls,
   stub,
-} from "https://deno.land/std@0.210.0/testing/mock.ts";
+} from "https://deno.land/std@0.211.0/testing/mock.ts";
 import type { Meta } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";

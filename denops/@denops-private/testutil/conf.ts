@@ -2,7 +2,7 @@ import {
   fromFileUrl,
   resolve,
   SEP,
-} from "https://deno.land/std@0.210.0/path/mod.ts";
+} from "https://deno.land/std@0.211.0/path/mod.ts";
 
 let conf: Config | undefined;
 

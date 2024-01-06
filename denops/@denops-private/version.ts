@@ -1,8 +1,8 @@
 import {
   dirname,
   fromFileUrl,
-} from "https://deno.land/std@0.204.0/path/mod.ts";
-import { parse, SemVer } from "https://deno.land/std@0.204.0/semver/mod.ts";
+} from "https://deno.land/std@0.211.0/path/mod.ts";
+import { parse, SemVer } from "https://deno.land/std@0.211.0/semver/mod.ts";
 
 const decoder = new TextDecoder();
 
