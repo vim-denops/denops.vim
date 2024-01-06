@@ -3,7 +3,7 @@ import {
   assertEquals,
   assertInstanceOf,
 } from "https://deno.land/std@0.211.0/assert/mod.ts";
-import { is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
+import { is } from "https://deno.land/x/unknownutil@v3.13.0/mod.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 
 Deno.test("errorSerializer", async (t) => {

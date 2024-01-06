@@ -1,4 +1,4 @@
-import { is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
+import { is } from "https://deno.land/x/unknownutil@v3.13.0/mod.ts";
 import {
   fromErrorObject,
   isErrorObject,

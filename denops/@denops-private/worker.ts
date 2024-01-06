@@ -2,7 +2,7 @@ import {
   readableStreamFromWorker,
   writableStreamFromWorker,
 } from "https://deno.land/x/workerio@v3.1.0/mod.ts";
-import { ensure } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
+import { ensure } from "https://deno.land/x/unknownutil@v3.13.0/mod.ts";
 import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
 import { usingResource } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import type { HostConstructor } from "./host.ts";

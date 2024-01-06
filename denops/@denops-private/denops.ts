@@ -4,7 +4,7 @@ import type {
   Dispatcher,
   Meta,
 } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.13.0/mod.ts";
 import { BatchError } from "https://deno.land/x/denops_core@v5.0.0/mod.ts";
 import type { Host as HostOrigin } from "./host.ts";
 import type { Service as ServiceOrigin } from "./service.ts";
