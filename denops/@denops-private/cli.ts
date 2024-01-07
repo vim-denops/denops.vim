@@ -2,7 +2,7 @@ import {
   readableStreamFromWorker,
   writableStreamFromWorker,
 } from "https://deno.land/x/workerio@v3.1.0/mod.ts";
-import { parse } from "https://deno.land/std@0.211.0/flags/mod.ts";
+import { parseArgs } from "https://deno.land/std@0.211.0/cli/parse_args.ts";
 
 const script = new URL("./worker.ts", import.meta.url);
 
@@ -35,7 +35,7 @@ async function handleConn(
 }
 
 async function main(): Promise<void> {
-  const { hostname, port, quiet, identity } = parse(Deno.args, {
+  const { hostname, port, quiet, identity } = parseArgs(Deno.args, {
     string: ["hostname", "port"],
     boolean: ["quiet", "identity"],
   });
