@@ -13,6 +13,7 @@ function! denops#_internal#rpc#nvim#connect(addr, ...) abort
         \ '_id': l:id,
         \ '_on_close': l:options.on_close,
         \}
+  call luaeval('require("denops")._set_channel(_A[1])', [l:id])
   let l:chan._healthcheck_timer = timer_start(
         \ g:denops#_internal#rpc#nvim#healthcheck_interval,
         \ funcref('s:healthcheck', [l:chan]),
