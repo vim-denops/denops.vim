@@ -36,11 +36,11 @@ export class Service implements Disposable {
     this.meta = meta;
   }
 
-  load(
+  async load(
     name: string,
     script: string,
     suffix = "",
-  ): void {
+  ): Promise<void> {
     const plugin = this.#plugins.get(name);
     if (plugin) {
       if (this.meta.mode === "debug") {
@@ -48,12 +48,20 @@ export class Service implements Disposable {
       }
       return;
     }
+    await this.host.call(
+      "execute",
+      `doautocmd <nomodeline> User DenopsSystemPluginWorkerPre:${name}`,
+    );
     const worker = new Worker(
       new URL(workerScript, import.meta.url).href,
       {
         name,
         type: "module",
       },
+    );
+    await this.host.call(
+      "execute",
+      `doautocmd <nomodeline> User DenopsSystemPluginWorkerPost:${name}`,
     );
     const scriptUrl = resolveScriptUrl(script);
     worker.postMessage({

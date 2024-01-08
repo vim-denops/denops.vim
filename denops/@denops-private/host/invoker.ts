@@ -12,7 +12,9 @@ export class Invoker {
     name: string,
     script: string,
   ): void {
-    this.#service.load(name, script);
+    this.#service.load(name, script).catch((err) => {
+      console.error(`Failed to load plugin '${name}`, err);
+    });
   }
 
   reload(

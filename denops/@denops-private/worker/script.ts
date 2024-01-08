@@ -71,8 +71,8 @@ async function main(
     },
   });
   try {
-    const mod = await import(scriptUrl);
     await emit(denops, `DenopsSystemPluginPre:${worker.name}`);
+    const mod = await import(scriptUrl);
     await mod.main(denops);
     await emit(denops, `DenopsSystemPluginPost:${worker.name}`);
     await session.wait();
