@@ -141,14 +141,9 @@ function! s:find_plugin(plugin) abort
   throw printf('No denops plugin for "%s" exists', a:plugin)
 endfunction
 
-function! s:DenopsSystemPluginPre() abort
-  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginPre:\zs.*')
-  execute printf('doautocmd <nomodeline> User DenopsPluginPre:%s', l:plugin)
-endfunction
-
-function! s:DenopsSystemPluginPost() abort
-  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginPost:\zs.*')
-  execute printf('doautocmd <nomodeline> User DenopsPluginPost:%s', l:plugin)
+function! s:relay_autocmd(name) abort
+  let l:plugin = matchstr(expand('<amatch>'), '^[^:]\+:\zs.*')
+  execute printf('doautocmd <nomodeline> User %s:%s', a:name, l:plugin)
 endfunction
 
 function! s:DenopsSystemPluginFail() abort
@@ -172,8 +167,8 @@ endfunction
 
 augroup denops_autoload_plugin_internal
   autocmd!
-  autocmd User DenopsSystemPluginPre:* call s:DenopsSystemPluginPre()
-  autocmd User DenopsSystemPluginPost:* call s:DenopsSystemPluginPost()
+  autocmd User DenopsSystemPluginPre:* call s:relay_autocmd('DenopsPluginPre')
+  autocmd User DenopsSystemPluginPost:* call s:relay_autocmd('DenopsPluginPost')
   autocmd User DenopsSystemPluginFail:* call s:DenopsSystemPluginFail()
   autocmd User DenopsPluginPost:* ++nested call s:DenopsPluginPost()
   autocmd User DenopsClosed let s:loaded_plugins = {}
