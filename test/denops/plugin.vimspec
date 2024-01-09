@@ -1,0 +1,54 @@
+let s:dummy_script = GetResourcePath('test', 'denops', 'testdata', 'dummy.ts')
+
+Describe denops#plugin
+  Before all
+    call denops#server#restart()
+    call denops#server#wait()
+  End
+
+  Describe #is_loaded()
+    It returns 0 when the plugins is not registered
+      let name = GetDummyName()
+      Assert Equals(denops#plugin#is_loaded(name), 0)
+    End
+
+    It returns 0 when the plugins is registered but not loaded
+      let name = GetDummyName()
+      call denops#plugin#register(name, s:dummy_script)
+      Assert Equals(denops#plugin#is_loaded(name), 0)
+    End
+
+    It returns 1 when the plugins is registered and loaded
+      let name = GetDummyName()
+      call denops#plugin#register(name, s:dummy_script)
+      call denops#plugin#wait(name)
+      Assert Equals(denops#plugin#is_loaded(name), 1)
+    End
+
+    It returns 0 on DenopsPluginPre:{plugin} autocmd
+      let name = GetDummyName()
+      silent! unlet! g:ret
+      execute printf(
+            \ 'au User DenopsPluginPre:%s ++once let g:ret = denops#plugin#is_loaded("%s")',
+            \ name,
+            \ name,
+            \)
+      call denops#plugin#register(name, s:dummy_script)
+      Assert Equals(Wait({ -> has_key(g:, 'ret') }), 0)
+      Assert Equals(g:ret, 0)
+    End
+
+    It returns 1 on DenopsPluginPost:{plugin} autocmd
+      let name = GetDummyName()
+      silent! unlet! g:ret
+      execute printf(
+            \ 'au User DenopsPluginPost:%s ++once let g:ret = denops#plugin#is_loaded("%s")',
+            \ name,
+            \ name,
+            \)
+      call denops#plugin#register(name, s:dummy_script)
+      Assert Equals(Wait({ -> has_key(g:, 'ret') }), 0)
+      Assert Equals(g:ret, 1)
+    End
+  End
+End

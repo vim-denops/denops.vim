@@ -1,0 +1,27 @@
+let s:sep = has('win32') ? '\' : '/'
+let s:dummy_index = 0
+
+function! Wait(condition) abort
+  return denops#_internal#wait#for(1000, a:condition, 200)
+endfunction
+
+function! Join(...) abort
+  return join(a:000, s:sep)
+endfunction
+
+function! GetResourcePath(...) abort
+  let l:path = join([getcwd()] + a:000, s:sep)
+  if filereadable(l:path) || isdirectory(l:path)
+    return l:path
+  endif
+  throw 'Resource not found: ' . l:path
+endfunction
+
+function! GetDummyName() abort
+  let s:dummy_index += 1
+  return printf('dummy%d', s:dummy_index)
+endfunction
+
+let s:assert = themis#helper('assert')
+call themis#option('recursive', 1)
+call themis#helper('command').with(s:assert)
