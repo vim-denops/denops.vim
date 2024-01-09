@@ -1,0 +1,117 @@
+name: test_vim
+
+on:
+  schedule:
+    - cron: "0 7 * * 0"
+  push:
+    paths:
+      - "**.md"
+      - "**.ts"
+      - "**.vim"
+      - ".github/workflows/test.yml"
+      - "deno.jsonc"
+  pull_request:
+    paths:
+      - "**.md"
+      - "**.ts"
+      - "**.vim"
+      - ".github/workflows/test.yml"
+      - "deno.jsonc"
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -eo pipefail {0}
+
+jobs:
+  check:
+    strategy:
+      matrix:
+        runner:
+          - ubuntu-latest
+        version:
+          - "1.x"
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - run: git config --global core.autocrlf false
+        if: runner.os == 'Windows'
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: "${{ matrix.version }}"
+      - name: Lint check
+        run: deno lint
+      - name: Format check
+        run: deno fmt --check
+      - name: Type check
+        run: deno task check
+
+  test:
+    strategy:
+      matrix:
+        runner:
+          - windows-latest
+          - macos-latest
+          - ubuntu-latest
+        version:
+          - "1.32.x"
+          - "1.x"
+        host_version:
+          - vim: "v9.0.1499"
+            nvim: "v0.8.0"
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - run: git config --global core.autocrlf false
+        if: runner.os == 'Windows'
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: thinca/vim-themis
+          path: vim-themis
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: "${{ matrix.version }}"
+      - uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          version: "${{ matrix.host_version.vim }}"
+      - name: Check Vim
+        run: |
+          echo ${DENOPS_TEST_VIM}
+          ${DENOPS_TEST_VIM} --version
+        env:
+          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
+      - uses: rhysd/action-setup-vim@v1
+        id: nvim
+        with:
+          neovim: true
+          version: "${{ matrix.host_version.nvim }}"
+      - name: Check Neovim
+        run: |
+          echo ${DENOPS_TEST_NVIM}
+          ${DENOPS_TEST_NVIM} --version
+        env:
+          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
+      - name: Test (Vim)
+        env:
+          CI: 1
+          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
+          # XXX:
+          # Overwrite %TMP% to point a correct temp directory.
+          # Note that %TMP% only affects value of 'tempname()' in Windows.
+          # https://github.community/t5/GitHub-Actions/TEMP-is-broken-on-Windows/m-p/30432#M427
+          TMP: 'C:\Users\runneradmin\AppData\Local\Temp'
+        run: |
+          ./vim-themis/bin/themis
+        timeout-minutes: 5
+      - name: Test (Neovim)
+        env:
+          CI: 1
+          THEMIS_VIM: ${{ steps.nvim.outputs.executable }}
+          # XXX:
+          # Overwrite %TMP% to point a correct temp directory.
+          # Note that %TMP% only affects value of 'tempname()' in Windows.
+          # https://github.community/t5/GitHub-Actions/TEMP-is-broken-on-Windows/m-p/30432#M427
+          TMP: 'C:\Users\runneradmin\AppData\Local\Temp'
+        run: |
+          ./vim-themis/bin/themis
+        timeout-minutes: 5
