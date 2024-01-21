@@ -361,12 +361,12 @@ denops#callback#register({callback}[, {options}])
 			Default: |v:false|
 >
 	" Persistent callback
-	let id = denops#call#register({ a, b -> a + b })
+	let id = denops#callback#register({ a, b -> a + b })
 	let ret1 = denops#callback#call(id, 1, 2)
 	let ret2 = denops#callback#call(id, 2, 3)
 
 	" One-time callback
-	let id = denops#call#register({ a, b -> a + b }, { 'once': v:true })
+	let id = denops#callback#register({ a, b -> a + b }, { 'once': v:true })
 	let ret1 = denops#callback#call(id, 1, 2)
 <
 						*denops#callback#unregister()*
