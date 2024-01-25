@@ -1,9 +1,9 @@
 {
   "lock": false,
   "tasks": {
-    "test": "deno test --unstable -A --parallel --shuffle --doc --coverage=.coverage",
-    "check": "deno check --unstable $(find . -name '*.ts')",
-    "coverage": "deno coverage --unstable .coverage",
+    "test": "deno test -A --parallel --shuffle --doc --coverage=.coverage",
+    "check": "deno check $(find . -name '*.ts')",
+    "coverage": "deno coverage .coverage",
     "upgrade": "deno run -q -A https://deno.land/x/molt@0.11.0/cli.ts ./**/*.ts",
     "upgrade:commit": "deno task -q upgrade --commit --prefix :package: --pre-commit=fmt"
   }
