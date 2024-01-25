@@ -105,7 +105,7 @@ VARIABLE						*denops-variable*
 
 *g:denops#server#deno_args*
 	Program arguments of Deno for starting a server.
-	Default: ['-q', '--no-lock', '--unstable', '-A']
+	Default: ['-q', '--no-lock', '-A']
 
 *g:denops#server#restart_delay*
 	Restart delay in milliseconds to avoid #136.

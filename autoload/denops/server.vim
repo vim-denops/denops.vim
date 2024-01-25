@@ -151,7 +151,6 @@ augroup END
 call denops#_internal#conf#define('denops#server#deno_args', [
       \ '-q',
       \ '--no-lock',
-      \ '--unstable',
       \ '-A',
       \])
 
