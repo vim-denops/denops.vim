@@ -2,7 +2,7 @@ import {
   readableStreamFromWorker,
   writableStreamFromWorker,
 } from "https://deno.land/x/workerio@v3.1.0/mod.ts";
-import { parseArgs } from "https://deno.land/std@0.211.0/cli/parse_args.ts";
+import { parseArgs } from "https://deno.land/std@0.214.0/cli/parse_args.ts";
 
 const script = new URL("./worker.ts", import.meta.url);
 
