@@ -1,26 +1,27 @@
-import { is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
+import { is } from "https://deno.land/x/unknownutil@v3.13.0/mod.ts";
+import {
+  fromErrorObject,
+  isErrorObject,
+  toErrorObject,
+  tryOr,
+} from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
 
 export function errorSerializer(err: unknown): unknown {
   if (err instanceof Error) {
-    return JSON.stringify({
-      name: err.name,
-      message: err.message || String(err),
-      stack: err.stack,
-    });
+    return JSON.stringify(toErrorObject(err));
+  } else if (typeof err === "string") {
+    return err;
   }
-  return String(err);
+  return JSON.stringify(err);
 }
 
 export function errorDeserializer(err: unknown): unknown {
   if (is.String(err)) {
-    try {
-      const obj = JSON.parse(err);
-      if (is.Record(obj) && is.String(obj.message)) {
-        return Object.assign(new Error(obj.message), obj);
-      }
-    } catch {
-      // Do NOTHING
+    const obj = tryOr(() => JSON.parse(err), undefined);
+    if (isErrorObject(obj)) {
+      return fromErrorObject(obj);
     }
+    return obj;
   }
   return err;
 }

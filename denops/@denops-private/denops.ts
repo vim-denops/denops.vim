@@ -1,62 +1,57 @@
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
-import {
-  BatchError,
+import type {
   Context,
   Denops,
   Dispatcher,
   Meta,
-} from "../@denops/mod.ts";
-
-type Session = {
-  dispatcher: Dispatcher;
-  call(method: string, ...params: unknown[]): Promise<unknown>;
-  notify(method: string, ...params: unknown[]): Promise<void>;
-};
+} from "https://deno.land/x/denops_core@v6.0.4/mod.ts";
+import { BatchError } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.13.0/mod.ts";
+import type { Host as HostOrigin } from "./host.ts";
+import type { Service as ServiceOrigin } from "./service.ts";
 
 const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
 
+export type Host = Pick<HostOrigin, "redraw" | "call" | "batch">;
+
+export type Service = Pick<ServiceOrigin, "dispatch">;
+
 export class DenopsImpl implements Denops {
-  readonly context: Record<string | number | symbol, unknown> = {};
   readonly name: string;
   readonly meta: Meta;
-  #session: Session;
+  readonly context: Record<PropertyKey, unknown> = {};
+
+  dispatcher: Dispatcher = {};
+
+  #host: Host;
+  #service: Service;
 
   constructor(
     name: string,
     meta: Meta,
-    session: Session,
+    host: Host,
+    service: Service,
   ) {
     this.name = name;
     this.meta = meta;
-    this.#session = session;
+    this.#host = host;
+    this.#service = service;
   }
 
-  get dispatcher(): Dispatcher {
-    return this.#session.dispatcher;
-  }
-
-  set dispatcher(dispatcher: Dispatcher) {
-    this.#session.dispatcher = dispatcher;
-  }
-
-  async redraw(force?: boolean): Promise<void> {
-    await this.#session.call("redraw", force);
+  redraw(force?: boolean): Promise<void> {
+    return this.#host.redraw(force);
   }
 
   call(fn: string, ...args: unknown[]): Promise<unknown> {
-    return this.#session.call("call", fn, ...normArgs(args));
+    return this.#host.call(fn, ...normArgs(args));
   }
 
   async batch(
-    ...calls: [string, ...unknown[]][]
+    ...calls: (readonly [string, ...unknown[]])[]
   ): Promise<unknown[]> {
     const normCalls = calls.map(([fn, ...args]) =>
       [fn, ...normArgs(args)] as const
     );
-    const result = await this.#session.call(
-      "batch",
-      ...normCalls,
-    );
+    const result = await this.#host.batch(...normCalls);
     const [results, errmsg] = ensure(result, isBatchReturn);
     if (errmsg !== "") {
       throw new BatchError(errmsg, results);
@@ -65,11 +60,11 @@ export class DenopsImpl implements Denops {
   }
 
   async cmd(cmd: string, ctx: Context = {}): Promise<void> {
-    await this.#session.call("call", "denops#api#cmd", cmd, ctx);
+    await this.#host.call("denops#api#cmd", cmd, ctx);
   }
 
   eval(expr: string, ctx: Context = {}): Promise<unknown> {
-    return this.#session.call("call", "denops#api#eval", expr, ctx);
+    return this.#host.call("denops#api#eval", expr, ctx);
   }
 
   dispatch(
@@ -77,7 +72,7 @@ export class DenopsImpl implements Denops {
     fn: string,
     ...args: unknown[]
   ): Promise<unknown> {
-    return this.#session.call("dispatch", name, fn, ...args);
+    return this.#service.dispatch(name, fn, args);
   }
 }
 

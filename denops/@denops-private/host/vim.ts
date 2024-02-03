@@ -1,30 +1,15 @@
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.11.0/mod.ts";
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.13.0/mod.ts";
 import {
   Client,
   Message,
   Session,
-} from "https://deno.land/x/vim_channel_command@v2.0.0/mod.ts";
-import { Invoker, isInvokerMethod } from "./invoker.ts";
-import { Host } from "./base.ts";
-
-const isCallReturn = is.TupleOf([is.Unknown, is.String] as const);
-
-const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
-
-const isVoidMessage = is.TupleOf([is.LiteralOf("void")] as const);
-
-const isInvokeMessage = is.TupleOf(
-  [
-    is.LiteralOf("invoke"),
-    is.String,
-    is.Array,
-  ] as const,
-);
+} from "https://deno.land/x/vim_channel_command@v3.0.0/mod.ts";
+import { formatCall, Host, invoke, Service } from "../host.ts";
 
 export class Vim implements Host {
   #session: Session;
   #client: Client;
-  #invoker?: Invoker;
+  #service?: Service;
 
   constructor(
     reader: ReadableStream<Uint8Array>,
@@ -33,7 +18,7 @@ export class Vim implements Host {
     this.#session = new Session(reader, writer);
     this.#session.onMessage = (message: Message) => {
       const [msgid, expr] = message;
-      dispatch(this.#invoker, expr)
+      this.#dispatch(expr)
         .then((result) => [result, null] as const)
         .catch((error) => [null, error] as const)
         .then(([result, error]) => {
@@ -59,22 +44,50 @@ export class Vim implements Host {
       fn,
       args,
     );
+    if (result === "ERROR") {
+      // Not sure why but Vim just returns "ERROR" when 'denops.vim' is not in 'runtimepath'.
+      // This makes debugging nightmare so we throw an error with better message here.
+      throw new Error(
+        `Vim just returns "ERROR" for 'denops#api#vim#call()'. Check if 'denops.vim' exist in 'runtimepath' properly`,
+      );
+    }
     const [ret, err] = ensure(result, isCallReturn);
     if (err !== "") {
-      throw new Error(`Failed to call '${fn}(${args.join(", ")})': ${err}`);
+      throw new Error(`Failed to call ${formatCall(fn, ...args)}: ${err}`);
     }
     return ret;
   }
 
   async batch(
     ...calls: (readonly [string, ...unknown[]])[]
-  ): Promise<readonly [unknown[], string]> {
+  ): Promise<[unknown[], string]> {
     const result = await this.#client.call("denops#api#vim#batch", calls);
-    return ensure(result, isBatchReturn);
+    if (result === "ERROR") {
+      // Not sure why but Vim just returns "ERROR" when 'denops.vim' is not in 'runtimepath'.
+      // This makes debugging nightmare so we throw an error with better message here.
+      throw new Error(
+        `Vim just returns "ERROR" for 'denops#api#vim#batch()'. Check if 'denops.vim' exist in 'runtimepath' properly`,
+      );
+    }
+    const [ret, err] = ensure(result, isBatchReturn) as [unknown[], string];
+    if (err) {
+      const index = ret.length;
+      return [
+        ret,
+        `Failed to call ${formatCall(...calls[index])}: ${err}`,
+      ];
+    }
+    return [ret, ""];
   }
 
-  register(invoker: Invoker): void {
-    this.#invoker = invoker;
+  notify(fn: string, ...args: unknown[]): void {
+    this.#client.callNoReply(fn, ...args);
+  }
+
+  init(service: Service): Promise<void> {
+    this.#service = service;
+    this.#service.bind(this);
+    return Promise.resolve();
   }
 
   waitClosed(): Promise<void> {
@@ -88,27 +101,34 @@ export class Vim implements Host {
       // Do nothing
     }
   }
-}
 
-async function dispatch(
-  invoker: Invoker | undefined,
-  expr: unknown,
-): Promise<unknown> {
-  if (isVoidMessage(expr)) {
-    // Do nothing
-  } else if (isInvokeMessage(expr)) {
-    if (invoker === undefined) {
-      throw new Error("Invoker is not registered");
+  async #dispatch(expr: unknown): Promise<unknown> {
+    if (isVoidMessage(expr)) {
+      // Do nothing
+      return;
+    } else if (isInvokeMessage(expr)) {
+      if (!this.#service) {
+        throw new Error("No service is registered in the host");
+      }
+      const [_, method, args] = expr;
+      return await invoke(this.#service, method, args);
     }
-    const [_, method, args] = expr;
-    if (!isInvokerMethod(method)) {
-      throw new Error(`Method '${method}' is not defined in the invoker`);
-    }
-    // deno-lint-ignore no-explicit-any
-    return await (invoker[method] as any)(...args);
-  } else {
     throw new Error(
       `Unexpected JSON channel message is received: ${JSON.stringify(expr)}`,
     );
   }
 }
+
+const isCallReturn = is.TupleOf([is.Unknown, is.String] as const);
+
+const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
+
+const isVoidMessage = is.TupleOf([is.LiteralOf("void")] as const);
+
+const isInvokeMessage = is.TupleOf(
+  [
+    is.LiteralOf("invoke"),
+    is.String,
+    is.Array,
+  ] as const,
+);

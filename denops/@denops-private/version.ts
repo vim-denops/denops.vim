@@ -1,30 +1,26 @@
 import {
   dirname,
   fromFileUrl,
-} from "https://deno.land/std@0.204.0/path/mod.ts";
-import { parse, SemVer } from "https://deno.land/std@0.204.0/semver/mod.ts";
+} from "https://deno.land/std@0.211.0/path/mod.ts";
+import { parse, SemVer } from "https://deno.land/std@0.211.0/semver/mod.ts";
 
 const decoder = new TextDecoder();
 
-export async function getVersion(): Promise<SemVer> {
+export async function getVersionOr<T>(fallback: T): Promise<SemVer | T> {
   const cwd = dirname(fromFileUrl(import.meta.url));
   const command = new Deno.Command("git", {
     args: ["describe", "--tags", "--always"],
     cwd,
     stdin: "null",
     stdout: "piped",
-    stderr: "piped",
+    stderr: "null",
   });
-  const { success, stdout, stderr } = await command.output();
-  if (!success) {
-    throw new Error(`failed to estimate version: ${decoder.decode(stderr)}`);
-  }
-  return parse(decoder.decode(stdout).trim());
-}
-
-export async function getVersionOr<T>(fallback: T): Promise<SemVer | T> {
+  const { success, stdout } = await command.output();
   try {
-    return await getVersion();
+    if (!success) {
+      return fallback;
+    }
+    return parse(decoder.decode(stdout).trim());
   } catch {
     return fallback;
   }

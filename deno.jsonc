@@ -1,10 +1,11 @@
 {
   "lock": false,
   "tasks": {
-    "test": "deno test -A --parallel --shuffle --doc --coverage=.coverage",
-    "check": "deno check $(find . -name '*.ts')",
-    "coverage": "deno coverage .coverage",
-    "upgrade": "deno run -q -A https://deno.land/x/molt@0.11.0/cli.ts ./**/*.ts",
+    "test": "deno test -A --parallel --shuffle --doc",
+    "test:coverage": "deno task test --coverage=.coverage",
+    "check": "deno check ./**/*.ts",
+    "coverage": "deno coverage .coverage --exclude=cli.ts --exclude=worker.ts --exclude=testdata/",
+    "upgrade": "deno run -q -A https://deno.land/x/molt@0.14.2/cli.ts ./**/*.ts",
     "upgrade:commit": "deno task -q upgrade --commit --prefix :package: --pre-commit=fmt"
   }
 }
