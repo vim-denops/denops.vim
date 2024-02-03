@@ -1,4 +1,4 @@
-*denops.txt*		An eco-system to write Vim/Neovim plugins in Deno
+*denops.txt*		An Ecosystem for Writing Vim/Neovim Plugins in Deno
 
 =============================================================================
 CONTENTS					*denops-contents*
@@ -15,11 +15,12 @@ INTERFACE				|denops-interface|
 =============================================================================
 INTRODUCTION					*denops-introduction*
 
-*denops.vim* (denops) is an eco-system to write plugins for Vim or Neovim in
-Deno.
+*denops.vim* (denops) is an ecosystem for writing plugins for Vim or Neovim
+using Deno.
 
-See denops.vim Wiki for learning how to write denops plugins.
+Visit the Denops Document or Wiki for guidance on creating denops plugins.
 
+https://vim-denops.github.io/denops-documentation/
 https://github.com/vim-denops/denops.vim/wiki
 
 
@@ -29,30 +30,37 @@ USAGE							*denops-usage*
 -----------------------------------------------------------------------------
 SHARED SERVER					*denops-shared-server*
 
-Normally, a Denops server is started for each Vim/Neovim instance, but there
-are cases where the process startup becomes a bottleneck and impairs usability.
+Typically, a Denops server starts for each Vim/Neovim instance, but there are
+scenarios where the process startup becomes a bottleneck, affecting usability.
 
-In such cases, launching a "Shared server" and connecting to it will allow all
-Vim/Neovim instances to use a shared server, thus avoiding the bottleneck of
-process launches and possibly improving usability.
+To address this, launching a "Shared server" and connecting to it allows all
+Vim/Neovim instances to utilize a shared server, eliminating the process
+launch bottleneck and potentially improving usability.
 
 To start the shared server, execute the following command in the denops.vim
-repository top
+repository's top directory:
 >
 	deno run -A --no-lock ./denops/@denops-private/cli.ts
 <
-Then specify the server address in |g:denops_server_addr| as follows
+
+Then specify the server address in |g:denops_server_addr| as follows:
 >
 	let g:denops_server_addr = '127.0.0.1:32123'
 <
-If you'd like to specify hostname and port, use "--hostname" and "--port"
-command arguments as follows
+
+If you want to specify a hostname and port, use the "--hostname" and "--port"
+command arguments as follows:
 >
 	deno run -A --no-lock \
 		./denops/@denops-private/cli.ts \
 		--hostname=0.0.0.0 \
 		--port 12345
 <
+Note that there is a plugin that install startup scripts of the shared server
+for each platform. See the following repository for details:
+
+https://github.com/vim-denops/denops-shared-server.vim
+
 
 =============================================================================
 INTERFACE						*denops-interface*
@@ -61,9 +69,9 @@ INTERFACE						*denops-interface*
 VARIABLE						*denops-variable*
 
 *g:denops_disable_version_check*
-	Disable version check on startup. Use it to forcibly enable denops on
-	non supported versions of Vim/Neovim. Do not report any errors/issues
-	occurred on non supported versions.
+	Disables version check on startup. Use it to forcibly enable denops on
+	unsupported versions of Vim/Neovim. Do not report any errors/issues
+	on non-supported versions.
 	Default: 0
 
 *g:denops_server_addr*
@@ -73,30 +81,28 @@ VARIABLE						*denops-variable*
 	Default: 0
 
 *g:denops#disabled*
-	Set 1 to disable denops.
+	Set to 1 to disable denops.
 	Default: 0
 
 *g:denops#deno*
-	Executable program of Deno. Use it to specify executable program of
-	Deno if 'deno' is not in PATH.
+	Executable program of Deno. Use it to specify the executable program
+	of Deno if 'deno' is not in PATH.
 	Default: 'deno'
 
 *g:denops#deno_dir*
 	Cache directory of Deno. If unspecified, the cache directory is
-        determined by the DENO_DIR environment variable or internally by
-        'deno'.
+	determined by the DENO_DIR environment variable or internally by
+	'deno'.
 	Default: |v:null|
 
 *g:denops#debug*
-	Set 1 to enable debug mode. In debug mode, the additional debug
+	Set to 1 to enable debug mode. In debug mode, additional debug
 	messages of denops itself will be shown.
-	This variable must be configured prior to the denops initialization.
-
+	This variable must be configured prior to denops initialization.
 	Default: 0
 
 *g:denops#disable_deprecation_warning_message*
-	Set 1 to disable deprecation warning messages.
-
+	Set to 1 to disable deprecation warning messages.
 	Default: 0
 
 *g:denops#server#deno*
@@ -113,21 +119,21 @@ VARIABLE						*denops-variable*
 	Default: 100
 
 *g:denops#server#restart_interval*
-	Interval in milliseconds to avoid infinity errors. Denops will reset
+	Interval in milliseconds to avoid infinite errors. Denops will reset
 	internal counter when the process keeps running more than this
 	interval.
 	Default: 10000
 
 *g:denops#server#restart_threshold*
-	The number of restart count within |g:denops#server#restart_interval|.
+	The number of restart counts within |g:denops#server#restart_interval|.
 	Default: 3
 
 *g:denops#server#reconnect_interval*
-	Interval in milliseconds before retry connection to the server.
+	Interval in milliseconds before retrying connection to the server.
 	Default: 100
 
 *g:denops#server#reconnect_threshold*
-	The number of reconnect count on connection failure.
+	The number of reconnect counts on connection failure.
 	Default: 3
 
 *g:denops#server#wait_interval*
@@ -151,31 +157,32 @@ FUNCTION						*denops-function*
 
 						*denops#notify()*
 denops#notify({plugin}, {method}, {params})
-	Call API {method} of {plugin} with {params} and return immediately
-	without waiting a result.
+	Calls API {method} of {plugin} with {params} and returns immediately
+	without waiting for a result.
 	Use |denops#request()| instead if you need a result.
-        Note: It does not redraw in Vim environment.  You need to execute
-        |:redraw| manually if it is needed.
+        Note: It does not redraw in the Vim environment. Manually execute
+        |:redraw| if needed.
 
 						*denops#request()*
 denops#request({plugin}, {method}, {params})
-	Call API {method} of {plugin} with {params} and wait a result and
-	return it.
+	Calls API {method} of {plugin} with {params} and waits for a result,
+	then returns it.
 	Use |denops#notify()| instead if you don't need a result.
 	Use |denops#request_async()| instead if you need a result
 	asynchronously.
 
 						*denops#request_async()*
 denops#request_async({plugin}, {method}, {params}, {success}, {failure})
-	Call API {method} of {plugin} with {params} and return immediately.
-	Once the call success, the {success} callback is called with a result.
-	Otherwise the {failure} callback is called with an error.
+	Calls API {method} of {plugin} with {params} and returns immediately.
+	Once the call succeeds, the {success} callback is called with a
+	result.
+	Otherwise, the {failure} callback is called with an error.
 	Use |denops#notify()| instead if you don't need a result.
 	Use |denops#request()| instead if you need a result synchronously.
 
 	Note that it uses |denops#callback#register()| with "once" options to
-	register {success} and {failure} internally. So that developers MUST
-	use |lambda| expression to always create new fresh unnamed functions.
+	register {success} and {failure} internally. So developers MUST
+	use |lambda| expressions to always create new fresh unnamed functions.
 >
 	" DO NOT
 	call denops#request_async(
@@ -193,7 +200,7 @@ denops#request_async({plugin}, {method}, {params}, {success}, {failure})
 <
 						*denops#server#start()*
 denops#server#start()
-	Start a denops server process and connect to the channel. It does
+	Starts a denops server process and connects to the channel. It does
 	nothing when the server is already started.
 
 	It is automatically called 1) on |VimEnter| autocmd when denops is
@@ -205,38 +212,38 @@ denops#server#start()
 
 						*denops#server#stop()*
 denops#server#stop()
-	Stop a denops server. It does nothing when the server is not started
+	Stops a denops server. It does nothing when the server is not started
 	yet.
 
 						*denops#server#restart()*
 denops#server#restart()
-	Restart a denops server.
+	Restarts a denops server.
 
 						*denops#server#connect()*
 denops#server#connect()
-	Connect to a |denops-shared-server| channel. It does nothing when the
+	Connects to a |denops-shared-server| channel. It does nothing when the
 	channel is already established.
 
 	It is automatically called 1) on |VimEnter| autocmd when denops is
 	in |runtimepath| during Vim startup, 2) immediately when denops is
 	added to |runtimepath| after Vim startup when |g:denops_server_addr|
-	is specified. Otherwise it echo errors.
+	is specified. Otherwise, it echoes errors.
 
 	Note that the channel is automatically re-established when the channel
 	is closed unexpectedly.
 
 						*denops#server#close()*
 denops#server#close()
-	Close the channel. It does nothing when the channel is not established
-	yet.
+	Closes the channel. It does nothing when the channel is not
+	established yet.
 
 						*denops#server#reconnect()*
 denops#server#reconnect()
-	Reconnect to a denops shared server.
+	Reconnects to a denops shared server.
 
 						*denops#server#status()*
 denops#server#status()
-	Return a current server status from one of the followings.
+	Returns the current server status, which can be one of the following:
 
 	Status		Description~
 	"stopped"	Server is stopped.
@@ -249,9 +256,9 @@ denops#server#status()
 
 						*denops#server#wait()*
 denops#server#wait([{options}])
-	Wait synchronously until a |DenopsReady| autocmd is fired. It returns
+	Waits synchronously until a |DenopsReady| autocmd is fired. It returns
 	immediately when the autocmd is already fired.
-	It returns -1 if it timed out, -2 if the server is not started or
+	It returns -1 if it times out, -2 if the server is not started or
 	interrupted.
 	Developers need to consider this return value to decide whether to
 	continue with the subsequent process.
@@ -266,20 +273,21 @@ denops#server#wait([{options}])
 
 						*denops#server#wait_async()*
 denops#server#wait_async({callback})
-	Wait asynchronously until a |DenopsReady| autocmd is fired and invoke
+	Waits asynchronously until a |DenopsReady| autocmd is fired and invokes
 	a {callback}. It invokes the {callback} immediately when the autocmd
 	is already fired. If this function is called multiple times, callbacks
 	registered are called in order of registration.
 
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({plugin})
-	Return 1 if a {plugin} plugin is already loaded. Otherwise return 0.
+	Returns 1 if a {plugin} plugin is already loaded. Otherwise, returns
+	0.
 
 						*denops#plugin#wait()*
 denops#plugin#wait({plugin}[, {options}])
-	Wait synchronously until a {plugin} plugin is loaded. It returns
+	Waits synchronously until a {plugin} plugin is loaded. It returns
 	immediately when the {plugin} plugin is already loaded.
-	It returns -1 if it timed out, -2 if the server is not yet ready or
+	It returns -1 if it times out, -2 if the server is not yet ready or
 	interrupted, or -3 if the plugin initialization failed.
 	Developers need to consider this return value to decide whether to
 	continue with the subsequent process.
@@ -294,18 +302,18 @@ denops#plugin#wait({plugin}[, {options}])
 
 						*denops#plugin#wait_async()*
 denops#plugin#wait_async({plugin}, {callback})
-	Wait asynchronously until a {plugin} plugin is loaded and invoke a
+	Waits asynchronously until a {plugin} plugin is loaded and invokes a
 	{callback}. It invokes the {callback} immediately when the {plugin}
 	plugin is already loaded. If this function is called multiple times
-	for same {plugin} plugin, callbacks registered for the plugin are
+	for the same {plugin} plugin, callbacks registered for the plugin are
 	called in order of registration.
 
 						*denops#plugin#register()*
 denops#plugin#register({plugin}[, {script}[, {options}]])
 	DEPRECATED: Use |denops#plugin#load()| instead.
 
-	Developers who would like to support previous denops should fallback
-	to this function like
+	Developers who would like to support previous denops versions should
+	fallback to this function like
 >
 	try
 	  call denops#plugin#load(
@@ -325,39 +333,41 @@ denops#plugin#register({plugin}[, {script}[, {options}]])
 
 						*denops#plugin#discover()*
 denops#plugin#discover()
-	Discover denops plugins from |runtimepath| and load.
+	Discovers denops plugins from |runtimepath| and loads them.
 	It gathers "main.ts" under "denops/*" directories under |runtimepath|
-	if the middle directory does not starts from "@".
+	if the middle directory does not start with "@".
 	This is automatically called on |User| |DenopsReady| autocmd invoked by
 	|denops#server#start()|.
 
 						*denops#plugin#load()*
 denops#plugin#load({plugin}, {script})
-	Load denops plugin. Use this function to load denops plugins that are
-	not discovered by |denops#plugin#discover()|.
+	Loads a denops plugin. Use this function to load denops plugins that
+	are not discovered by |denops#plugin#discover()|.
 	It invokes |User| |DenopsPluginPre|:{plugin} just before denops
-	execute a "main" function of the plugin and |User|
-	|DenopsPluginPost|:{plugin} just after denops execute a "main"
+	executes a "main" function of the plugin and |User|
+	|DenopsPluginPost|:{plugin} just after denops executes a "main"
 	function of the plugin.
 
 						*denops#plugin#reload()*
 denops#plugin#reload({plugin})
-	Reload denops plugin.
+	Reloads a denops plugin.
 
 						*denops#plugin#check_type()*
 denops#plugin#check_type([{plugin}])
-	Run Deno's type check feature for {plugin} or all registered plugins.
-	The result of check will be displayed in |message-history|.
+	Runs Deno's type check feature for {plugin} or all registered plugins.
+	The result of the check will be displayed in |message-history|.
 
 						*denops#callback#register()*
 denops#callback#register({callback}[, {options}])
-	Register {callback} to internal callback map as an anonymous function
-	and return an unique {id} to call the {callback} later.
+	Registers {callback} to the internal callback map as an
+
+ anonymous function
+	and returns a unique {id} to call the {callback} later.
 	The following attributes are available on {options}.
 
 	"once"		|v:true| to register the callback as a one-time
-			anonymous function which will be removed when the
-			callback has called.
+			anonymous function that will be removed when the
+			callback has been called.
 			Default: |v:false|
 >
 	" Persistent callback
@@ -366,25 +376,29 @@ denops#callback#register({callback}[, {options}])
 	let ret2 = denops#callback#call(id, 2, 3)
 
 	" One-time callback
-	let id = denops#callback#register({ a, b -> a + b }, { 'once': v:true })
+	let id = denops#callback#register(
+	      \ { a, b -> a + b },
+	      \ { 'once': v:true }
+	      \)
 	let ret1 = denops#callback#call(id, 1, 2)
 <
+
 						*denops#callback#unregister()*
 denops#callback#unregister({id})
-	Unregister a callback of {id} from internal callback map. It does
+	Unregisters a callback of {id} from the internal callback map. It does
 	nothing when no {id} callback exists.
 
 						*denops#callback#call()*
 denops#callback#call({id}[, {args}...])
-	Find a callback of {id} from internal callback map and call it with
-	given {args} and return a result. It throw an error when no {id}
-	callback exists.
+	Finds a callback of {id} from the internal callback map and calls it
+	with given {args}, then returns a result. It throws an error when no
+	{id} callback exists.
 	Note that the callback called is automatically removed from the
-	internal callback map if "once" option had specified.
+	internal callback map if the "once" option had been specified.
 
 						*denops#callback#clear()*
 denops#callback#clear()
-	Clear an internal callback map.
+	Clears the internal callback map.
 
 
 -----------------------------------------------------------------------------
@@ -392,7 +406,7 @@ AUTOCMD						*denops-autocmd*
 
 DenopsReady						*DenopsReady*
 	Fired when a connection (channel) with Denops is established.
-	Note that this is not when all plug-ins are available.
+	Note that this is not when all plugins are available.
 
 DenopsClosed						*DenopsClosed*
 	Fired when the connection (channel) with Denops is broken.
