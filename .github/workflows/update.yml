@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - uses: denoland/setup-deno@v1.1.4
         with:
           deno-version: 1.x
       - name: Configure Git
@@ -38,9 +38,8 @@ jobs:
           path: ../body.md
       - name: Create a pull request
         if: steps.result.outputs.files_exists == 'true'
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.PA_TOKEN }}
           author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
           branch: automation/update-dependencies
           title: ${{ steps.title.outputs.content }}
