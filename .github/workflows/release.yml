@@ -16,7 +16,7 @@ jobs:
         repo:
           - vim-denops/denops-dockerfile
     steps:
-      - uses: benc-uk/workflow-dispatch@v1.1
+      - uses: benc-uk/workflow-dispatch@v1.2.2
         with:
           workflow: Build
           repo: ${{ matrix.repo }}

@@ -35,7 +35,7 @@ jobs:
       - run: git config --global core.autocrlf false
         if: runner.os == 'Windows'
       - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - uses: denoland/setup-deno@v1.1.4
         with:
           deno-version: "${{ matrix.version }}"
       - name: Lint check
@@ -63,7 +63,7 @@ jobs:
       - run: git config --global core.autocrlf false
         if: runner.os == 'Windows'
       - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - uses: denoland/setup-deno@v1.1.4
         with:
           deno-version: "${{ matrix.version }}"
       - uses: rhysd/action-setup-vim@v1
@@ -96,7 +96,8 @@ jobs:
         timeout-minutes: 5
       - run: |
           deno task coverage --lcov > coverage.lcov
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           os: ${{ runner.os }}
           files: ./coverage.lcov
+          token: ${{ secrets.CODECOV_TOKEN }}
