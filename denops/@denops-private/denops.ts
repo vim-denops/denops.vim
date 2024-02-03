@@ -3,7 +3,7 @@ import type {
   Denops,
   Dispatcher,
   Meta,
-} from "https://deno.land/x/denops_core@v6.0.4/mod.ts";
+} from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
 import { BatchError } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.13.0/mod.ts";
 import type { Host as HostOrigin } from "./host.ts";
