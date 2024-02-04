@@ -2,7 +2,6 @@ import type {
   Denops,
   Meta,
 } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
-import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import { toFileUrl } from "https://deno.land/std@0.217.0/path/mod.ts";
 import { toErrorObject } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
 import { DenopsImpl, Host } from "./denops.ts";
@@ -106,7 +105,7 @@ export class Service implements Disposable {
     }
   }
 
-  dispose(): void {
+  [Symbol.dispose](): void {
     this.#plugins.clear();
   }
 }

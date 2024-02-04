@@ -4,7 +4,6 @@ import {
 } from "https://deno.land/x/workerio@v3.1.0/mod.ts";
 import { ensure } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
 import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
-import { usingResource } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import type { HostConstructor } from "./host.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
@@ -43,46 +42,44 @@ async function main(): Promise<void> {
   // Detect host from payload
   const hostCtor = await detectHost(detector);
 
-  await usingResource(new hostCtor(reader, writer), async (host) => {
-    const meta = ensure(await host.call("denops#_internal#meta#get"), isMeta);
-    // Patch console
-    console.log = (...args: unknown[]) => {
-      host.notify(
-        "denops#_internal#echo#log",
-        ...formatArgs(args),
-      );
-    };
-    console.info = (...args: unknown[]) => {
-      host.notify(
-        "denops#_internal#echo#info",
-        ...formatArgs(args),
-      );
-    };
-    console.debug = meta.mode !== "debug" ? () => {} : (...args: unknown[]) => {
-      host.notify(
-        "denops#_internal#echo#debug",
-        ...formatArgs(args),
-      );
-    };
-    console.warn = (...args: unknown[]) => {
-      host.notify(
-        "denops#_internal#echo#warn",
-        ...formatArgs(args),
-      );
-    };
-    console.error = (...args: unknown[]) => {
-      host.notify(
-        "denops#_internal#echo#error",
-        ...formatArgs(args),
-      );
-    };
-    // Start service
-    await usingResource(new Service(meta), async (service) => {
-      await host.init(service);
-      await host.call("execute", "doautocmd <nomodeline> User DenopsReady", "");
-      await host.waitClosed();
-    });
-  });
+  await using host = new hostCtor(reader, writer);
+  const meta = ensure(await host.call("denops#_internal#meta#get"), isMeta);
+  // Patch console
+  console.log = (...args: unknown[]) => {
+    host.notify(
+      "denops#_internal#echo#log",
+      ...formatArgs(args),
+    );
+  };
+  console.info = (...args: unknown[]) => {
+    host.notify(
+      "denops#_internal#echo#info",
+      ...formatArgs(args),
+    );
+  };
+  console.debug = meta.mode !== "debug" ? () => {} : (...args: unknown[]) => {
+    host.notify(
+      "denops#_internal#echo#debug",
+      ...formatArgs(args),
+    );
+  };
+  console.warn = (...args: unknown[]) => {
+    host.notify(
+      "denops#_internal#echo#warn",
+      ...formatArgs(args),
+    );
+  };
+  console.error = (...args: unknown[]) => {
+    host.notify(
+      "denops#_internal#echo#error",
+      ...formatArgs(args),
+    );
+  };
+  // Start service
+  using service = new Service(meta);
+  await host.init(service);
+  await host.call("execute", "doautocmd <nomodeline> User DenopsReady", "");
+  await host.waitClosed();
 }
 
 if (import.meta.main) {
