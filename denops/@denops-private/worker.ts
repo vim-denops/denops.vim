@@ -26,7 +26,9 @@ async function detectHost(
 
 function formatArgs(args: unknown[]): string[] {
   return args.map((v) => {
-    if (typeof v === "string") {
+    if (v instanceof Error) {
+      return `${v.stack ?? v}`;
+    } else if (typeof v === "string") {
       return v;
     }
     return JSON.stringify(v);
