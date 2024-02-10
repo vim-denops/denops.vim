@@ -25,6 +25,14 @@ function! denops#request_async(plugin, method, params, success, failure) abort
         \)
 endfunction
 
+function! denops#interrupt(...) abort
+  let l:reason = a:0 ? a:1 : v:null
+  call denops#_internal#server#chan#notify(
+        \ 'invoke',
+        \ ['interrupt', [l:reason]],
+        \)
+endfunction
+
 " Configuration
 call denops#_internal#conf#define('denops#disabled', 0)
 call denops#_internal#conf#define('denops#deno', 'deno')

@@ -13,7 +13,7 @@ const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
 
 export type Host = Pick<HostOrigin, "redraw" | "call" | "batch">;
 
-export type Service = Pick<ServiceOrigin, "dispatch">;
+export type Service = Pick<ServiceOrigin, "dispatch" | "interrupted">;
 
 export class DenopsImpl implements Denops {
   readonly name: string;
@@ -35,6 +35,10 @@ export class DenopsImpl implements Denops {
     this.meta = meta;
     this.#host = host;
     this.#service = service;
+  }
+
+  get interrupted(): AbortSignal {
+    return this.#service.interrupted;
   }
 
   redraw(force?: boolean): Promise<void> {

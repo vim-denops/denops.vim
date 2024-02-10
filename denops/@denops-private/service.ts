@@ -11,12 +11,17 @@ import { DenopsImpl, Host } from "./denops.ts";
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service implements Disposable {
+  #interruptController: AbortController = new AbortController();
   #plugins: Map<string, Plugin> = new Map();
   #meta: Meta;
   #host?: Host;
 
   constructor(meta: Meta) {
     this.#meta = meta;
+  }
+
+  get interrupted(): AbortSignal {
+    return this.#interruptController.signal;
   }
 
   bind(host: Host): void {
@@ -59,6 +64,11 @@ export class Service implements Disposable {
     // https://github.com/vim-denops/denops.vim/issues/227
     const suffix = `#${performance.now()}`;
     return this.load(name, plugin.script, suffix);
+  }
+
+  interrupt(reason?: unknown): void {
+    this.#interruptController.abort(reason);
+    this.#interruptController = new AbortController();
   }
 
   async #dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {

@@ -50,6 +50,7 @@ export type Service = {
   bind(host: Host): void;
   load(name: string, script: string): Promise<void>;
   reload(name: string): Promise<void>;
+  interrupt(reason?: unknown): void;
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown>;
   dispatchAsync(
     name: string,
@@ -74,6 +75,12 @@ export function invoke(
       return service.reload(
         ...ensure(args, is.TupleOf([is.String] as const)),
       );
+    case "interrupt": {
+      service.interrupt(
+        ...ensure(args, is.TupleOf([is.Unknown] as const)),
+      );
+      return Promise.resolve();
+    }
     case "dispatch":
       return service.dispatch(
         ...ensure(args, is.TupleOf([is.String, is.String, is.Array] as const)),
