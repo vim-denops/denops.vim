@@ -28,10 +28,11 @@ function! denops#_internal#echo#error(...) abort
   call s:echomsg('ErrorMsg', a:000)
 endfunction
 
+let s:start = reltime()
 function! s:echomsg(hl, msg) abort
   execute printf('echohl %s', a:hl)
   for l:line in split(join(a:msg), '\n')
-    echomsg printf('[denops] %s', l:line)
+    echomsg printf('[denops] %s %s', reltimestr(reltime(s:start)), l:line)
   endfor
   echohl None
 endfunction
