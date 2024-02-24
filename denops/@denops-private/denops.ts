@@ -5,7 +5,7 @@ import type {
   Meta,
 } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
 import { BatchError } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.14.1/mod.ts";
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
 import type { Host as HostOrigin } from "./host.ts";
 import type { Service as ServiceOrigin } from "./service.ts";
 

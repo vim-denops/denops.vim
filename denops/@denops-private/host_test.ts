@@ -4,7 +4,7 @@ import {
   assertSpyCalls,
   stub,
 } from "https://deno.land/std@0.217.0/testing/mock.ts";
-import { AssertError } from "https://deno.land/x/unknownutil@v3.14.1/mod.ts";
+import { AssertError } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
 import { invoke, Service } from "./host.ts";
 import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
 
