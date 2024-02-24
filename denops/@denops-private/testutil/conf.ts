@@ -1,8 +1,8 @@
 import {
   fromFileUrl,
   resolve,
-  SEP,
-} from "https://deno.land/std@0.214.0/path/mod.ts";
+  SEPARATOR as SEP,
+} from "https://deno.land/std@0.217.0/path/mod.ts";
 
 let conf: Config | undefined;
 
