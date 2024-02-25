@@ -1,10 +1,9 @@
-import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
 
 /**
  * Host (Vim/Neovim) which is visible from Service
  */
-export interface Host extends Disposable {
+export interface Host extends AsyncDisposable {
   /**
    * Redraw text and cursor on Vim but Neovim.
    */
