@@ -75,6 +75,7 @@ async function main(): Promise<void> {
       ...formatArgs(args),
     );
   };
+
   // Start service
   using service = new Service(meta);
   await host.init(service);
@@ -83,6 +84,12 @@ async function main(): Promise<void> {
 }
 
 if (import.meta.main) {
+  // Avoid denops server crash via UnhandledRejection
+  globalThis.addEventListener("unhandledrejection", (event) => {
+    event.preventDefault();
+    console.error(`Unhandled rejection:`, event.reason);
+  });
+
   await main().catch((err) => {
     console.error(
       `Internal error occurred in Worker`,
