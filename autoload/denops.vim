@@ -1,5 +1,5 @@
 function! denops#notify(plugin, method, params) abort
-  return denops#_internal#server#chan#notify(
+  call denops#_internal#server#chan#notify(
         \ 'invoke',
         \ ['dispatch', [a:plugin, a:method, a:params]],
         \)
