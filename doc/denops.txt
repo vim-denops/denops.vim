@@ -359,10 +359,8 @@ denops#plugin#check_type([{plugin}])
 
 						*denops#callback#register()*
 denops#callback#register({callback}[, {options}])
-	Registers {callback} to the internal callback map as an
-
- anonymous function
-	and returns a unique {id} to call the {callback} later.
+	Registers {callback} to the internal callback map as an anonymous
+	function and returns a unique {id} to call the {callback} later.
 	The following attributes are available on {options}.
 
 	"once"		|v:true| to register the callback as a one-time
