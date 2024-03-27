@@ -3,7 +3,7 @@
 =============================================================================
 CONTENTS					*denops-contents*
 
-INTRODUCTION					|denops-introduction|
+INTRODUCTION				|denops-introduction|
 USAGE					|denops-usage|
   SHARED SERVER				|denops-shared-server|
 INTERFACE				|denops-interface|
@@ -86,13 +86,13 @@ VARIABLE						*denops-variable*
 
 *g:denops#deno*
 	Executable program of Deno. Use it to specify the executable program
-	of Deno if 'deno' is not in PATH.
-	Default: 'deno'
+	of Deno if "deno" is not in PATH.
+	Default: "deno"
 
 *g:denops#deno_dir*
 	Cache directory of Deno. If unspecified, the cache directory is
 	determined by the DENO_DIR environment variable or internally by
-	'deno'.
+	"deno".
 	Default: |v:null|
 
 *g:denops#debug*
@@ -125,7 +125,8 @@ VARIABLE						*denops-variable*
 	Default: 10000
 
 *g:denops#server#restart_threshold*
-	The number of restart counts within |g:denops#server#restart_interval|.
+        The number of restart counts within
+        |g:denops#server#restart_interval|.
 	Default: 3
 
 *g:denops#server#reconnect_interval*
@@ -204,8 +205,8 @@ denops#server#start()
 	nothing when the server is already started.
 
 	It is automatically called 1) on |VimEnter| autocmd when denops is
-	in |runtimepath| during Vim startup, 2) immediately when denops is
-	added to |runtimepath| after Vim startup.
+	in 'runtimepath' during Vim startup, 2) immediately when denops is
+	added to 'runtimepath' after Vim startup.
 
 	Note that the server is automatically restarted when the process is
 	stopped unexpectedly.
@@ -225,8 +226,8 @@ denops#server#connect()
 	channel is already established.
 
 	It is automatically called 1) on |VimEnter| autocmd when denops is
-	in |runtimepath| during Vim startup, 2) immediately when denops is
-	added to |runtimepath| after Vim startup when |g:denops_server_addr|
+	in 'runtimepath' during Vim startup, 2) immediately when denops is
+	added to 'runtimepath' after Vim startup when |g:denops_server_addr|
 	is specified. Otherwise, it echoes errors.
 
 	Note that the channel is automatically re-established when the channel
@@ -264,7 +265,8 @@ denops#server#wait([{options}])
 	continue with the subsequent process.
 	The following attributes are available on {options}.
 
-	"interval"	Interval in milliseconds for |sleep| in internal loop.
+        "interval"	Interval in milliseconds for |:sleep| in internal
+        		loop.
 			Default: |g:denops#server#wait_interval|
 	"timeout"	Timeout in milliseconds to block.
 			Default: |g:denops#server#wait_timeout|
@@ -273,10 +275,10 @@ denops#server#wait([{options}])
 
 						*denops#server#wait_async()*
 denops#server#wait_async({callback})
-	Waits asynchronously until a |DenopsReady| autocmd is fired and invokes
-	a {callback}. It invokes the {callback} immediately when the autocmd
-	is already fired. If this function is called multiple times, callbacks
-	registered are called in order of registration.
+	Waits asynchronously until a |DenopsReady| autocmd is fired and
+	invokes a {callback}. It invokes the {callback} immediately when the
+	autocmd is already fired. If this function is called multiple times,
+	callbacks registered are called in order of registration.
 
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({plugin})
@@ -293,7 +295,8 @@ denops#plugin#wait({plugin}[, {options}])
 	continue with the subsequent process.
 	The following attributes are available on {options}.
 
-	"interval"	Interval in milliseconds for |sleep| in internal loop.
+        "interval"	Interval in milliseconds for |:sleep| in internal
+        		loop.
 			Default: |g:denops#plugin#wait_interval|
 	"timeout"	Timeout in milliseconds to block.
 			Default: |g:denops#plugin#wait_timeout|
@@ -333,11 +336,11 @@ denops#plugin#register({plugin}[, {script}[, {options}]])
 
 						*denops#plugin#discover()*
 denops#plugin#discover()
-	Discovers denops plugins from |runtimepath| and loads them.
-	It gathers "main.ts" under "denops/*" directories under |runtimepath|
+	Discovers denops plugins from 'runtimepath' and loads them.
+	It gathers "main.ts" under "denops/*" directories under 'runtimepath'
 	if the middle directory does not start with "@".
-	This is automatically called on |User| |DenopsReady| autocmd invoked by
-	|denops#server#start()|.
+        This is automatically called on |User| |DenopsReady| autocmd invoked
+        by |denops#server#start()|.
 
 						*denops#plugin#load()*
 denops#plugin#load({plugin}, {script})
