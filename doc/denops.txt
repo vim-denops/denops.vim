@@ -20,8 +20,9 @@ using Deno.
 
 Visit the Denops Document or Wiki for guidance on creating denops plugins.
 
-https://vim-denops.github.io/denops-documentation/
-https://github.com/vim-denops/denops.vim/wiki
+Denops Document: https://vim-denops.github.io/denops-documentation/
+Wiki: https://github.com/vim-denops/denops.vim/wiki
+API Reference: https://deno.land/x/denops_std/mod.ts
 
 
 =============================================================================
