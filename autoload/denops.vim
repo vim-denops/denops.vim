@@ -26,10 +26,11 @@ function! denops#request_async(plugin, method, params, success, failure) abort
 endfunction
 
 function! denops#interrupt(...) abort
-  let l:reason = a:0 ? a:1 : v:null
+  " ...args: [reason?: unknown]
+  let l:args = a:0 ? [a:1] : []
   call denops#_internal#server#chan#notify(
         \ 'invoke',
-        \ ['interrupt', [l:reason]],
+        \ ['interrupt', l:args],
         \)
 endfunction
 

@@ -1,5 +1,5 @@
 import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.14.1/mod.ts";
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.18.0/mod.ts";
 
 /**
  * Host (Vim/Neovim) which is visible from Service
@@ -77,7 +77,7 @@ export function invoke(
       );
     case "interrupt": {
       service.interrupt(
-        ...ensure(args, is.TupleOf([is.Unknown] as const)),
+        ...ensure(args, is.ParametersOf([is.OptionalOf(is.Unknown)] as const)),
       );
       return Promise.resolve();
     }
