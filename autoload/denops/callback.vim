@@ -17,7 +17,7 @@ function! denops#callback#unregister(id) abort
   if !has_key(s:registry, a:id)
     return
   endif
-  silent unlet s:registry[a:id]
+  unlet s:registry[a:id]
 endfunction
 
 function! denops#callback#call(id, ...) abort
@@ -25,11 +25,10 @@ function! denops#callback#call(id, ...) abort
     throw printf('No callback function for %s exist', a:id)
   endif
   let l:entry = s:registry[a:id]
-  let l:ret = call(l:entry.callback, a:000)
   if l:entry.options.once
-    call denops#callback#unregister(a:id)
+    unlet s:registry[a:id]
   endif
-  return l:ret
+  return call(l:entry.callback, a:000)
 endfunction
 
 function! denops#callback#clear() abort
