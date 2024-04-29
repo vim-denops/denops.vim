@@ -409,14 +409,37 @@ denops#plugin#discover()
 denops#plugin#load({name}, {script})
 	Loads a denops plugin. Use this function to load denops plugins that
 	are not discovered by |denops#plugin#discover()|.
-	It invokes |User| |DenopsPluginPre|:{plugin} just before denops
-	executes a "main" function of the plugin and |User|
-	|DenopsPluginPost|:{plugin} just after denops executes a "main"
-	function of the plugin.
+
+	Loading a plugin involves the following event steps:
+
+	 - |User| |DenopsPluginPre|:{plugin} is fired.
+	 - The plugin is loaded and the "main" function is executed.
+	 - If it succeeds, |User| |DenopsPluginPost|:{plugin} is fired.
+	 - If it fails, |User| |DenopsPluginFail|:{plugin} is fired.
+
+						*denops#plugin#unload()*
+denops#plugin#unload({name})
+	Unloads a denops plugin. It does nothing when the plugin is not loaded
+	yet.
+
+	Unloading a plugin involves the following event steps:
+
+	 - |User| |DenopsPluginUnloadPre|:{plugin} is fired.
+	 - The plugin's dispose callback is executed, if it exists.
+	 - If it succeeds, |User| |DenopsPluginUnloadPost|:{plugin} is fired.
+	 - If it fails, |User| |DenopsPluginUnloadFail|:{plugin} is fired.
+
+	The above events may not be fired if the connection is forcibly
+	closed or the denops server is forcibly terminated due to timeout
+	or other reasons. Plugins should also use the |DenopsClosed| event.
 
 						*denops#plugin#reload()*
-denops#plugin#reload({name})
-	Reloads a denops plugin.
+denops#plugin#reload({plugin}[, {options}])
+	Reloads a denops plugin. It does nothing when the plugin is not loaded
+	yet.
+
+	It invokes |User| autocommand events. See |denops#plugin#load()| and
+	|denops#plugin#unload()| for details.
 
 						*denops#plugin#check_type()*
 denops#plugin#check_type([{name}])
@@ -482,6 +505,24 @@ DenopsPluginPre:{plugin}				*DenopsPluginPre*
 
 DenopsPluginPost:{plugin}				*DenopsPluginPost*
 	Fired after the "main" function of each plugin is called.
+	{plugin} is the name of the target plugin.
+        Note that if the "main" function throws an error, it will not be fired.
+
+DenopsPluginFail:{plugin}				*DenopsPluginFail*
+	Fired when the "main" function of each plugin throws an error.
+	{plugin} is the name of the target plugin.
+
+DenopsPluginUnloadPre:{plugin}				*DenopsPluginUnloadPre*
+	Fired before each plugin is unloaded.
+	{plugin} is the name of the target plugin.
+
+DenopsPluginUnloadPost:{plugin}				*DenopsPluginUnloadPost*
+	Fired after each plugin is unloaded.
+	{plugin} is the name of the target plugin.
+        Note that if an error is thrown when unloading, it will not be fired.
+
+DenopsPluginUnloadFail:{plugin}				*DenopsPluginUnloadFail*
+	Fired if an error is thrown when unloading each plugin.
 	{plugin} is the name of the target plugin.
 
 DenopsProcessStarted					*DenopsProcessStarted*

@@ -23,6 +23,7 @@ Deno.test("Neovim", async (t) => {
       const service: Service = {
         bind: () => unimplemented(),
         load: () => unimplemented(),
+        unload: () => unimplemented(),
         reload: () => unimplemented(),
         interrupt: () => unimplemented(),
         dispatch: () => unimplemented(),
