@@ -1,32 +1,74 @@
-import type { Denops, Meta } from "jsr:@denops/core@6.0.6";
-import { toFileUrl } from "jsr:@std/path@0.225.0/to-file-url";
-import { toErrorObject } from "jsr:@lambdalisue/errorutil@1.0.0";
+// TODO: #349 Import `Entrypoint` from denops-core.
+import type { Entrypoint } from "./plugin.ts";
+import type { Denops, Meta } from "jsr:@denops/core@6.1.0";
+import { toFileUrl } from "jsr:@std/path@0.224.0/to-file-url";
+import { toErrorObject } from "jsr:@lambdalisue/errorutil@1.1.0";
 import { DenopsImpl, type Host } from "./denops.ts";
 
-// We can use `PromiseWithResolvers<void>` but Deno 1.38 doesn't have `PromiseWithResolvers`
-type Waiter = {
+/** Callback ID for `denops#callback#call()` */
+type CallbackID = string;
+
+type PluginModule = {
+  main: Entrypoint;
+};
+
+type Waiter<Reason = unknown> = {
   promise: Promise<void>;
   resolve: () => void;
+  reject: (reason: Reason) => void;
 };
+
+type PluginWaiterRejectReason = "DenopsClosed" | `DenopsPluginFail:${string}`;
+type PluginWaiter = Waiter<PluginWaiterRejectReason>;
+
+export type ScriptLoadOptions = {
+  /**
+   * If `true`, import the module without using the cache.
+   * @default {false}
+   */
+  forceReload?: boolean;
+};
+
+/** Key: script path, Value: last suffix */
+const scriptSuffixes = new Map<string, string>();
+
+function createScriptSuffix(
+  script: string,
+  options?: ScriptLoadOptions,
+): string {
+  const { forceReload = false } = options ?? {};
+  // Import module with fragment so that reload works properly
+  // https://github.com/vim-denops/denops.vim/issues/227
+  const suffix = forceReload
+    ? `#${performance.now()}`
+    : scriptSuffixes.get(script) ?? "";
+  scriptSuffixes.set(script, suffix);
+  return suffix;
+}
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
-export class Service implements Disposable {
+export class Service implements AsyncDisposable {
   #plugins: Map<string, Plugin> = new Map();
-  #waiters: Map<string, Waiter> = new Map();
+  #pluginWaiters: Map<string, PluginWaiter> = new Map();
   #meta: Meta;
   #host?: Host;
+  #closed = false;
+  #closedWaiter: Waiter<never> = Promise.withResolvers();
 
   constructor(meta: Meta) {
     this.#meta = meta;
   }
 
-  #getWaiter(name: string): Waiter {
-    if (!this.#waiters.has(name)) {
-      this.#waiters.set(name, Promise.withResolvers());
+  #getPluginWaiter(name: string): PluginWaiter {
+    let waiter = this.#pluginWaiters.get(name)!;
+    if (!waiter) {
+      waiter = Promise.withResolvers();
+      waiter.promise.catch(() => {});
+      this.#pluginWaiters.set(name, waiter);
     }
-    return this.#waiters.get(name)!;
+    return waiter;
   }
 
   bind(host: Host): void {
@@ -36,45 +78,62 @@ export class Service implements Disposable {
   async load(
     name: string,
     script: string,
-    suffix = "",
+    options?: ScriptLoadOptions,
   ): Promise<void> {
-    if (!this.#host) {
+    if (!this.#host || this.#closed) {
       throw new Error("No host is bound to the service");
     }
-    let plugin = this.#plugins.get(name);
-    if (plugin) {
+    if (this.#plugins.has(name)) {
       if (this.#meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is already loaded. Skip`);
       }
       return;
     }
     const denops = new DenopsImpl(name, this.#meta, this.#host, this);
-    plugin = new Plugin(denops, name, script);
+    const plugin = new Plugin(denops, name, script);
     this.#plugins.set(name, plugin);
-    await plugin.load(suffix);
-    this.#getWaiter(name).resolve();
+    const loaded = await plugin.load(options);
+    if (!loaded) {
+      // Load failure.
+      this.#plugins.delete(name);
+      this.#getPluginWaiter(name).reject(`DenopsPluginFail:${name}`);
+    } else if (this.#plugins.has(name)) {
+      // Load succeeded.
+      this.#getPluginWaiter(name).resolve();
+    } else {
+      // Load succeeded, but unload was called during the loading.
+    }
   }
 
-  reload(
-    name: string,
-  ): Promise<void> {
+  async #unload(name: string): Promise<Plugin | undefined> {
     const plugin = this.#plugins.get(name);
     if (!plugin) {
       if (this.#meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is not loaded yet. Skip`);
       }
-      return Promise.resolve();
+      return;
     }
     this.#plugins.delete(name);
-    this.#waiters.delete(name);
-    // Import module with fragment so that reload works properly
-    // https://github.com/vim-denops/denops.vim/issues/227
-    const suffix = `#${performance.now()}`;
-    return this.load(name, plugin.script, suffix);
+    await plugin.unload();
+    return plugin;
+  }
+
+  async unload(name: string): Promise<void> {
+    await this.#unload(name);
+  }
+
+  async reload(name: string, options?: ScriptLoadOptions): Promise<void> {
+    const plugin = await this.#unload(name);
+    if (plugin) {
+      await this.load(name, plugin.script, options);
+    }
   }
 
   waitLoaded(name: string): Promise<void> {
-    return this.#getWaiter(name).promise;
+    if (this.#closed) {
+      return Promise.reject("DenopsClosed" satisfies PluginWaiterRejectReason);
+    }
+    return this.#getPluginWaiter(name).promise;
   }
 
   async #dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -97,8 +156,8 @@ export class Service implements Disposable {
     name: string,
     fn: string,
     args: unknown[],
-    success: string, // Callback ID
-    failure: string, // Callback ID
+    success: CallbackID,
+    failure: CallbackID,
   ): Promise<void> {
     if (!this.#host) {
       throw new Error("No host is bound to the service");
@@ -122,13 +181,36 @@ export class Service implements Disposable {
     }
   }
 
-  [Symbol.dispose](): void {
-    this.#plugins.clear();
+  async close(): Promise<void> {
+    if (!this.#closed) {
+      this.#closed = true;
+      const waiters = [...this.#pluginWaiters.values()];
+      this.#pluginWaiters.clear();
+      for (const { reject } of waiters) {
+        reject("DenopsClosed");
+      }
+      const plugins = [...this.#plugins.values()];
+      this.#plugins.clear();
+      await Promise.all(plugins.map((plugin) => plugin.unload()));
+      this.#host = void 0;
+      this.#closedWaiter.resolve();
+    }
+    return this.waitClosed();
+  }
+
+  waitClosed(): Promise<void> {
+    return this.#closedWaiter.promise;
+  }
+
+  [Symbol.asyncDispose](): Promise<void> {
+    return this.close();
   }
 }
 
 class Plugin {
   #denops: Denops;
+  #loadedPromise: Promise<boolean> | undefined;
+  #disposable?: Partial<AsyncDisposable>;
 
   readonly name: string;
   readonly script: string;
@@ -139,15 +221,42 @@ class Plugin {
     this.script = resolveScriptUrl(script);
   }
 
-  async load(suffix = ""): Promise<void> {
+  async load(options?: ScriptLoadOptions): Promise<boolean> {
+    if (!this.#loadedPromise) {
+      const { resolve, promise } = Promise.withResolvers<boolean>();
+      this.#loadedPromise = promise;
+      const suffix = createScriptSuffix(this.script, options);
+      const script = `${this.script}${suffix}`;
+      try {
+        const mod: PluginModule = await import(script);
+        await emit(this.#denops, `DenopsSystemPluginPre:${this.name}`);
+        this.#disposable = await mod.main(this.#denops) ?? void 0;
+        await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
+        resolve(true);
+      } catch (e) {
+        console.error(`Failed to load plugin '${this.name}': ${e}`);
+        await emit(this.#denops, `DenopsSystemPluginFail:${this.name}`);
+        resolve(false);
+      }
+    }
+    return this.#loadedPromise;
+  }
+
+  async unload(): Promise<void> {
+    const loaded = await this.#loadedPromise;
+    this.#loadedPromise = Promise.resolve(false);
+    if (!loaded) {
+      return;
+    }
     try {
-      const mod = await import(`${this.script}${suffix}`);
-      await emit(this.#denops, `DenopsSystemPluginPre:${this.name}`);
-      await mod.main(this.#denops);
-      await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
+      await emit(this.#denops, `DenopsSystemPluginUnloadPre:${this.name}`);
+      await this.#disposable?.[Symbol.asyncDispose]?.();
+      await emit(this.#denops, `DenopsSystemPluginUnloadPost:${this.name}`);
     } catch (e) {
-      console.error(`Failed to load plugin '${this.name}': ${e}`);
-      await emit(this.#denops, `DenopsSystemPluginFail:${this.name}`);
+      console.error(`Failed to unload plugin '${this.name}': ${e}`);
+      await emit(this.#denops, `DenopsSystemPluginUnloadFail:${this.name}`);
+    } finally {
+      this.#disposable = void 0;
     }
   }
 

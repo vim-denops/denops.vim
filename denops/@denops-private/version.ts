@@ -1,7 +1,7 @@
-import { dirname } from "jsr:@std/path@0.225.0/dirname";
-import { fromFileUrl } from "jsr:@std/path@0.225.0/from-file-url";
-import type { SemVer } from "jsr:@std/semver@0.224.0/types";
+import { dirname } from "jsr:@std/path@0.224.0/dirname";
+import { fromFileUrl } from "jsr:@std/path@0.224.0/from-file-url";
 import { parse } from "jsr:@std/semver@0.224.0/parse";
+import type { SemVer } from "jsr:@std/semver@0.224.0/types";
 
 const decoder = new TextDecoder();
 

@@ -30,7 +30,6 @@ if has('nvim')
   function! s:stop(job) abort
     try
       call jobstop(a:job)
-      call jobwait([a:job])
     catch /^Vim\%((\a\+)\)\=:E900/
       " NOTE:
       " Vim does not raise exception even the job has already closed so fail
@@ -64,11 +63,6 @@ else
   function! s:stop(job) abort
     call job_stop(a:job)
     call timer_start(s:KILL_TIMEOUT_MS, { -> job_stop(a:job, 'kill') })
-    " Wait until the job is actually closed
-    while job_status(a:job) ==# 'run'
-      sleep 10m
-    endwhile
-    redraw
   endfunction
 
   function! s:out_cb(callback, event, ch, msg) abort

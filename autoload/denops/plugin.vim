@@ -70,15 +70,21 @@ function! denops#plugin#register(name, ...) abort
   return denops#plugin#load(a:name, l:script)
 endfunction
 
-function! denops#plugin#load(name, script) abort
+function! denops#plugin#load(name, script, ...) abort
   let l:script = denops#_internal#path#norm(a:script)
-  let l:args = [a:name, l:script]
+  let l:args = [a:name, l:script] + a:000
   call denops#_internal#echo#debug(printf('load plugin: %s', l:args))
   call denops#_internal#server#chan#notify('invoke', ['load', l:args])
 endfunction
 
-function! denops#plugin#reload(name) abort
+function! denops#plugin#unload(name) abort
   let l:args = [a:name]
+  call denops#_internal#echo#debug(printf('unload plugin: %s', l:args))
+  call denops#_internal#server#chan#notify('invoke', ['unload', l:args])
+endfunction
+
+function! denops#plugin#reload(name, ...) abort
+  let l:args = [a:name] + a:000
   call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
   call denops#_internal#server#chan#notify('invoke', ['reload', l:args])
 endfunction
@@ -135,11 +141,22 @@ function! s:DenopsSystemPluginFail() abort
   execute printf('doautocmd <nomodeline> User DenopsPluginFail:%s', l:plugin)
 endfunction
 
+function! s:teardown_settled(name) abort
+  let l:plugin = matchstr(expand('<amatch>'), ':\zs.*')
+  if has_key(s:loaded_plugins, l:plugin)
+    call remove(s:loaded_plugins, l:plugin)
+  endif
+  execute printf('doautocmd <nomodeline> User %s:%s', a:name, l:plugin)
+endfunction
+
 augroup denops_autoload_plugin_internal
   autocmd!
   autocmd User DenopsSystemPluginPre:* call s:relay_autocmd('DenopsPluginPre')
   autocmd User DenopsSystemPluginPost:* ++nested call s:DenopsSystemPluginPost()
   autocmd User DenopsSystemPluginFail:* call s:DenopsSystemPluginFail()
+  autocmd User DenopsSystemPluginUnloadPre:* call s:relay_autocmd('DenopsPluginUnloadPre')
+  autocmd User DenopsSystemPluginUnloadPost:* ++nested call s:teardown_settled('DenopsPluginUnloadPost')
+  autocmd User DenopsSystemPluginUnloadFail:* ++nested call s:teardown_settled('DenopsPluginUnloadFail')
   autocmd User DenopsClosed let s:loaded_plugins = {}
 augroup END
 

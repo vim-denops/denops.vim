@@ -9,6 +9,8 @@ augroup denops_debug_plugin_internal
         \  call denops#_internal#echo#debug(expand('<amatch>:t'))
   autocmd User DenopsStarted,DenopsListen:*,DenopsStopped:*
         \  call denops#_internal#echo#debug(expand('<amatch>:t'))
-  autocmd User DenopsPluginPre:*,DenopsPluginPost:*
+  autocmd User DenopsPluginPre:*,DenopsPluginPost:*,DenopsPluginFail:*
+        \  call denops#_internal#echo#debug(expand('<amatch>:t'))
+  autocmd User DenopsPluginUnloadPre:*,DenopsPluginUnloadPost:*,DenopsPluginUnloadFail:*
         \  call denops#_internal#echo#debug(expand('<amatch>:t'))
 augroup END

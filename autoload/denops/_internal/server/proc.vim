@@ -116,7 +116,7 @@ function! s:on_exit(options, status) abort
   let s:job = v:null
   call denops#_internal#echo#debug(printf('Server stopped: %s', a:status))
   execute printf('doautocmd <nomodeline> User DenopsProcessStopped:%s', a:status)
-  if !a:options.restart_on_exit || s:stopped_on_purpose || s:exiting
+  if s:job isnot# v:null || !a:options.restart_on_exit || s:stopped_on_purpose || s:exiting
     return
   endif
   " Restart

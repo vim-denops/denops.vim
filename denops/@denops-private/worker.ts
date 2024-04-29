@@ -1,12 +1,17 @@
+/// <reference no-default-lib="true" />
+/// <reference lib="deno.worker" />
+
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
 } from "jsr:@lambdalisue/workerio@4.0.0";
-import { ensure } from "jsr:@core/unknownutil@3.18.0";
+import { ensure } from "jsr:@core/unknownutil@3.18.1";
 import { pop } from "jsr:@lambdalisue/streamtools@1.0.0";
-import type { HostConstructor } from "./host.ts";
+import type { Meta } from "jsr:@denops/core@6.1.0";
+import type { Host, HostConstructor } from "./host.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
+import { waitProcessSignal } from "./process.ts";
 import { Service } from "./service.ts";
 import { isMeta } from "./util.ts";
 
@@ -34,6 +39,39 @@ function formatArgs(args: unknown[]): string[] {
   });
 }
 
+function patchConsole(host: Host, meta: Meta): void {
+  type Method = (typeof methods)[number];
+  const methods = [
+    "log",
+    "info",
+    "debug",
+    "warn",
+    "error",
+  ] as const satisfies (keyof typeof console)[];
+
+  const wrap = Object.fromEntries(
+    methods.map((name) => {
+      const orig = console[name].bind(console);
+      const wrapper = (fn: string) => {
+        return (...args: unknown[]): void => {
+          host
+            .notify(fn, ...formatArgs(args))
+            .catch(() => orig(...args));
+        };
+      };
+      return [name, wrapper] as const;
+    }),
+  ) as Record<Method, (fn: string) => (...args: unknown[]) => void>;
+
+  console.log = wrap.log("denops#_internal#echo#log");
+  console.info = wrap.info("denops#_internal#echo#info");
+  console.debug = meta.mode !== "debug"
+    ? () => {}
+    : wrap.debug("denops#_internal#echo#debug");
+  console.warn = wrap.warn("denops#_internal#echo#warn");
+  console.error = wrap.error("denops#_internal#echo#error");
+}
+
 async function main(): Promise<void> {
   const worker = self as unknown as Worker;
   const writer = writableStreamFromWorker(worker);
@@ -44,56 +82,33 @@ async function main(): Promise<void> {
 
   await using host = new hostCtor(reader, writer);
   const meta = ensure(await host.call("denops#_internal#meta#get"), isMeta);
-  // Patch console
-  console.log = (...args: unknown[]) => {
-    host.notify(
-      "denops#_internal#echo#log",
-      ...formatArgs(args),
-    );
-  };
-  console.info = (...args: unknown[]) => {
-    host.notify(
-      "denops#_internal#echo#info",
-      ...formatArgs(args),
-    );
-  };
-  console.debug = meta.mode !== "debug" ? () => {} : (...args: unknown[]) => {
-    host.notify(
-      "denops#_internal#echo#debug",
-      ...formatArgs(args),
-    );
-  };
-  console.warn = (...args: unknown[]) => {
-    host.notify(
-      "denops#_internal#echo#warn",
-      ...formatArgs(args),
-    );
-  };
-  console.error = (...args: unknown[]) => {
-    host.notify(
-      "denops#_internal#echo#error",
-      ...formatArgs(args),
-    );
-  };
+
+  patchConsole(host, meta);
 
   // Start service
-  using service = new Service(meta);
+  await using service = new Service(meta);
   await host.init(service);
   await host.call("execute", "doautocmd <nomodeline> User DenopsReady", "");
-  await host.waitClosed();
+  await Promise.race([
+    host.waitClosed(),
+    service.waitClosed(),
+    waitProcessSignal("SIGINT"),
+  ]);
 }
 
 if (import.meta.main) {
   // Avoid denops server crash via UnhandledRejection
   globalThis.addEventListener("unhandledrejection", (event) => {
     event.preventDefault();
-    console.error(`Unhandled rejection:`, event.reason);
+    console.error("Unhandled rejection:", event.reason);
   });
 
-  await main().catch((err) => {
-    console.error(
-      `Internal error occurred in Worker`,
-      err,
-    );
-  });
+  try {
+    await main();
+  } catch (err) {
+    console.error("Internal error occurred in Worker", err);
+  } finally {
+    self.postMessage("WORKER_CLOSED");
+    self.close();
+  }
 }

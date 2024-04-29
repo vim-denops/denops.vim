@@ -126,8 +126,7 @@ VARIABLE						*denops-variable*
 	Default: 10000
 
 *g:denops#server#restart_threshold*
-        The number of restart counts within
-        |g:denops#server#restart_interval|.
+        The number of restart counts within |g:denops#server#restart_interval|.
 	Default: 3
 
 *g:denops#server#reconnect_interval*
@@ -137,6 +136,16 @@ VARIABLE						*denops-variable*
 *g:denops#server#reconnect_threshold*
 	The number of reconnect counts on connection failure.
 	Default: 3
+
+*g:denops#server#stop_timeout*
+	Timeout in milliseconds to wait for the server to stop gracefully.
+	If the timeout expires, the server will be forcibly terminated.
+	Default: 5000
+
+*g:denops#server#close_timeout*
+	Timeout in milliseconds to wait for the channel to close gracefully.
+	If the timeout expires, the channel will be forcibly terminated.
+	Default: 5000
 
 *g:denops#server#wait_interval*
 	Interval in milliseconds for |denops#server#wait()|.
@@ -251,7 +260,7 @@ denops#server#close()
 
 						*denops#server#reconnect()*
 denops#server#reconnect()
-	Reconnects to a denops shared server.
+	Reconnects to a |denops-shared-server|.
 
 						*denops#server#status()*
 denops#server#status()
@@ -262,6 +271,7 @@ denops#server#status()
 	"starting"	Server is starting.
 	"preparing"	Server is preparing (initializing).
 	"running"	Server is running (ready).
+	"closing"	Server is closing.
 
 	Note that "starting" is never returned when a |denops-shared-server|
 	is used.
@@ -354,17 +364,52 @@ denops#plugin#discover()
         by |denops#server#start()|.
 
 						*denops#plugin#load()*
-denops#plugin#load({name}, {script})
+denops#plugin#load({name}, {script}[, {options}])
 	Loads a denops plugin. Use this function to load denops plugins that
 	are not discovered by |denops#plugin#discover()|.
-	It invokes |User| |DenopsPluginPre|:{plugin} just before denops
-	executes a "main" function of the plugin and |User|
-	|DenopsPluginPost|:{plugin} just after denops executes a "main"
-	function of the plugin.
+	The following attributes are available on {options}.
+
+	"forceReload"	|v:true| to import the module without using the cache.
+			Otherwise, the "main" function is called again for
+			already loaded modules.
+			Default: |v:false|
+
+	Loading a plugin involves the following event steps:
+
+	 - |User| |DenopsPluginPre|:{plugin} is fired.
+	 - The plugin is loaded and the "main" function is executed.
+	 - If it succeeds, |User| |DenopsPluginPost|:{plugin} is fired.
+	 - If it fails, |User| |DenopsPluginFail|:{plugin} is fired.
+
+						*denops#plugin#unload()*
+denops#plugin#unload({name})
+	Unloads a denops plugin. It does nothing when the plugin is not loaded
+	yet.
+
+	Unloading a plugin involves the following event steps:
+
+	 - |User| |DenopsPluginUnloadPre|:{plugin} is fired.
+	 - The plugin's dispose callback is executed, if it exists.
+	 - If it succeeds, |User| |DenopsPluginUnloadPost|:{plugin} is fired.
+	 - If it fails, |User| |DenopsPluginUnloadFail|:{plugin} is fired.
+
+	The above events may not be fired if the connection is forcibly
+	closed or the denops server is forcibly terminated due to timeout
+	or other reasons. Plugins should also use the |DenopsClosed| event.
 
 						*denops#plugin#reload()*
-denops#plugin#reload({name})
-	Reloads a denops plugin.
+denops#plugin#reload({plugin}[, {options}])
+	Reloads a denops plugin. It does nothing when the plugin is not loaded
+	yet.
+	The following attributes are available on {options}.
+
+	"forceReload"	|v:true| to import the module without using the cache.
+			Otherwise, the "main" function is called again for
+			already loaded modules.
+			Default: |v:false|
+
+	It invokes |User| autocommand events. See |denops#plugin#load()| and
+	|denops#plugin#unload()| for details.
 
 						*denops#plugin#check_type()*
 denops#plugin#check_type([{name}])
@@ -416,27 +461,43 @@ denops#callback#clear()
 -----------------------------------------------------------------------------
 AUTOCMD						*denops-autocmd*
 
-DenopsReady						*DenopsReady*
+DenopsReady					*DenopsReady*
 	Fired when a connection (channel) with Denops is established.
 	Note that this is not when all plugins are available.
 
-DenopsClosed						*DenopsClosed*
+DenopsClosed					*DenopsClosed*
 	Fired when the connection (channel) with Denops is broken.
 	It is assumed to be used to release resources such as cache.
 
-DenopsPluginPre:{plugin}				*DenopsPluginPre*
+DenopsPluginPre:{plugin}			*DenopsPluginPre*
 	Fired before the "main" function of each plugin is called.
 	{plugin} is the name of the target plugin.
 
-DenopsPluginPost:{plugin}				*DenopsPluginPost*
-	Fired after the "main" function of each plugin is called.
+DenopsPluginPost:{plugin}			*DenopsPluginPost*
+	Fired after the "main" function of each plugin is successfully called.
 	{plugin} is the name of the target plugin.
 
-DenopsProcessStarted					*DenopsProcessStarted*
+DenopsPluginFail:{plugin}			*DenopsPluginFail*
+	Fired when an error is thrown in the "main" function of each plugin.
+	{plugin} is the name of the target plugin.
+
+DenopsPluginUnloadPre:{plugin}			*DenopsPluginUnloadPre*
+	Fired before the dispose callback of each plugin is called.
+	{plugin} is the name of the target plugin.
+
+DenopsPluginUnloadPost:{plugin}			*DenopsPluginUnloadPost*
+	Fired after the dispose callback of each plugin is successfully called.
+	{plugin} is the name of the target plugin.
+
+DenopsPluginUnloadFail:{plugin}			*DenopsPluginUnloadFail*
+	Fired when an error is thrown in the dispose callback of each plugin.
+	{plugin} is the name of the target plugin.
+
+DenopsProcessStarted				*DenopsProcessStarted*
 	Fires when the Denops local server process is started.
 	It is never fired in shared server mode.
 
-DenopsProcessStopped:{exitcode}				*DenopsProcessStopped*
+DenopsProcessStopped:{exitcode}			*DenopsProcessStopped*
 	Fired when the Denops local server process is stopped.
 	It is never fired in shared server mode.
 
