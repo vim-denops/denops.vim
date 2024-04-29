@@ -53,6 +53,10 @@ function! denops#plugin#load(name, script) abort
   call denops#_internal#plugin#load(a:name, a:script)
 endfunction
 
+function! denops#plugin#unload(name) abort
+  call denops#_internal#plugin#unload(a:name)
+endfunction
+
 function! denops#plugin#reload(name) abort
   call denops#_internal#plugin#reload(a:name)
 endfunction
