@@ -112,9 +112,16 @@ Deno.test("Service", async (t) => {
   await t.step(
     "load() loads plugin and emits autocmd events (failure)",
     async () => {
+      const c = stub(console, "error");
       const s = stub(host, "call");
       try {
         await service.load("dummyFail", scriptInvalid);
+        assertSpyCalls(c, 1);
+        assertSpyCall(c, 0, {
+          args: [
+            "Failed to load plugin 'dummyFail': Error: This is dummy error",
+          ],
+        });
         assertSpyCalls(s, 2);
         assertSpyCall(s, 0, {
           args: [
@@ -132,6 +139,7 @@ Deno.test("Service", async (t) => {
         });
       } finally {
         s.restore();
+        c.restore();
       }
     },
   );
