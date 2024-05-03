@@ -46,7 +46,7 @@ if has('nvim')
     call a:callback(a:job, a:status, a:event)
   endfunction
 else
-  " https://github.com/neovim/neovim/blob/f629f83/src/nvim/event/process.c#L24-L26
+  " https://github.com/neovim/neovim/blob/cb24a3907c8d24a898d99042f0f16c8919a2e7ab/src/nvim/event/process.c#L28
   let s:KILL_TIMEOUT_MS = 2000
 
   function! s:start(args, options) abort
