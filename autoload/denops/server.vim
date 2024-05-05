@@ -29,9 +29,7 @@ function! denops#server#stop() abort
 endfunction
 
 function! denops#server#restart() abort
-  if denops#_internal#server#proc#is_started()
-    call denops#server#stop()
-  endif
+  call denops#server#stop()
   call denops#server#start()
 endfunction
 
@@ -58,13 +56,14 @@ function! denops#server#connect() abort
 endfunction
 
 function! denops#server#close() abort
+  if !denops#_internal#server#chan#is_connected()
+    return
+  endif
   call denops#_internal#server#chan#close()
 endfunction
 
 function! denops#server#reconnect() abort
-  if denops#_internal#server#chan#is_connected()
-    call denops#server#close()
-  endif
+  call denops#server#close()
   call denops#server#connect()
 endfunction
 
