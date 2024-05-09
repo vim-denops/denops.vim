@@ -28,7 +28,7 @@ export class Service implements Disposable {
     suffix = "",
   ): Promise<void> {
     if (!this.#host) {
-      throw new Error("No host is bound to the service");
+      return Promise.reject(new Error("No host is bound to the service"));
     }
     let plugin = this.#plugins.get(name);
     if (plugin) {

@@ -2,7 +2,6 @@ import {
   assert,
   assertMatch,
   assertRejects,
-  assertThrows,
 } from "https://deno.land/std@0.217.0/assert/mod.ts";
 import {
   assertSpyCall,
@@ -33,8 +32,8 @@ Deno.test("Service", async (t) => {
   };
   const service = new Service(meta);
 
-  await t.step("load() throws an error when no host is bound", () => {
-    assertThrows(
+  await t.step("load() rejects an error when no host is bound", async () => {
+    await assertRejects(
       () => service.load("dummy", scriptValid),
       Error,
       "No host is bound to the service",
