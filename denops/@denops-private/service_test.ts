@@ -1,5 +1,6 @@
 import {
   assert,
+  assertEquals,
   assertMatch,
   assertRejects,
 } from "https://deno.land/std@0.217.0/assert/mod.ts";
@@ -9,9 +10,10 @@ import {
   stub,
 } from "https://deno.land/std@0.217.0/testing/mock.ts";
 import type { Meta } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
+import { promiseState } from "https://deno.land/x/async@v2.1.0/mod.ts";
+import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";
-import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
 
 const scriptValid =
   new URL("./testdata/dummy_valid_plugin.ts", import.meta.url).href;
@@ -60,6 +62,15 @@ Deno.test("Service", async (t) => {
 
   service.bind(host);
 
+  const waitLoaded = service.waitLoaded("dummy");
+
+  await t.step(
+    "the result promise of waitLoaded() is 'pending' when the plugin is not loaded yet",
+    async () => {
+      assertEquals(await promiseState(waitLoaded), "pending");
+    },
+  );
+
   await t.step("load() loads plugin and emits autocmd events", async () => {
     const s = stub(host, "call");
     try {
@@ -90,6 +101,13 @@ Deno.test("Service", async (t) => {
       s.restore();
     }
   });
+
+  await t.step(
+    "the result promise of waitLoaded() become 'fulfilled' when the plugin is loaded",
+    async () => {
+      assertEquals(await promiseState(waitLoaded), "fulfilled");
+    },
+  );
 
   await t.step(
     "load() loads plugin and emits autocmd events (failure)",
