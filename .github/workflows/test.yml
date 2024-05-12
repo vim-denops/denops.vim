@@ -48,11 +48,11 @@ jobs:
           - macos-latest
           - ubuntu-latest
         version:
-          - "1.38.x"
+          - "1.43.x"
           - "1.x"
         host_version:
-          - vim: "v9.0.2189"
-            nvim: "v0.9.4"
+          - vim: "v9.1.0399"
+            nvim: "v0.9.5"
     runs-on: ${{ matrix.runner }}
     steps:
       - run: git config --global core.autocrlf false
