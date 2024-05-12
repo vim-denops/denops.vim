@@ -8,12 +8,10 @@
 [![Neovim 0.9.5 or above](https://img.shields.io/badge/Neovim-Support%200.9.5-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.9.5)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![deno land](http://img.shields.io/badge/available%20on-deno.land/x/denops__core-lightgrey.svg?logo=deno)](https://deno.land/x/denops_core)
 [![test](https://github.com/vim-denops/denops.vim/actions/workflows/test.yml/badge.svg)](https://github.com/vim-denops/denops.vim/actions/workflows/test.yml)
 [![codecov](https://codecov.io/github/vim-denops/denops.vim/branch/main/graph/badge.svg?token=k50SaoYUp0)](https://codecov.io/github/vim-denops/denops.vim)
 
 [![vim help](https://img.shields.io/badge/vim-%3Ah%20denops-orange.svg)](doc/denops.txt)
-[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/denops_core/mod.ts)
 [![Documentation](https://img.shields.io/badge/denops-Documentation-yellow.svg)](https://vim-denops.github.io/denops-documentation/)
 
 </div>
