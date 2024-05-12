@@ -53,46 +53,47 @@ jobs:
         host_version:
           - vim: "v9.1.0448"
             nvim: "v0.10.0"
+
     runs-on: ${{ matrix.runner }}
+
     steps:
       - run: git config --global core.autocrlf false
         if: runner.os == 'Windows'
+
       - uses: actions/checkout@v4
+
       - uses: denoland/setup-deno@v1.1.4
         with:
           deno-version: "${{ matrix.version }}"
+
       - uses: rhysd/action-setup-vim@v1
         id: vim
         with:
           version: "${{ matrix.host_version.vim }}"
-      - name: Check Vim
-        run: |
-          echo ${DENOPS_TEST_VIM}
-          ${DENOPS_TEST_VIM} --version
-        env:
-          DENOPS_TEST_VIM: ${{ steps.vim.outputs.executable }}
+
       - uses: rhysd/action-setup-vim@v1
         id: nvim
         with:
           neovim: true
           version: "${{ matrix.host_version.nvim }}"
-      - name: Check Neovim
+
+      - name: Export executables
         run: |
-          echo ${DENOPS_TEST_NVIM}
-          ${DENOPS_TEST_NVIM} --version
-        env:
-          DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
+          echo "DENOPS_TEST_VIM_EXECUTABLE=${{ steps.vim.outputs.executable }}" >> "$GITHUB_ENV"
+          echo "DENOPS_TEST_NVIM_EXECUTABLE=${{ steps.nvim.outputs.executable }}" >> "$GITHUB_ENV"
+
       - name: Perform pre-cache
         run: deno cache ./denops/@denops-private/mod.ts
+
       - name: Test
         run: deno task test:coverage
         env:
           DENOPS_TEST_DENOPS_PATH: "./"
-          DENOPS_TEST_VIM_EXECUTABLE: ${{ steps.vim.outputs.executable }}
-          DENOPS_TEST_NVIM_EXECUTABLE: ${{ steps.nvim.outputs.executable }}
-        timeout-minutes: 5
+        timeout-minutes: 10
+
       - run: |
           deno task coverage --lcov > coverage.lcov
+
       - uses: codecov/codecov-action@v4
         with:
           os: ${{ runner.os }}

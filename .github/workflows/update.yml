@@ -18,7 +18,7 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
       - name: Update dependencies and commit changes
-        run: deno task -q upgrade:commit --summary ../title.txt --report ../body.md
+        run: deno task -q update:commit --summary ../title.txt --report ../body.md
       - name: Check result
         id: result
         uses: andstor/file-existence-action@v2
