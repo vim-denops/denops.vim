@@ -1,12 +1,16 @@
 name: Test
 
 on:
-  schedule:
-    - cron: "0 7 * * 0"
   push:
     branches:
       - main
   pull_request:
+    paths:
+      - "**.ts"
+      - "**.vim"
+      - "**.md"
+      - "deno.jsonc"
+      - ".github/workflows/test.yml"
   workflow_dispatch:
 
 defaults:
@@ -78,6 +82,8 @@ jobs:
           ${DENOPS_TEST_NVIM} --version
         env:
           DENOPS_TEST_NVIM: ${{ steps.nvim.outputs.executable }}
+      - name: Perform pre-cache
+        run: deno cache ./denops/@denops-private/mod.ts
       - name: Test
         run: deno task test:coverage
         env:
