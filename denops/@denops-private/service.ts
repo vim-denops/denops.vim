@@ -1,10 +1,7 @@
-import type {
-  Denops,
-  Meta,
-} from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
-import { toFileUrl } from "https://deno.land/std@0.217.0/path/mod.ts";
-import { toErrorObject } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
-import { DenopsImpl, Host } from "./denops.ts";
+import type { Denops, Meta } from "jsr:@denops/core@6.0.6";
+import { toFileUrl } from "jsr:@std/path@0.225.0/to-file-url";
+import { toErrorObject } from "jsr:@lambdalisue/errorutil@1.0.0";
+import { DenopsImpl, type Host } from "./denops.ts";
 
 // We can use `PromiseWithResolvers<void>` but Deno 1.38 doesn't have `PromiseWithResolvers`
 type Waiter = {

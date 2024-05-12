@@ -1,12 +1,12 @@
-import { assertThrows } from "https://deno.land/std@0.217.0/assert/mod.ts";
+import { assertThrows } from "jsr:@std/assert@0.225.1";
 import {
   assertSpyCall,
   assertSpyCalls,
   stub,
-} from "https://deno.land/std@0.217.0/testing/mock.ts";
-import { AssertError } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
-import { invoke, Service } from "./host.ts";
-import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
+} from "jsr:@std/testing@0.224.0/mock";
+import { AssertError } from "jsr:@core/unknownutil@3.18.0";
+import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
+import { invoke, type Service } from "./host.ts";
 
 Deno.test("invoke", async (t) => {
   const service: Omit<Service, "bind"> = {
