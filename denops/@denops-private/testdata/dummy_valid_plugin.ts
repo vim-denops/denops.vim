@@ -1,4 +1,4 @@
-import type { Denops } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
+import type { Denops } from "jsr:@denops/core@6.0.6";
 
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
