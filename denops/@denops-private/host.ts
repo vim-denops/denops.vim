@@ -1,4 +1,4 @@
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
+import { ensure, is } from "jsr:@core/unknownutil@3.18.0";
 
 /**
  * Host (Vim/Neovim) which is visible from Service
