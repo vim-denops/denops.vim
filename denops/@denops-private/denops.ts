@@ -1,11 +1,6 @@
-import type {
-  Context,
-  Denops,
-  Dispatcher,
-  Meta,
-} from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
-import { BatchError } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
+import type { Context, Denops, Dispatcher, Meta } from "jsr:@denops/core@6.0.6";
+import { BatchError } from "jsr:@denops/core@6.0.6";
+import { ensure, is } from "jsr:@core/unknownutil@3.18.0";
 import type { Host as HostOrigin } from "./host.ts";
 import type { Service as ServiceOrigin } from "./service.ts";
 

@@ -2,17 +2,14 @@ import {
   assertEquals,
   assertMatch,
   assertRejects,
-} from "https://deno.land/std@0.217.0/assert/mod.ts";
-import {
-  assertSpyCall,
-  stub,
-} from "https://deno.land/std@0.217.0/testing/mock.ts";
-import { delay } from "https://deno.land/std@0.217.0/async/mod.ts";
-import { promiseState } from "https://deno.land/x/async@v2.1.0/mod.ts";
+} from "jsr:@std/assert@0.225.1";
+import { assertSpyCall, stub } from "jsr:@std/testing@0.224.0/mock";
+import { delay } from "jsr:@std/async@0.224.0/delay";
+import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
+import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
 import { withVim } from "../testutil/with.ts";
-import { Service } from "../host.ts";
+import type { Service } from "../host.ts";
 import { Vim } from "./vim.ts";
-import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
 
 Deno.test("Vim", async (t) => {
   let waitClosed: Promise<void> | undefined;

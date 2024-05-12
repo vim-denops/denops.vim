@@ -2,8 +2,8 @@ import {
   assert,
   assertEquals,
   assertInstanceOf,
-} from "https://deno.land/std@0.217.0/assert/mod.ts";
-import { is } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
+} from "jsr:@std/assert@0.225.1";
+import { is } from "jsr:@core/unknownutil@3.18.0";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 
 Deno.test("errorSerializer", async (t) => {

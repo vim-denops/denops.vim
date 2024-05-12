@@ -1,8 +1,6 @@
-import {
-  fromFileUrl,
-  resolve,
-  SEPARATOR as SEP,
-} from "https://deno.land/std@0.217.0/path/mod.ts";
+import { fromFileUrl } from "jsr:@std/path@0.225.0/from-file-url";
+import { resolve } from "jsr:@std/path@0.225.0/resolve";
+import { SEPARATOR as SEP } from "jsr:@std/path@0.225.0/constants";
 
 let conf: Config | undefined;
 
