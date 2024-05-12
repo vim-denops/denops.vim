@@ -2,16 +2,13 @@ import {
   assertEquals,
   assertMatch,
   assertRejects,
-} from "https://deno.land/std@0.217.0/assert/mod.ts";
-import {
-  assertSpyCall,
-  stub,
-} from "https://deno.land/std@0.217.0/testing/mock.ts";
-import { promiseState } from "https://deno.land/x/async@v2.1.0/mod.ts";
+} from "jsr:@std/assert@0.225.1";
+import { assertSpyCall, stub } from "jsr:@std/testing@0.224.0/mock";
+import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
+import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
 import { withNeovim } from "../testutil/with.ts";
-import { Service } from "../host.ts";
+import type { Service } from "../host.ts";
 import { Neovim } from "./nvim.ts";
-import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
 
 Deno.test("Neovim", async (t) => {
   let waitClosed: Promise<void> | undefined;

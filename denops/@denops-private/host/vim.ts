@@ -1,10 +1,10 @@
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
+import { ensure, is } from "jsr:@core/unknownutil@3.18.0";
 import {
   Client,
-  Message,
+  type Message,
   Session,
-} from "https://deno.land/x/vim_channel_command@v3.0.0/mod.ts";
-import { Host, invoke, Service } from "../host.ts";
+} from "jsr:@denops/vim-channel-command@4.0.0";
+import { type Host, invoke, type Service } from "../host.ts";
 
 export class Vim implements Host {
   #session: Session;

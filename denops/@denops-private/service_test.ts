@@ -3,15 +3,15 @@ import {
   assertEquals,
   assertMatch,
   assertRejects,
-} from "https://deno.land/std@0.217.0/assert/mod.ts";
+} from "jsr:@std/assert@0.225.1";
 import {
   assertSpyCall,
   assertSpyCalls,
   stub,
-} from "https://deno.land/std@0.217.0/testing/mock.ts";
-import type { Meta } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
-import { promiseState } from "https://deno.land/x/async@v2.1.0/mod.ts";
-import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
+} from "jsr:@std/testing@0.224.0/mock";
+import type { Meta } from "jsr:@denops/core@6.0.6";
+import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
+import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";
 

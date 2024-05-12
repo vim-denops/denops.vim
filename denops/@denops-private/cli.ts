@@ -1,10 +1,10 @@
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
-} from "https://deno.land/x/workerio@v3.1.0/mod.ts";
-import { parseArgs } from "https://deno.land/std@0.217.0/cli/parse_args.ts";
+} from "jsr:@lambdalisue/workerio@4.0.0";
+import { parseArgs } from "jsr:@std/cli/parse-args";
 
-const script = new URL("./worker.ts", import.meta.url);
+const script = import.meta.resolve("./worker.ts");
 
 async function handleConn(
   conn: Deno.Conn,
