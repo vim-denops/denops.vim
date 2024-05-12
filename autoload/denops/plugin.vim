@@ -122,14 +122,6 @@ function! s:gather_plugins(plugins) abort
   endfor
 endfunction
 
-function! s:options(base, default) abort
-  let l:options = extend(a:default, a:base)
-  if l:options.mode !~# '^\(reload\|skip\|error\)$'
-    throw printf('Unknown mode "%s" is specified', l:options.mode)
-  endif
-  return l:options
-endfunction
-
 function! s:find_plugin(name) abort
   for l:script in globpath(&runtimepath, denops#_internal#path#join(['denops', a:name, 'main.ts']), 1, 1, 1)
     let l:name = fnamemodify(l:script, ':h:t')
