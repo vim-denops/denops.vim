@@ -1,18 +1,18 @@
-function! denops#notify(plugin, method, params) abort
+function! denops#notify(name, method, params) abort
   call denops#_internal#server#chan#notify(
         \ 'invoke',
-        \ ['dispatch', [a:plugin, a:method, a:params]],
+        \ ['dispatch', [a:name, a:method, a:params]],
         \)
 endfunction
 
-function! denops#request(plugin, method, params) abort
+function! denops#request(name, method, params) abort
   return denops#_internal#server#chan#request(
         \ 'invoke',
-        \ ['dispatch', [a:plugin, a:method, a:params]],
+        \ ['dispatch', [a:name, a:method, a:params]],
         \)
 endfunction
 
-function! denops#request_async(plugin, method, params, success, failure) abort
+function! denops#request_async(name, method, params, success, failure) abort
   let l:success = denops#callback#register(a:success, {
         \ 'once': v:true,
         \})
@@ -21,7 +21,7 @@ function! denops#request_async(plugin, method, params, success, failure) abort
         \})
   return denops#_internal#server#chan#notify(
         \ 'invoke',
-        \ ['dispatchAsync', [a:plugin, a:method, a:params, l:success, l:failure]],
+        \ ['dispatchAsync', [a:name, a:method, a:params, l:success, l:failure]],
         \)
 endfunction
 
