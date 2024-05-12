@@ -1,11 +1,10 @@
 {
-  "lock": false,
   "tasks": {
+    "check": "deno check **/*.ts",
     "test": "deno test -A --parallel --shuffle --doc",
     "test:coverage": "deno task test --coverage=.coverage",
-    "check": "deno check ./**/*.ts",
     "coverage": "deno coverage .coverage --exclude=cli.ts --exclude=worker.ts --exclude=testdata/",
-    "upgrade": "deno run -q -A https://deno.land/x/molt@0.14.2/cli.ts ./**/*.ts",
-    "upgrade:commit": "deno task -q upgrade --commit --prefix :package: --pre-commit=fmt"
+    "update": "deno run --allow-env --allow-read --allow-write=. --allow-run=git,deno --allow-net=jsr.io,registry.npmjs.org jsr:@molt/cli ./*.ts",
+    "update:commit": "deno task -q update --commit --pre-commit=fmt,lint"
   }
 }
