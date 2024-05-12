@@ -13,7 +13,7 @@ const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
 
 export type Host = Pick<HostOrigin, "redraw" | "call" | "batch">;
 
-export type Service = Pick<ServiceOrigin, "dispatch">;
+export type Service = Pick<ServiceOrigin, "dispatch" | "waitLoaded">;
 
 export class DenopsImpl implements Denops {
   readonly name: string;
@@ -67,12 +67,13 @@ export class DenopsImpl implements Denops {
     return this.#host.call("denops#api#eval", expr, ctx);
   }
 
-  dispatch(
+  async dispatch(
     name: string,
     fn: string,
     ...args: unknown[]
   ): Promise<unknown> {
-    return this.#service.dispatch(name, fn, args);
+    await this.#service.waitLoaded(name);
+    return await this.#service.dispatch(name, fn, args);
   }
 }
 

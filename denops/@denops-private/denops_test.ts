@@ -1,9 +1,11 @@
 import type { Meta } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
+import { assertEquals } from "https://deno.land/std@0.217.0/assert/mod.ts";
 import {
   assertSpyCall,
   stub,
 } from "https://deno.land/std@0.217.0/testing/mock.ts";
 import { DenopsImpl, Host, Service } from "./denops.ts";
+import { promiseState } from "https://deno.land/x/async@v2.1.0/mod.ts";
 import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
 
 Deno.test("DenopsImpl", async (t) => {
@@ -20,6 +22,7 @@ Deno.test("DenopsImpl", async (t) => {
   };
   const service: Service = {
     dispatch: () => unimplemented(),
+    waitLoaded: () => unimplemented(),
   };
   const denops = new DenopsImpl("dummy", meta, host, service);
 
@@ -93,14 +96,41 @@ Deno.test("DenopsImpl", async (t) => {
   });
 
   await t.step("dispatch() calls service.dispatch()", async () => {
-    const s = stub(service, "dispatch");
+    const s1 = stub(service, "waitLoaded", () => Promise.resolve());
+    const s2 = stub(service, "dispatch", () => Promise.resolve());
     try {
       await denops.dispatch("dummy", "fn", "args");
-      assertSpyCall(s, 0, {
+      assertSpyCall(s1, 0, {
+        args: ["dummy"],
+      });
+      assertSpyCall(s2, 0, {
         args: ["dummy", "fn", ["args"]],
       });
     } finally {
-      s.restore();
+      s1.restore();
+      s2.restore();
     }
   });
+
+  await t.step(
+    "dispatch() internally waits 'service.waitLoaded()' before 'service.dispatch()'",
+    async () => {
+      const { promise, resolve } = Promise.withResolvers<void>();
+      const s1 = stub(service, "waitLoaded", () => promise);
+      const s2 = stub(service, "dispatch", () => Promise.resolve());
+      try {
+        const p = denops.dispatch("dummy", "fn", "args");
+        assertEquals(await promiseState(p), "pending");
+        assertEquals(s1.calls.length, 1);
+        assertEquals(s2.calls.length, 0);
+        resolve();
+        assertEquals(await promiseState(p), "fulfilled");
+        assertEquals(s1.calls.length, 1);
+        assertEquals(s2.calls.length, 1);
+      } finally {
+        s1.restore();
+        s2.restore();
+      }
+    },
+  );
 });

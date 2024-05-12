@@ -6,11 +6,18 @@ import { toFileUrl } from "https://deno.land/std@0.217.0/path/mod.ts";
 import { toErrorObject } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
 import { DenopsImpl, Host } from "./denops.ts";
 
+// We can use `PromiseWithResolvers<void>` but Deno 1.38 doesn't have `PromiseWithResolvers`
+type Waiter = {
+  promise: Promise<void>;
+  resolve: () => void;
+};
+
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service implements Disposable {
   #plugins: Map<string, Plugin> = new Map();
+  #waiters: Map<string, Waiter> = new Map();
   #meta: Meta;
   #host?: Host;
 
@@ -18,11 +25,18 @@ export class Service implements Disposable {
     this.#meta = meta;
   }
 
+  #getWaiter(name: string): Waiter {
+    if (!this.#waiters.has(name)) {
+      this.#waiters.set(name, Promise.withResolvers());
+    }
+    return this.#waiters.get(name)!;
+  }
+
   bind(host: Host): void {
     this.#host = host;
   }
 
-  load(
+  async load(
     name: string,
     script: string,
     suffix = "",
@@ -35,12 +49,13 @@ export class Service implements Disposable {
       if (this.#meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is already loaded. Skip`);
       }
-      return Promise.resolve();
+      return;
     }
     const denops = new DenopsImpl(name, this.#meta, this.#host, this);
     plugin = new Plugin(denops, name, script);
     this.#plugins.set(name, plugin);
-    return plugin.load(suffix);
+    await plugin.load(suffix);
+    this.#getWaiter(name).resolve();
   }
 
   reload(
@@ -54,10 +69,15 @@ export class Service implements Disposable {
       return Promise.resolve();
     }
     this.#plugins.delete(name);
+    this.#waiters.delete(name);
     // Import module with fragment so that reload works properly
     // https://github.com/vim-denops/denops.vim/issues/227
     const suffix = `#${performance.now()}`;
     return this.load(name, plugin.script, suffix);
+  }
+
+  waitLoaded(name: string): Promise<void> {
+    return this.#getWaiter(name).promise;
   }
 
   async #dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
