@@ -63,7 +63,7 @@ function! denops#plugin#register(name, ...) abort
         \ 'denops#plugin#register() is deprecated. Use denops#plugin#load() instead.',
         \)
   if a:0 is# 0 || type(a:1) is# v:t_dict
-    let l:script = s:find_plugin(a:name)
+    let l:script = denops#_internal#plugin#find(a:name).script
   else
     let l:script = a:1
   endif
@@ -84,21 +84,19 @@ function! denops#plugin#reload(name) abort
 endfunction
 
 function! denops#plugin#discover() abort
-  let l:plugins = {}
-  call s:gather_plugins(l:plugins)
+  let l:plugins = denops#_internal#plugin#collect()
   call denops#_internal#echo#debug(printf('%d plugins are discovered', len(l:plugins)))
-  for [l:name, l:script] in items(l:plugins)
-    call denops#plugin#load(l:name, l:script)
+  for l:plugin in l:plugins
+    call denops#plugin#load(l:plugin.name, l:plugin.script)
   endfor
 endfunction
 
 function! denops#plugin#check_type(...) abort
-  if !a:0
-    let l:plugins = {}
-    call s:gather_plugins(l:plugins)
-  endif
+  let l:plugins = a:0
+        \ ? [denops#_internal#plugin#find(a:1)]
+        \ : denops#_internal#plugin#collect()
   let l:args = [g:denops#deno, 'check']
-  let l:args += a:0 ? [s:find_plugin(a:1)] : values(l:plugins)
+  let l:args = extend(l:args, map(l:plugins, { _, v -> v.script }))
   let l:job = denops#_internal#job#start(l:args, {
         \ 'env': {
         \   'NO_COLOR': 1,
@@ -110,27 +108,6 @@ function! denops#plugin#check_type(...) abort
         \   : denops#_internal#echo#info('Type check succeeded')
         \ },
         \ })
-endfunction
-
-function! s:gather_plugins(plugins) abort
-  for l:script in globpath(&runtimepath, denops#_internal#path#join(['denops', '*', 'main.ts']), 1, 1, 1)
-    let l:plugin = fnamemodify(l:script, ':h:t')
-    if l:plugin[:0] ==# '@' || has_key(a:plugins, l:plugin)
-      continue
-    endif
-    call extend(a:plugins, { l:plugin : l:script })
-  endfor
-endfunction
-
-function! s:find_plugin(name) abort
-  for l:script in globpath(&runtimepath, denops#_internal#path#join(['denops', a:name, 'main.ts']), 1, 1, 1)
-    let l:name = fnamemodify(l:script, ':h:t')
-    if l:name[:0] ==# '@' || !filereadable(l:script)
-      continue
-    endif
-    return l:script
-  endfor
-  throw printf('No denops plugin for "%s" exists', a:name)
 endfunction
 
 function! s:relay_autocmd(name) abort
