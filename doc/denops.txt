@@ -200,6 +200,16 @@ denops#request_async({name}, {method}, {params}, {success}, {failure})
 	      \ { e -> s:failure(e) },
 	      \)
 <
+						*denops#cache#update()*
+denops#cache#update([{options}])
+	Update Deno module cache of denops itself and denops plugins in
+	|runtimepath|.
+
+	The following {options} is available
+
+	"reload"	|v:true| to force update ("--reload" flag of "deno
+			cache") command.
+
 						*denops#server#start()*
 denops#server#start()
 	Starts a denops server process and connects to the channel. It does
