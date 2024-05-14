@@ -13,8 +13,9 @@ type Waiter = {
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service implements Disposable {
-  #plugins: Map<string, Plugin> = new Map();
-  #waiters: Map<string, Waiter> = new Map();
+  #interruptController = new AbortController();
+  #plugins = new Map<string, Plugin>();
+  #waiters = new Map<string, Waiter>();
   #meta: Meta;
   #host?: Host;
 
@@ -27,6 +28,10 @@ export class Service implements Disposable {
       this.#waiters.set(name, Promise.withResolvers());
     }
     return this.#waiters.get(name)!;
+  }
+
+  get interrupted(): AbortSignal {
+    return this.#interruptController.signal;
   }
 
   bind(host: Host): void {
@@ -75,6 +80,11 @@ export class Service implements Disposable {
 
   waitLoaded(name: string): Promise<void> {
     return this.#getWaiter(name).promise;
+  }
+
+  interrupt(reason?: unknown): void {
+    this.#interruptController.abort(reason);
+    this.#interruptController = new AbortController();
   }
 
   async #dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {

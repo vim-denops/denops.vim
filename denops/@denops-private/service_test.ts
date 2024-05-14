@@ -3,6 +3,7 @@ import {
   assertEquals,
   assertMatch,
   assertRejects,
+  assertThrows,
 } from "jsr:@std/assert@0.225.1";
 import {
   assertSpyCall,
@@ -463,6 +464,26 @@ Deno.test("Service", async (t) => {
           "Failed to call failure callback 'failure': Error: invalid call",
         ],
       });
+    },
+  );
+
+  await t.step(
+    "interrupt() sends interrupt signal to `interrupted` attribute",
+    () => {
+      const signal = service.interrupted;
+      signal.throwIfAborted(); // Should not throw
+      service.interrupt();
+      assertThrows(() => signal.throwIfAborted());
+    },
+  );
+
+  await t.step(
+    "interrupt() sends interrupt signal to `interrupted` attribute with reason",
+    () => {
+      const signal = service.interrupted;
+      signal.throwIfAborted(); // Should not throw
+      service.interrupt("test");
+      assertThrows(() => signal.throwIfAborted(), "test");
     },
   );
 });
