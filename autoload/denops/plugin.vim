@@ -51,7 +51,7 @@ function! denops#plugin#wait_async(name, callback) abort
   endif
   let l:callbacks = get(s:load_callbacks, a:name, [])
   call add(l:callbacks, a:callback)
-  let s:load_callbacks[a:plugin] = l:callbacks
+  let s:load_callbacks[a:name] = l:callbacks
 endfunction
 
 " DEPRECATED
