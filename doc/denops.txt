@@ -200,6 +200,26 @@ denops#request_async({name}, {method}, {params}, {success}, {failure})
 	      \ { e -> s:failure(e) },
 	      \)
 <
+						*denops#interrupt()*
+denops#interrupt([{reason}])
+	Interrupts the process of plugins. It is assumed to be used to
+	interrupt the process of plugins when the user presses a key or
+	issues a command.
+	{reason} is an optional string to describe the reason for the
+	interruption.
+	Note that the interruption is not guaranteed to be immediate.
+
+	Use the following mapping to interrupt the process of plugins:
+>
+	" For normal/visual/select mode
+	noremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
+
+	" For insert mode
+	inoremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
+
+	" For command mode
+	cnoremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
+<
 						*denops#cache#update()*
 denops#cache#update([{options}])
 	Update Deno module cache of denops itself and denops plugins in
