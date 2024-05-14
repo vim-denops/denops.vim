@@ -158,26 +158,26 @@ VARIABLE						*denops-variable*
 FUNCTION						*denops-function*
 
 						*denops#notify()*
-denops#notify({plugin}, {method}, {params})
-	Calls API {method} of {plugin} with {params} and returns immediately
-	without waiting for a result.
+denops#notify({name}, {method}, {params})
+	Calls API {method} of {name} plugin with {params} and returns
+	immediately without waiting for a result.
 	Use |denops#request()| instead if you need a result.
         Note: It does not redraw in the Vim environment. Manually execute
         |:redraw| if needed.
 
 						*denops#request()*
-denops#request({plugin}, {method}, {params})
-	Calls API {method} of {plugin} with {params} and waits for a result,
-	then returns it.
+denops#request({name}, {method}, {params})
+	Calls API {method} of {name} plugin with {params} and waits for a
+	result, then returns it.
 	Use |denops#notify()| instead if you don't need a result.
 	Use |denops#request_async()| instead if you need a result
 	asynchronously.
 
 						*denops#request_async()*
-denops#request_async({plugin}, {method}, {params}, {success}, {failure})
-	Calls API {method} of {plugin} with {params} and returns immediately.
-	Once the call succeeds, the {success} callback is called with a
-	result.
+denops#request_async({name}, {method}, {params}, {success}, {failure})
+	Calls API {method} of {name} plugin with {params} and returns
+	immediately. Once the call succeeds, the {success} callback is called
+	with a result.
 	Otherwise, the {failure} callback is called with an error.
 	Use |denops#notify()| instead if you don't need a result.
 	Use |denops#request()| instead if you need a result synchronously.
@@ -200,6 +200,16 @@ denops#request_async({plugin}, {method}, {params}, {success}, {failure})
 	      \ { e -> s:failure(e) },
 	      \)
 <
+						*denops#cache#update()*
+denops#cache#update([{options}])
+	Update Deno module cache of denops itself and denops plugins in
+	|runtimepath|.
+
+	The following {options} is available
+
+	"reload"	|v:true| to force update ("--reload" flag of "deno
+			cache") command.
+
 						*denops#server#start()*
 denops#server#start()
 	Starts a denops server process and connects to the channel. It does
@@ -282,14 +292,14 @@ denops#server#wait_async({callback})
 	callbacks registered are called in order of registration.
 
 						*denops#plugin#is_loaded()*
-denops#plugin#is_loaded({plugin})
-	Returns 1 if a {plugin} plugin is already loaded. Otherwise, returns
+denops#plugin#is_loaded({name})
+	Returns 1 if a {name} plugin is already loaded. Otherwise, returns
 	0.
 
 						*denops#plugin#wait()*
-denops#plugin#wait({plugin}[, {options}])
-	Waits synchronously until a {plugin} plugin is loaded. It returns
-	immediately when the {plugin} plugin is already loaded.
+denops#plugin#wait({name}[, {options}])
+	Waits synchronously until a {name} plugin is loaded. It returns
+	immediately when the {name} plugin is already loaded.
 	It returns -1 if it times out, -2 if the server is not yet ready or
 	interrupted, or -3 if the plugin initialization failed.
 	Developers need to consider this return value to decide whether to
@@ -305,15 +315,15 @@ denops#plugin#wait({plugin}[, {options}])
 			Default: 0
 
 						*denops#plugin#wait_async()*
-denops#plugin#wait_async({plugin}, {callback})
-	Waits asynchronously until a {plugin} plugin is loaded and invokes a
-	{callback}. It invokes the {callback} immediately when the {plugin}
+denops#plugin#wait_async({name}, {callback})
+	Waits asynchronously until a {name} plugin is loaded and invokes a
+	{callback}. It invokes the {callback} immediately when the {name}
 	plugin is already loaded. If this function is called multiple times
-	for the same {plugin} plugin, callbacks registered for the plugin are
+	for the same {name} plugin, callbacks registered for the plugin are
 	called in order of registration.
 
 						*denops#plugin#register()*
-denops#plugin#register({plugin}[, {script}[, {options}]])
+denops#plugin#register({name}[, {script}[, {options}]])
 	DEPRECATED: Use |denops#plugin#load()| instead.
 
 	Developers who would like to support previous denops versions should
@@ -344,7 +354,7 @@ denops#plugin#discover()
         by |denops#server#start()|.
 
 						*denops#plugin#load()*
-denops#plugin#load({plugin}, {script})
+denops#plugin#load({name}, {script})
 	Loads a denops plugin. Use this function to load denops plugins that
 	are not discovered by |denops#plugin#discover()|.
 	It invokes |User| |DenopsPluginPre|:{plugin} just before denops
@@ -353,12 +363,12 @@ denops#plugin#load({plugin}, {script})
 	function of the plugin.
 
 						*denops#plugin#reload()*
-denops#plugin#reload({plugin})
+denops#plugin#reload({name})
 	Reloads a denops plugin.
 
 						*denops#plugin#check_type()*
-denops#plugin#check_type([{plugin}])
-	Runs Deno's type check feature for {plugin} or all registered plugins.
+denops#plugin#check_type([{name}])
+	Runs Deno's type check feature for {name} or all registered plugins.
 	The result of the check will be displayed in |message-history|.
 
 						*denops#callback#register()*
