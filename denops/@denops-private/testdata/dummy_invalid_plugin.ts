@@ -1,5 +1,5 @@
-import type { Denops } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
+import type { Entrypoint } from "https://deno.land/x/denops_core@v6.1.0/mod.ts";
 
-export function main(_denops: Denops): Promise<void> {
+export const main: Entrypoint = (_denops) => {
   throw new Error("This is dummy error");
-}
+};
