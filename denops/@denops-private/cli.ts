@@ -4,6 +4,10 @@ import {
 } from "jsr:@lambdalisue/workerio@4.0.0";
 import { parseArgs } from "jsr:@std/cli/parse-args";
 
+// Disable "Native acceleration" feature of `msgpackr` as an workaround of Deno panic.
+// https://github.com/denoland/deno/issues/23792
+Deno.env.set("MSGPACKR_NATIVE_ACCELERATION_DISABLED", "true");
+
 const script = import.meta.resolve("./worker.ts");
 
 async function handleConn(
