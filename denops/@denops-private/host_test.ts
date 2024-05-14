@@ -12,6 +12,7 @@ Deno.test("invoke", async (t) => {
   const service: Omit<Service, "bind"> = {
     load: () => unimplemented(),
     reload: () => unimplemented(),
+    interrupt: () => unimplemented(),
     dispatch: () => unimplemented(),
     dispatchAsync: () => unimplemented(),
   };
@@ -42,6 +43,28 @@ Deno.test("invoke", async (t) => {
     await t.step("invalid args", () => {
       using s = stub(service, "reload");
       assertThrows(() => invoke(service, "reload", []), AssertError);
+      assertSpyCalls(s, 0);
+    });
+  });
+
+  await t.step("calls 'interrupt'", async (t) => {
+    await t.step("ok", async () => {
+      using s = stub(service, "interrupt");
+      await invoke(service, "interrupt", []);
+      assertSpyCalls(s, 1);
+      assertSpyCall(s, 0, { args: [] });
+    });
+
+    await t.step("ok (with reason)", async () => {
+      using s = stub(service, "interrupt");
+      await invoke(service, "interrupt", ["reason"]);
+      assertSpyCalls(s, 1);
+      assertSpyCall(s, 0, { args: ["reason"] });
+    });
+
+    await t.step("invalid args", () => {
+      using s = stub(service, "interrupt");
+      assertThrows(() => invoke(service, "interrupt", ["a", "b"]), AssertError);
       assertSpyCalls(s, 0);
     });
   });

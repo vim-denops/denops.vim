@@ -1,5 +1,5 @@
 import type { Meta } from "jsr:@denops/core@6.0.6";
-import { assertEquals } from "jsr:@std/assert@0.225.1";
+import { assertEquals, assertInstanceOf } from "jsr:@std/assert@0.225.1";
 import { assertSpyCall, stub } from "jsr:@std/testing@0.224.0/mock";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
@@ -20,8 +20,13 @@ Deno.test("DenopsImpl", async (t) => {
   const service: Service = {
     dispatch: () => unimplemented(),
     waitLoaded: () => unimplemented(),
+    interrupted: new AbortController().signal,
   };
   const denops = new DenopsImpl("dummy", meta, host, service);
+
+  await t.step("interrupted returns AbortSignal instance", () => {
+    assertInstanceOf(denops.interrupted, AbortSignal);
+  });
 
   await t.step("redraw() calls host.redraw()", async () => {
     using s = stub(host, "redraw");
