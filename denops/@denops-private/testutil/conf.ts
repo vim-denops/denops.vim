@@ -1,6 +1,6 @@
-import { fromFileUrl } from "jsr:@std/path@0.225.0/from-file-url";
-import { resolve } from "jsr:@std/path@0.225.0/resolve";
-import { SEPARATOR as SEP } from "jsr:@std/path@0.225.0/constants";
+import { fromFileUrl } from "jsr:@std/path@0.224.0/from-file-url";
+import { resolve } from "jsr:@std/path@0.224.0/resolve";
+import { SEPARATOR as SEP } from "jsr:@std/path@0.224.0/constants";
 
 let conf: Config | undefined;
 

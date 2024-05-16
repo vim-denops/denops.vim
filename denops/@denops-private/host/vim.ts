@@ -1,9 +1,9 @@
-import { ensure, is } from "jsr:@core/unknownutil@3.18.0";
+import { ensure, is } from "jsr:@core/unknownutil@3.18.1";
 import {
   Client,
   type Message,
   Session,
-} from "jsr:@denops/vim-channel-command@4.0.0";
+} from "jsr:@denops/vim-channel-command@4.0.2";
 import { formatCall, type Host, invoke, type Service } from "../host.ts";
 
 export class Vim implements Host {
@@ -34,8 +34,7 @@ export class Vim implements Host {
   }
 
   redraw(force?: boolean): Promise<void> {
-    this.#client.redraw(force);
-    return Promise.resolve();
+    return this.#client.redraw(force);
   }
 
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
@@ -80,8 +79,8 @@ export class Vim implements Host {
     return [ret, ""];
   }
 
-  notify(fn: string, ...args: unknown[]): void {
-    this.#client.callNoReply(fn, ...args);
+  notify(fn: string, ...args: unknown[]): Promise<void> {
+    return this.#client.callNoReply(fn, ...args);
   }
 
   init(service: Service): Promise<void> {

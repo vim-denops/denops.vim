@@ -2,10 +2,10 @@ import {
   assertEquals,
   assertMatch,
   assertRejects,
+  unimplemented,
 } from "jsr:@std/assert@0.225.1";
 import { assertSpyCall, stub } from "jsr:@std/testing@0.224.0/mock";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
-import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
 import { withNeovim } from "../testutil/with.ts";
 import type { Service } from "../host.ts";
 import { Neovim } from "./nvim.ts";
@@ -17,9 +17,11 @@ Deno.test("Neovim", async (t) => {
       const service: Service = {
         bind: () => unimplemented(),
         load: () => unimplemented(),
+        unload: () => unimplemented(),
         reload: () => unimplemented(),
         dispatch: () => unimplemented(),
         dispatchAsync: () => unimplemented(),
+        close: () => unimplemented(),
       };
 
       await using host = new Neovim(reader, writer);

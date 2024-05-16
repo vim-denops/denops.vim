@@ -1,10 +1,10 @@
-import { is } from "jsr:@core/unknownutil@3.18.0";
+import { is } from "jsr:@core/unknownutil@3.18.1";
 import {
   fromErrorObject,
   isErrorObject,
   toErrorObject,
   tryOr,
-} from "jsr:@lambdalisue/errorutil@1.0.0";
+} from "jsr:@lambdalisue/errorutil@1.1.0";
 
 export function errorSerializer(err: unknown): unknown {
   if (err instanceof Error) {

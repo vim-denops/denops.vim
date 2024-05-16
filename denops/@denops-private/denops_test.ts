@@ -1,8 +1,7 @@
-import type { Meta } from "jsr:@denops/core@6.0.6";
-import { assertEquals } from "jsr:@std/assert@0.225.1";
+import type { Meta } from "jsr:@denops/core@6.1.0";
+import { assertEquals, unimplemented } from "jsr:@std/assert@0.225.1";
 import { assertSpyCall, stub } from "jsr:@std/testing@0.224.0/mock";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
-import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
 import { DenopsImpl, type Host, type Service } from "./denops.ts";
 
 Deno.test("DenopsImpl", async (t) => {

@@ -3,7 +3,7 @@ import {
   assertEquals,
   assertInstanceOf,
 } from "jsr:@std/assert@0.225.1";
-import { is } from "jsr:@core/unknownutil@3.18.0";
+import { is } from "jsr:@core/unknownutil@3.18.1";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 
 Deno.test("errorSerializer", async (t) => {
