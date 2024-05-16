@@ -15,6 +15,7 @@ Deno.test("invoke", async (t) => {
     interrupt: () => unimplemented(),
     dispatch: () => unimplemented(),
     dispatchAsync: () => unimplemented(),
+    close: () => unimplemented(),
   };
 
   await t.step("calls 'load'", async (t) => {
@@ -103,6 +104,21 @@ Deno.test("invoke", async (t) => {
     await t.step("invalid args", () => {
       using s = stub(service, "dispatchAsync");
       assertThrows(() => invoke(service, "dispatchAsync", []), AssertError);
+      assertSpyCalls(s, 0);
+    });
+  });
+
+  await t.step("calls 'close'", async (t) => {
+    await t.step("ok", async () => {
+      using s = stub(service, "close");
+      await invoke(service, "close", []);
+      assertSpyCalls(s, 1);
+      assertSpyCall(s, 0, { args: [] });
+    });
+
+    await t.step("invalid args", () => {
+      using s = stub(service, "close");
+      assertThrows(() => invoke(service, "close", ["foo"]), AssertError);
       assertSpyCalls(s, 0);
     });
   });

@@ -24,13 +24,17 @@ if has('nvim')
           \ 'on_stderr': funcref('s:on_recv', [a:options.on_stderr]),
           \ 'on_exit': funcref('s:on_exit', [a:options.on_exit]),
           \}
-    return jobstart(a:args, l:options)
+    try
+      return jobstart(a:args, l:options)
+    catch
+      " NOTE: Call `on_exit` when cmd (args[0]) is not executable.
+      call timer_start(0, { -> l:options.on_exit(-1, -1, 'exit') })
+    endtry
   endfunction
 
   function! s:stop(job) abort
     try
       call jobstop(a:job)
-      call jobwait([a:job])
     catch /^Vim\%((\a\+)\)\=:E900/
       " NOTE:
       " Vim does not raise exception even the job has already closed so fail
@@ -58,24 +62,27 @@ else
           \ 'err_cb': funcref('s:out_cb', [a:options.on_stderr, 'stderr']),
           \ 'exit_cb': funcref('s:exit_cb', [a:options.on_exit, 'exit']),
           \}
-    return job_start(a:args, l:options)
+    let l:job = job_start(a:args, l:options)
+    if l:job->job_status() ==# "fail"
+      " NOTE:
+      " On Windows call `on_exit` when cmd (args[0]) is not executable.
+      " On Unix a non-existing command results in "dead" instead of "fail",
+      " and `on_exit` is called by `job_start()`.
+      call timer_start(0, { -> l:options.exit_cb(-1, -1) })
+    endif
+    return l:job
   endfunction
 
   function! s:stop(job) abort
     call job_stop(a:job)
     call timer_start(s:KILL_TIMEOUT_MS, { -> job_stop(a:job, 'kill') })
-    " Wait until the job is actually closed
-    while job_status(a:job) ==# 'run'
-      sleep 10m
-    endwhile
-    redraw
   endfunction
 
-  function! s:out_cb(callback, event, ch, msg) abort
-    call a:callback(a:ch, a:msg, a:event)
+  function! s:out_cb(callback, event, job, msg) abort
+    call a:callback(a:job, a:msg, a:event)
   endfunction
 
-  function! s:exit_cb(callback, event, ch, status) abort
-    call a:callback(a:ch, a:status, a:event)
+  function! s:exit_cb(callback, event, job, status) abort
+    call a:callback(a:job, a:status, a:event)
   endfunction
 endif

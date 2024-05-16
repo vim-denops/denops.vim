@@ -22,6 +22,7 @@ Deno.test("Vim", async (t) => {
         interrupt: () => unimplemented(),
         dispatch: () => unimplemented(),
         dispatchAsync: () => unimplemented(),
+        close: () => unimplemented(),
       };
 
       await using host = new Vim(reader, writer);
