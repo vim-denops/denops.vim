@@ -143,8 +143,7 @@ VARIABLE						*denops-variable*
 	Default: 10000
 
 *g:denops#server#restart_threshold*
-        The number of restart counts within
-        |g:denops#server#restart_interval|.
+        The number of restart counts within |g:denops#server#restart_interval|.
 	Default: 3
 
 *g:denops#server#reconnect_interval*
@@ -154,6 +153,11 @@ VARIABLE						*denops-variable*
 *g:denops#server#reconnect_threshold*
 	The number of reconnect counts on connection failure.
 	Default: 3
+
+*g:denops#server#close_timeout*
+	Timeout in milliseconds to wait for the channel to close gracefully.
+	If the timeout expires, the channel will be forcibly closed.
+	Default: 5000
 
 *g:denops#server#wait_interval*
 	Interval in milliseconds for |denops#server#wait()|.
@@ -250,7 +254,8 @@ denops#cache#update([{options}])
 						*denops#server#start()*
 denops#server#start()
 	Starts a denops server process and connects to the channel. It does
-	nothing when the server is already started.
+	nothing when the server is already started or the channel is already
+	established.
 
 	It is automatically called 1) on |VimEnter| autocmd when denops is
 	in 'runtimepath' during Vim startup, 2) immediately when denops is
@@ -288,7 +293,7 @@ denops#server#close()
 
 						*denops#server#reconnect()*
 denops#server#reconnect()
-	Reconnects to a denops shared server.
+	Closes the channel and reconnects to a |denops-shared-server|.
 
 						*denops#server#status()*
 denops#server#status()
@@ -299,6 +304,8 @@ denops#server#status()
 	"starting"	Server is starting.
 	"preparing"	Server is preparing (initializing).
 	"running"	Server is running (ready).
+	"closing"	Server is closing (disconnecting).
+	"closed"	Server is closed (disconnected but server is running).
 
 	Note that "starting" is never returned when a |denops-shared-server|
 	is used.

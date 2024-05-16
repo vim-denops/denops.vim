@@ -7,8 +7,6 @@ let s:exiting = 0
 
 " Args:
 "   options: {
-"     retry_interval: number
-"     retry_threshold: number
 "     restart_on_exit: boolean
 "     restart_delay: number
 "     restart_interval: number
@@ -20,33 +18,9 @@ function! denops#_internal#server#proc#start(options) abort
   if s:job isnot# v:null
     throw '[denops] Server already exists'
   endif
-  let l:retry_interval = a:options.retry_interval
-  let l:retry_threshold = a:options.retry_threshold
-  let l:previous_exception = ''
-  for l:i in range(l:retry_threshold)
-    call denops#_internal#echo#debug(printf(
-          \ 'Spawn server [%d/%d]',
-          \ l:i + 1,
-          \ l:retry_threshold + 1,
-          \))
-    try
-      call s:start(a:options)
-      return v:true
-    catch
-      call denops#_internal#echo#debug(printf(
-            \ 'Failed to spawn server [%d/%d]: %s',
-            \ l:i + 1,
-            \ l:retry_threshold + 1,
-            \ v:exception,
-            \))
-      let l:previous_exception = v:exception
-    endtry
-    execute printf('sleep %dm', l:retry_interval)
-  endfor
-  call denops#_internal#echo#error(printf(
-        \ 'Failed to spawn server: %s',
-        \ l:previous_exception,
-        \))
+  call denops#_internal#echo#debug('Spawn server')
+  call s:start(a:options)
+  return v:true
 endfunction
 
 function! denops#_internal#server#proc#stop() abort
@@ -116,7 +90,7 @@ function! s:on_exit(options, status) abort
   let s:job = v:null
   call denops#_internal#echo#debug(printf('Server stopped: %s', a:status))
   execute printf('doautocmd <nomodeline> User DenopsProcessStopped:%s', a:status)
-  if !a:options.restart_on_exit || s:stopped_on_purpose || s:exiting
+  if s:job isnot# v:null || !a:options.restart_on_exit || s:stopped_on_purpose || s:exiting
     return
   endif
   " Restart

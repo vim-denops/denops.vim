@@ -71,6 +71,10 @@ export async function useSharedServer(
   const { writer: stderrWriter, reader: stderrReader } = channel<string>();
   stderr.pipeTo(stderrWriter).catch(noop);
 
+  const [addrReader, stdoutReader2] = stdoutReader.tee();
+  const addrPromise = pop(addrReader);
+  addrPromise.finally(() => addrReader.cancel());
+
   const abort = async (reason: unknown) => {
     try {
       aborter.abort(reason);
@@ -85,11 +89,11 @@ export async function useSharedServer(
   };
 
   try {
-    const addr = await deadline(pop(stdoutReader), timeout);
+    const addr = await deadline(addrPromise, timeout);
     assert(typeof addr === "string");
     return {
-      addr: addr.replace(/[\r\n].*/, ""),
-      stdout: stdoutReader,
+      addr: addr.replace(/\n.*/s, ""),
+      stdout: stdoutReader2,
       stderr: stderrReader,
       async [Symbol.asyncDispose]() {
         await abort("useSharedServer disposed");

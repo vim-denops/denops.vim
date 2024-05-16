@@ -27,6 +27,7 @@ Deno.test("Neovim", async (t) => {
         interrupt: () => unimplemented(),
         dispatch: () => unimplemented(),
         dispatchAsync: () => unimplemented(),
+        close: () => unimplemented(),
       };
 
       await using host = new Neovim(reader, writer);

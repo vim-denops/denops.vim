@@ -59,6 +59,7 @@ export type Service = {
     success: CallbackId,
     failure: CallbackId,
   ): Promise<void>;
+  close(): Promise<void>;
 };
 
 type ServiceForInvoke = Omit<Service, "bind">;
@@ -82,6 +83,8 @@ export function invoke(
       return service.dispatchAsync(
         ...ensure(args, serviceMethodArgs.dispatchAsync),
       );
+    case "close":
+      return service.close(...ensure(args, serviceMethodArgs.close));
     default:
       throw new Error(`Service does not have a method '${name}'`);
   }
@@ -95,6 +98,7 @@ const serviceMethodArgs = {
   dispatchAsync: is.ParametersOf(
     [is.String, is.String, is.Array, is.String, is.String] as const,
   ),
+  close: is.ParametersOf([] as const),
 } as const satisfies {
   [K in keyof ServiceForInvoke]: Predicate<Parameters<ServiceForInvoke[K]>>;
 };
