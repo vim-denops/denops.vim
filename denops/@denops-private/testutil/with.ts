@@ -6,24 +6,32 @@ const script = new URL("./cli.ts", import.meta.url);
 export type Fn<T> = (
   reader: ReadableStream<Uint8Array>,
   writer: WritableStream<Uint8Array>,
-) => Promise<T>;
+) => T;
 
-export type WithOptions<T> = {
+export interface WithOptions<T> {
   fn: Fn<T>;
+  /** Print Vim messages (echomsg). */
+  verbose?: boolean;
+  /** Vim commands to be executed before the startup. */
   prelude?: string[];
+  /** Vim commands to be executed after the startup.  */
   postlude?: string[];
+  /** Environment variables.  */
   env?: Record<string, string>;
-};
+}
 
 export function withVim<T>(
   options: WithOptions<T>,
-): Promise<T> {
+): Promise<Awaited<T>> {
   const conf = getConfig();
   const exec = Deno.execPath();
   const commands = [
     ...(options.prelude ?? []),
     `set runtimepath^=${conf.denopsPath}`,
-    `let g:denops_test_channel = job_start(['${exec}', 'run', '--allow-all', '${script}'], {'mode': 'json', 'err_mode': 'nl'})`,
+    "let g:denops_test_channel = job_start(" +
+    `  ['${exec}', 'run', '--allow-all', '${script}'],` +
+    `  {'mode': 'json', 'err_mode': 'nl'}` +
+    ")",
     ...(options.postlude ?? []),
   ];
   const cmd = conf.vimExecutable;
@@ -36,47 +44,49 @@ export function withVim<T>(
     "-N", // Disable compatible mode
     "-X", // Disable xterm
     "-e", // Start Vim in Ex mode
-    "-s", // Silent or batch mode
+    "-s", // Silent or batch mode ("-e" is required before)
+    "-V1", // Verbose level 1 (Echo messages to stderr)
+    "-c",
+    "visual", // Go to Normal mode
     ...commands.flatMap((c) => ["-c", c]),
   ];
-  return withProcess(cmd, args, conf.verbose, options);
+  return withProcess(cmd, args, { verbose: conf.verbose, ...options });
 }
 
 export function withNeovim<T>(
   options: WithOptions<T>,
-): Promise<T> {
+): Promise<Awaited<T>> {
   const conf = getConfig();
   const exec = Deno.execPath();
   const commands = [
     ...(options.prelude ?? []),
     `set runtimepath^=${conf.denopsPath}`,
-    `let g:denops_test_channel = jobstart(['${exec}', 'run', '--allow-all', '${script}'], {'rpc': v:true})`,
+    "let g:denops_test_channel = jobstart(" +
+    `  ['${exec}', 'run', '--allow-all', '${script}'],` +
+    `  {'rpc': v:true}` +
+    ")",
     ...(options.postlude ?? []),
   ];
   const cmd = conf.nvimExecutable;
   const args = [
     "--clean",
-    "--embed",
     "--headless",
-    "-n",
+    "-n", // Disable swap file
+    "-V1", // Verbose level 1 (Echo messages to stderr)
     ...commands.flatMap((c) => ["-c", c]),
   ];
-  return withProcess(cmd, args, conf.verbose, options);
+  return withProcess(cmd, args, { verbose: conf.verbose, ...options });
 }
 
 async function withProcess<T>(
   cmd: string,
   args: string[],
-  verbose: boolean,
-  { fn, env }: WithOptions<T>,
-): Promise<T> {
+  { fn, env, verbose }: WithOptions<T>,
+): Promise<Awaited<T>> {
   const listener = Deno.listen({
     hostname: "127.0.0.1",
     port: 0, // Automatically select free port
   });
-  if (verbose) {
-    args.unshift("--cmd", "redir >> /dev/stdout");
-  }
   const command = new Deno.Command(cmd, {
     args,
     stdin: "piped",
