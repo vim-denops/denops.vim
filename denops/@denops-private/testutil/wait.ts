@@ -1,3 +1,5 @@
+import { AssertionError } from "jsr:@std/assert@^0.225.1/assertion-error";
+
 export type WaitOptions = {
   /**
    * Timeout period to an exception is thrown.
@@ -9,32 +11,53 @@ export type WaitOptions = {
    * @default {50}
    */
   interval?: number;
+  /** Message for timeout error. */
+  message?: string;
 };
 
 /**
  * Calls `fn` periodically and returns the result if it is TRUE.
  * An exception is thrown when the timeout expires.
  */
-export function wait(
-  fn: () => unknown | Promise<unknown>,
+export async function wait<T>(
+  fn: () => T | Promise<T>,
   options?: WaitOptions,
-): Promise<unknown> {
-  const { timeout = 10_000, interval = 50 } = options ?? {};
-  return new Promise((resolve, reject) => {
-    let i: number | undefined;
-    const t = setTimeout(() => {
-      clearTimeout(i);
-      reject(new Error(`Timeout waitTrue in ${timeout} millisec`));
-    }, timeout);
-    const next = async () => {
-      const res = await fn();
-      if (res) {
-        clearTimeout(t);
-        resolve(res);
-      } else {
-        i = setTimeout(next, interval);
-      }
-    };
-    next();
+): Promise<T> {
+  const { timeout = 10_000, interval = 50, message } = options ?? {};
+  const TIMEOUT = {};
+
+  let timeoutId: number | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(TIMEOUT), timeout);
   });
+
+  let intervalId: number | undefined;
+  const delay = () =>
+    new Promise<void>((resolve) => {
+      intervalId = setTimeout(resolve, interval);
+    });
+
+  try {
+    return await Promise.race([
+      (async () => {
+        for (;;) {
+          const res = await fn();
+          if (res) {
+            return res;
+          }
+          await delay();
+        }
+      })(),
+      timeoutPromise,
+    ]);
+  } catch (e) {
+    if (e === TIMEOUT) {
+      const suffix = message ? `: ${message}` : ".";
+      throw new AssertionError(`Timeout in ${timeout} millisec${suffix}`);
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeoutId);
+    clearTimeout(intervalId);
+  }
 }
