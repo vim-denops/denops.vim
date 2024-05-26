@@ -1,6 +1,11 @@
 // @deno-types="npm:@types/sinon@17.0.3"
 import sinon from "npm:sinon@17.0.1";
-import { assertEquals, assertInstanceOf } from "jsr:@std/assert@0.225.2";
+import {
+  assertEquals,
+  assertInstanceOf,
+  assertMatch,
+} from "jsr:@std/assert@0.225.2";
+import { assertSpyCalls, stub } from "jsr:@std/testing@0.224.0/mock";
 import { delay } from "jsr:@std/async@0.224.0/delay";
 import { DisposableStack } from "jsr:@nick/dispose@1.1.0/disposable-stack";
 import * as nvimCodec from "jsr:@lambdalisue/messagepack@^1.0.1";
@@ -112,6 +117,8 @@ for (const { host, mode } of matrix) {
       using consoleStub = stubConsole();
       using _addEventListenerSpy = spyAddEventListener();
       using _denoCommandStub = stubDenoCommand();
+      using deno_addSignalListener = stub(Deno, "addSignalListener");
+      using self_close = stub(globalThis, "close");
       const usePostMessageHistory = () => ({
         [Symbol.dispose]: () => messageStub.postMessage.resetHistory(),
       });
@@ -170,18 +177,15 @@ for (const { host, mode } of matrix) {
       });
 
       if (host === "nvim") {
-        await t.step({
-          name: "sets client info",
-          fn: async () => {
-            using _ = usePostMessageHistory();
-            await delay(0);
-            assertEquals(messageStub.postMessage.callCount, 1);
-            const request = nvimCodec.decode(
-              messageStub.postMessage.getCall(0).args[0],
-            ) as unknown[];
-            assertEquals(request.slice(0, 3), [0, 1, "nvim_set_client_info"]);
-            messageStub.fakeHostMessage(nvimCodec.encode([1, 1, null, 0]));
-          },
+        await t.step("sets client info", async () => {
+          using _ = usePostMessageHistory();
+          await delay(0);
+          assertEquals(messageStub.postMessage.callCount, 1);
+          const request = nvimCodec.decode(
+            messageStub.postMessage.getCall(0).args[0],
+          ) as unknown[];
+          assertEquals(request.slice(0, 3), [0, 1, "nvim_set_client_info"]);
+          messageStub.fakeHostMessage(nvimCodec.encode([1, 1, null, 0]));
         });
       }
 
@@ -226,17 +230,14 @@ for (const { host, mode } of matrix) {
             });
 
             if (name === "debug" && fakeMeta.mode !== "debug") {
-              await t.step({
-                name: "does nothing",
-                fn: async () => {
-                  using _ = usePostMessageHistory();
-                  const fn = consoleStub[name].set.getCall(0).args[0];
+              await t.step("does nothing", async () => {
+                using _ = usePostMessageHistory();
+                const fn = consoleStub[name].set.getCall(0).args[0];
 
-                  fn.apply(globalThis.console, ["foo", 123, false]);
+                fn.apply(globalThis.console, ["foo", 123, false]);
 
-                  await delay(0);
-                  assertEquals(messageStub.postMessage.callCount, 0);
-                },
+                await delay(0);
+                assertEquals(messageStub.postMessage.callCount, 0);
               });
             } else {
               await t.step({
@@ -311,32 +312,105 @@ for (const { host, mode } of matrix) {
         }
       });
 
-      await t.step("resolves when stream is closed", async () => {
+      await t.step("listens SIGINT", () => {
+        assertSpyCalls(deno_addSignalListener, 1);
+        const [signal, signalHandler] = deno_addSignalListener.calls[0].args;
+        assertEquals(signal, "SIGINT");
+        assertInstanceOf(signalHandler, Function);
+      });
+
+      await t.step("closes worker when stream is closed", async () => {
+        assertSpyCalls(self_close, 0);
+
         // NOTE: Send `null` to close workerio stream.
         messageStub.fakeHostMessage(null);
+
+        await delay(0);
+        assertSpyCalls(self_close, 1);
         await mainPromise;
       });
     });
-    await t.step(
-      "main() outputs an error log when an internal error occurs",
-      async () => {
-        using messageStub = stubMessage();
-        using consoleStub = stubConsole();
-        using _addEventListenerSpy = spyAddEventListener();
 
-        const error = new Error("fake-error");
-        messageStub.onmessage.set(() => {
-          throw error;
-        });
+    await t.step("main() if it raises an internal error", async (t) => {
+      using messageStub = stubMessage();
+      using consoleStub = stubConsole();
+      using _addEventListenerSpy = spyAddEventListener();
+      using self_close = stub(globalThis, "close");
 
-        await main();
+      const error = new Error("fake-error");
+      messageStub.onmessage.set(() => {
+        throw error;
+      });
 
+      await main();
+
+      await t.step("outputs an error log", () => {
         assertEquals(consoleStub.error.callCount, 1);
         assertEquals(consoleStub.error.getCall(0).args, [
           "Internal error occurred in Worker",
           error,
         ]);
-      },
-    );
+      });
+
+      await t.step("closes worker", () => {
+        assertSpyCalls(self_close, 1);
+      });
+    });
+
+    await t.step("main() if SIGINT is trapped", async (t) => {
+      using messageStub = stubMessage();
+      using consoleStub = stubConsole();
+      using _addEventListenerSpy = spyAddEventListener();
+      using _denoCommandStub = stubDenoCommand();
+      using deno_addSignalListener = stub(Deno, "addSignalListener");
+      using self_close = stub(globalThis, "close");
+      const fakeMeta = { ...createFakeMeta(), host, mode };
+
+      const mainPromise = main();
+
+      if (host === "vim") {
+        // Initial message from the host.
+        messageStub.fakeHostMessage(vimCodec.encode([0, ["void"]]));
+        await delay(0);
+        // requests Meta data
+        messageStub.fakeHostMessage(vimCodec.encode([-1, [fakeMeta, ""]]));
+        await delay(0);
+        // doautocmd `User DenopsReady`
+        messageStub.fakeHostMessage(vimCodec.encode([-2, ["", ""]]));
+        await delay(0);
+      } else {
+        // Initial message from the host.
+        messageStub.fakeHostMessage(nvimCodec.encode([2, "void", []]));
+        await delay(0);
+        // requests Meta data
+        messageStub.fakeHostMessage(nvimCodec.encode([1, 0, null, fakeMeta]));
+        await delay(0);
+        // sets client info
+        messageStub.fakeHostMessage(nvimCodec.encode([1, 1, null, 0]));
+        await delay(0);
+        // doautocmd `User DenopsReady`
+        messageStub.fakeHostMessage(nvimCodec.encode([1, 2, null, ""]));
+        await delay(0);
+      }
+
+      const [_signal, signalHandler] = deno_addSignalListener.calls[0].args;
+      consoleStub.error.resetHistory();
+
+      signalHandler();
+      await delay(0);
+
+      await t.step("outputs an error log", () => {
+        assertEquals(consoleStub.error.callCount, 1);
+        assertMatch(
+          `${consoleStub.error.getCall(0).args[1]}`,
+          /^SignalError: SIGINT is trapped/,
+        );
+      });
+
+      await t.step("closes worker", async () => {
+        assertSpyCalls(self_close, 1);
+        await mainPromise;
+      });
+    });
   });
 }
