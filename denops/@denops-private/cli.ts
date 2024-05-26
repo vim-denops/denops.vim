@@ -4,19 +4,19 @@ import {
 } from "jsr:@lambdalisue/workerio@4.0.0";
 import { parseArgs } from "jsr:@std/cli/parse-args";
 
-const script = import.meta.resolve("./worker.ts");
+const WORKER_SCRIPT = import.meta.resolve("./worker.ts");
 
 async function handleConn(
-  conn: Deno.Conn,
+  conn: Deno.TcpConn,
   { quiet }: { quiet?: boolean },
 ): Promise<void> {
-  const remoteAddr = conn.remoteAddr as Deno.NetAddr;
+  const remoteAddr = conn.remoteAddr;
   const name = `${remoteAddr.hostname}:${remoteAddr.port}`;
   if (!quiet) {
     console.info(`${name} is connected`);
   }
 
-  const worker = new Worker(script, {
+  const worker = new Worker(WORKER_SCRIPT, {
     name,
     type: "module",
   });
@@ -34,8 +34,8 @@ async function handleConn(
   }
 }
 
-async function main(): Promise<void> {
-  const { hostname, port, quiet, identity } = parseArgs(Deno.args, {
+export async function main(args: string[]): Promise<void> {
+  const { hostname, port, quiet, identity } = parseArgs(args, {
     string: ["hostname", "port"],
     boolean: ["quiet", "identity"],
   });
@@ -44,7 +44,7 @@ async function main(): Promise<void> {
     hostname: hostname ?? "127.0.0.1",
     port: Number(port ?? "32123"),
   });
-  const localAddr = listener.addr as Deno.NetAddr;
+  const localAddr = listener.addr;
 
   if (identity) {
     // WARNING:
@@ -68,5 +68,5 @@ async function main(): Promise<void> {
 }
 
 if (import.meta.main) {
-  await main();
+  await main(Deno.args);
 }
