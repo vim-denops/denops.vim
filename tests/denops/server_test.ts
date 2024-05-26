@@ -74,7 +74,6 @@ testHost({
 testHost({
   name: "Denops server",
   mode: "all",
-  verbose: true,
   fn: async (host, t) => {
     // NOTE: The status may transition to `preparing`, so get it within execute.
     // SEE: https://github.com/vim-denops/denops.vim/issues/354
