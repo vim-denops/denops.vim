@@ -1,4 +1,4 @@
-import { AssertionError } from "jsr:@std/assert@^0.225.1/assertion-error";
+import { AssertionError } from "jsr:@std/assert@0.225.1/assertion-error";
 
 const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_INTERVAL = 50;
