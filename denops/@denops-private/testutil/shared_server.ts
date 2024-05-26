@@ -5,7 +5,7 @@ import { TextLineStream } from "jsr:@std/streams@0.224.0/text-line-stream";
 import { pop } from "jsr:@lambdalisue/streamtools@1.0.0";
 import { getConfig } from "./conf.ts";
 
-const DEFAULT_TIMEOUT = 5000;
+const DEFAULT_TIMEOUT = 30_000;
 
 export interface UseSharedServerOptions {
   /** Print shared-server messages. */
