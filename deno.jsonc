@@ -3,7 +3,7 @@
     "check": "deno check **/*.ts",
     "test": "LANG=C deno test -A --parallel --shuffle --doc",
     "test:coverage": "deno task test --coverage=.coverage",
-    "coverage": "deno coverage .coverage --exclude=cli.ts --exclude=worker.ts --exclude=testdata/",
+    "coverage": "deno coverage .coverage",
     "update": "deno run --allow-env --allow-read --allow-write=. --allow-run=git,deno --allow-net=jsr.io,registry.npmjs.org jsr:@molt/cli **/*.ts",
     "update:commit": "deno task -q update --commit --pre-commit=fmt,lint"
   },
