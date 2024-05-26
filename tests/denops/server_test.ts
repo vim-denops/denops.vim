@@ -22,8 +22,16 @@ testHost({
     await t.step(
       "returns 'starting' when denops#server#start() is called",
       async () => {
-        await host.call("denops#server#start");
-        const actual = await host.call("denops#server#status");
+        // NOTE: The status may transition to `preparing`, so get it within execute.
+        // SEE: https://github.com/vim-denops/denops.vim/issues/354
+        await host.call("execute", [
+          "source plugin/denops.vim",
+          "let g:__test_denops_server_status_when_start_called = denops#server#status()",
+        ]);
+        const actual = await host.call(
+          "eval",
+          "g:__test_denops_server_status_when_start_called",
+        );
         assertEquals(actual, "starting");
       },
     );
@@ -68,16 +76,22 @@ testHost({
   mode: "all",
   verbose: true,
   fn: async (host, t) => {
+    // NOTE: The status may transition to `preparing`, so get it within execute.
+    // SEE: https://github.com/vim-denops/denops.vim/issues/354
     await host.call("execute", [
       "autocmd User DenopsReady let g:denops_ready_fired = 1",
       "autocmd User DenopsClosed let g:denops_closed_fired = 1",
       "source plugin/denops.vim",
+      "let g:__test_denops_server_status_on_sourced = denops#server#status()",
     ], "");
 
     await t.step(
       "'plugin/denops.vim' changes status to 'starting' when sourced",
       async () => {
-        const actual = await host.call("denops#server#status");
+        const actual = await host.call(
+          "eval",
+          "g:__test_denops_server_status_on_sourced",
+        );
         assertEquals(actual, "starting");
       },
     );
