@@ -1,4 +1,5 @@
 import { AssertionError } from "jsr:@std/assert@0.225.1/assertion-error";
+import { getConfig } from "./conf.ts";
 
 const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_INTERVAL = 50;
@@ -30,7 +31,7 @@ export async function wait<T>(
     timeout = DEFAULT_TIMEOUT,
     interval = DEFAULT_INTERVAL,
     message,
-  } = options ?? {};
+  } = { ...getConfig(), ...options };
   const TIMEOUT = {};
 
   let timeoutId: number | undefined;
