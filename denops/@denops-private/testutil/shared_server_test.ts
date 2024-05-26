@@ -3,7 +3,7 @@ import {
   assertMatch,
   assertRejects,
 } from "jsr:@std/assert@0.225.2";
-import { delay } from "jsr:@std/async@^0.224.0/delay";
+import { delay } from "jsr:@std/async@0.224.0/delay";
 import { stub } from "jsr:@std/testing@0.224.0/mock";
 import { useSharedServer } from "./shared_server.ts";
 
