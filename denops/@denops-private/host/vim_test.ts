@@ -41,13 +41,9 @@ Deno.test("Vim", async (t) => {
       );
 
       await t.step("init() calls Service.bind()", async () => {
-        const s = stub(service, "bind");
-        try {
-          await host.init(service);
-          assertSpyCall(s, 0, { args: [host] });
-        } finally {
-          s.restore();
-        }
+        using s = stub(service, "bind");
+        await host.init(service);
+        assertSpyCall(s, 0, { args: [host] });
       });
 
       await t.step("redraw() does nothing", async () => {
@@ -117,17 +113,13 @@ Deno.test("Vim", async (t) => {
       await t.step(
         "'invoke' message calls Service method",
         async () => {
-          const s = stub(service, "reload");
-          try {
-            await host.call(
-              "denops#_internal#test#request",
-              "invoke",
-              ["reload", ["dummy"]],
-            );
-            assertSpyCall(s, 0, { args: ["dummy"] });
-          } finally {
-            s.restore();
-          }
+          using s = stub(service, "reload");
+          await host.call(
+            "denops#_internal#test#request",
+            "invoke",
+            ["reload", ["dummy"]],
+          );
+          assertSpyCall(s, 0, { args: ["dummy"] });
         },
       );
 
