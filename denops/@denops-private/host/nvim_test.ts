@@ -2,8 +2,14 @@ import {
   assertEquals,
   assertMatch,
   assertRejects,
+  assertStringIncludes,
 } from "jsr:@std/assert@0.225.1";
-import { assertSpyCall, stub } from "jsr:@std/testing@0.224.0/mock";
+import {
+  assertSpyCall,
+  assertSpyCalls,
+  stub,
+} from "jsr:@std/testing@0.224.0/mock";
+import { delay } from "jsr:@std/async@0.224.0/delay";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
 import { withNeovim } from "../testutil/with.ts";
@@ -93,8 +99,21 @@ Deno.test("Neovim", async (t) => {
 
       await t.step("notify() calls the function", () => {
         host.notify("abs", -4);
-        host.notify("@@@@@", -4); // should not throw
       });
+
+      await t.step(
+        "notify() does not throws if calls a non-existent function",
+        async () => {
+          using console_error = stub(console, "error");
+          host.notify("@@@@@", -4); // should not throw
+          await delay(100); // maybe flaky
+          assertSpyCalls(console_error, 1);
+          assertStringIncludes(
+            console_error.calls.flatMap((c) => c.args).join(" "),
+            "nvim_error_event(0) Vim:E117: Unknown function: @@@@@",
+          );
+        },
+      );
 
       await t.step(
         "'void' message does nothing",
