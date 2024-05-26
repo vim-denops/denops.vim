@@ -1,0 +1,455 @@
+// NOTE: Use sinon to stub the getter property.
+// @deno-types="npm:@types/sinon@17.0.3"
+import sinon from "npm:sinon@17.0.1";
+
+import {
+  assertEquals,
+  assertMatch,
+  assertNotMatch,
+  assertStringIncludes,
+} from "jsr:@std/assert@0.225.2";
+import {
+  assertSpyCallArgs,
+  assertSpyCalls,
+  resolvesNext,
+  returnsNext,
+  type Stub,
+  stub,
+} from "jsr:@std/testing@0.224.0/mock";
+import { delay } from "jsr:@std/async@0.224.0/delay";
+import {
+  createFakeTcpConn,
+  createFakeTcpListener,
+  createFakeWorker,
+  pendingPromise,
+} from "./testutil/mock.ts";
+import { main } from "./cli.ts";
+
+const stubDenoListen = (
+  fn: (
+    options: Deno.TcpListenOptions & { transpost?: "tcp" },
+  ) => Deno.TcpListener,
+) => {
+  return stub(
+    Deno,
+    "listen",
+    fn as unknown as typeof Deno["listen"],
+  ) as unknown as Stub<
+    typeof Deno,
+    [options: Deno.TcpListenOptions],
+    Deno.TcpListener
+  >;
+};
+
+Deno.test("main()", async (t) => {
+  await t.step("listens", async (t) => {
+    await t.step("127.0.0.1:32123", async () => {
+      const fakeTcpListener = createFakeTcpListener();
+      sinon.stub(fakeTcpListener, "addr").get(() => ({
+        hostname: "stub.example.net",
+        port: 99999,
+      }));
+      using deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+      using _console_info = stub(console, "info");
+
+      const p = main([]);
+
+      assertSpyCalls(deno_listen, 1);
+      assertSpyCallArgs(deno_listen, 0, [{
+        hostname: "127.0.0.1",
+        port: 32123,
+      }]);
+
+      fakeTcpListener.close();
+      await p;
+    });
+
+    await t.step("`--hostname`:32123", async () => {
+      const fakeTcpListener = createFakeTcpListener();
+      sinon.stub(fakeTcpListener, "addr").get(() => ({
+        hostname: "stub.example.net",
+        port: 99999,
+      }));
+      using deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+      using _console_info = stub(console, "info");
+
+      const p = main(["--hostname", "foobar.example.net"]);
+
+      assertSpyCalls(deno_listen, 1);
+      assertSpyCallArgs(deno_listen, 0, [{
+        hostname: "foobar.example.net",
+        port: 32123,
+      }]);
+
+      fakeTcpListener.close();
+      await p;
+    });
+
+    await t.step("127.0.0.1:`--port`", async () => {
+      const fakeTcpListener = createFakeTcpListener();
+      sinon.stub(fakeTcpListener, "addr").get(() => ({
+        hostname: "stub.example.net",
+        port: 99999,
+      }));
+      using deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+      using _console_info = stub(console, "info");
+
+      const p = main(["--port", "39393"]);
+
+      assertSpyCalls(deno_listen, 1);
+      assertSpyCallArgs(deno_listen, 0, [{
+        hostname: "127.0.0.1",
+        port: 39393,
+      }]);
+
+      fakeTcpListener.close();
+      await p;
+    });
+  });
+
+  await t.step("outputs info logs", async () => {
+    const fakeTcpListener = createFakeTcpListener();
+    sinon.stub(fakeTcpListener, "addr").get(() => ({
+      hostname: "stub.example.net",
+      port: 99999,
+    }));
+    using _deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+    using console_info = stub(console, "info");
+
+    const p = main([]);
+
+    assertStringIncludes(
+      console_info.calls.flatMap((c) => c.args).join(" "),
+      "Listen denops clients on stub.example.net:99999",
+    );
+
+    fakeTcpListener.close();
+    await p;
+  });
+
+  await t.step("if `--identity`", async (t) => {
+    await t.step("outputs the listen addr FIRST", async () => {
+      const fakeTcpListener = createFakeTcpListener();
+      sinon.stub(fakeTcpListener, "addr").get(() => ({
+        hostname: "stub.example.net",
+        port: 99999,
+      }));
+      using _deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+      const outputs: unknown[][] = [];
+      const appendOutput = (...args: unknown[]) => {
+        outputs.push(args);
+      };
+      using _console_info = stub(console, "info", appendOutput);
+      using _console_log = stub(console, "log", appendOutput);
+
+      const p = main(["--identity"]);
+
+      assertEquals(outputs[0], ["stub.example.net:99999"]);
+
+      fakeTcpListener.close();
+      await p;
+    });
+
+    await t.step("and `--quiet` outputs the listen addr FIRST", async () => {
+      const fakeTcpListener = createFakeTcpListener();
+      sinon.stub(fakeTcpListener, "addr").get(() => ({
+        hostname: "stub.example.net",
+        port: 99999,
+      }));
+      using _deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+      const outputs: unknown[][] = [];
+      const appendOutput = (...args: unknown[]) => {
+        outputs.push(args);
+      };
+      using _console_info = stub(console, "info", appendOutput);
+      using _console_log = stub(console, "log", appendOutput);
+
+      const p = main(["--identity", "--quiet"]);
+
+      assertEquals(outputs[0], ["stub.example.net:99999"]);
+
+      fakeTcpListener.close();
+      await p;
+    });
+  });
+
+  await t.step("when the connection is accepted", async (t) => {
+    {
+      const fakeTcpListener = createFakeTcpListener();
+      sinon.stub(fakeTcpListener, "addr").get(() => ({
+        hostname: "stub.example.net",
+        port: 99999,
+      }));
+
+      const fakeTcpConn = createFakeTcpConn();
+      const connStreamCloseWaiter = Promise.withResolvers<void>();
+      sinon.stub(fakeTcpConn, "remoteAddr").get(() => ({
+        hostname: "stub-remote.example.net",
+        port: 98765,
+      }));
+      sinon.stub(fakeTcpConn, "readable").get(() =>
+        new ReadableStream({
+          start(con) {
+            connStreamCloseWaiter.promise.then(() => con.close());
+          },
+        })
+      );
+      sinon.stub(fakeTcpConn, "writable").get(() =>
+        new WritableStream({
+          start(con) {
+            connStreamCloseWaiter.promise.then(() =>
+              con.error("fake-tcpconn-writable-closed")
+            );
+          },
+        })
+      );
+
+      const fakeWorker = createFakeWorker();
+      using globalThis_Worker = stub(
+        globalThis,
+        "Worker",
+        returnsNext([fakeWorker]),
+      );
+      using worker_terminate = stub(fakeWorker, "terminate");
+      using _worker_postMessage = stub(fakeWorker, "postMessage");
+
+      using _deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+      using _listener_accept = stub(
+        fakeTcpListener,
+        "accept",
+        resolvesNext([fakeTcpConn, pendingPromise()]),
+      );
+      using console_info = stub(console, "info");
+      using console_error = stub(console, "error");
+
+      const p = main([]);
+
+      await t.step("creates a Worker", async () => {
+        assertSpyCalls(globalThis_Worker, 0);
+
+        // Resolves microtasks.
+        await delay(0);
+
+        assertSpyCalls(globalThis_Worker, 1);
+        assertMatch(
+          globalThis_Worker.calls[0].args[0] as string,
+          /.*\/denops\/@denops-private\/worker\.ts$/,
+          "Worker.specifier should be `*/denops/@denops-private/worker.ts`",
+        );
+        assertEquals(globalThis_Worker.calls[0].args[1], {
+          name: "stub-remote.example.net:98765",
+          type: "module",
+        }, "Worker.name should be `remote-hostname:remote-port`");
+      });
+
+      await t.step("outputs info logs", () => {
+        assertStringIncludes(
+          console_info.calls.flatMap((c) => c.args).join(" "),
+          "stub-remote.example.net:98765 is connected",
+        );
+      });
+
+      await t.step("when the listener is closed", async (t) => {
+        fakeTcpListener.close();
+        await p;
+
+        await t.step("does not calls Worker.terminate()", () => {
+          assertSpyCalls(worker_terminate, 0);
+        });
+      });
+
+      await t.step("when the connection is closed", async (t) => {
+        await t.step("calls Worker.terminate()", async () => {
+          connStreamCloseWaiter.resolve();
+
+          // Resolves microtasks.
+          await delay(0);
+
+          assertSpyCalls(worker_terminate, 1);
+        });
+
+        await t.step("outputs error logs", () => {
+          assertStringIncludes(
+            console_error.calls.flatMap((c) => c.args).join(" "),
+            "Internal error occurred and Host/Denops connection is dropped fake-tcpconn-writable-closed",
+          );
+        });
+      });
+    }
+    {
+      const fakeTcpListener = createFakeTcpListener();
+      sinon.stub(fakeTcpListener, "addr").get(() => ({
+        hostname: "stub.example.net",
+        port: 99999,
+      }));
+
+      const fakeTcpConn = createFakeTcpConn();
+      const connStreamCloseWaiter = Promise.withResolvers<void>();
+      sinon.stub(fakeTcpConn, "remoteAddr").get(() => ({
+        hostname: "stub-remote.example.net",
+        port: 98765,
+      }));
+      sinon.stub(fakeTcpConn, "readable").get(() =>
+        new ReadableStream({
+          start(con) {
+            connStreamCloseWaiter.promise.then(() => con.close());
+          },
+        })
+      );
+      sinon.stub(fakeTcpConn, "writable").get(() =>
+        new WritableStream({
+          start(con) {
+            connStreamCloseWaiter.promise.then(() =>
+              con.error("fake-tcpconn-writable-closed")
+            );
+          },
+        })
+      );
+
+      const fakeWorker = createFakeWorker();
+      using globalThis_Worker = stub(
+        globalThis,
+        "Worker",
+        returnsNext([fakeWorker]),
+      );
+      using worker_terminate = stub(fakeWorker, "terminate");
+      using _worker_postMessage = stub(fakeWorker, "postMessage");
+
+      using _deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+      using _listener_accept = stub(
+        fakeTcpListener,
+        "accept",
+        resolvesNext([fakeTcpConn, pendingPromise()]),
+      );
+      using _console_info = stub(console, "info");
+      using console_error = stub(console, "error");
+
+      const p = main([]);
+
+      // Resolves microtasks.
+      await delay(0);
+
+      assertSpyCalls(globalThis_Worker, 1);
+
+      fakeTcpListener.close();
+      await p;
+
+      await t.step("when the worker stream is closed", async (t) => {
+        await t.step("calls Worker.terminate()", async () => {
+          assertSpyCalls(worker_terminate, 0);
+
+          fakeWorker.onmessage(new MessageEvent("message", { data: null }));
+
+          // Resolves microtasks.
+          await delay(0);
+
+          assertSpyCalls(worker_terminate, 1);
+        });
+
+        await t.step("does not outputs error logs", () => {
+          assertNotMatch(
+            console_error.calls.flatMap((c) => c.args).join(" "),
+            /Internal error occurred/,
+          );
+        });
+      });
+    }
+  });
+
+  await t.step("if `--quiet`", async (t) => {
+    await t.step("does not outputs info logs", async () => {
+      const fakeTcpListener = createFakeTcpListener();
+      sinon.stub(fakeTcpListener, "addr").get(() => ({
+        hostname: "stub.example.net",
+        port: 99999,
+      }));
+      using _deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+      using console_info = stub(console, "info");
+
+      const p = main(["--quiet"]);
+
+      assertSpyCalls(console_info, 0);
+
+      fakeTcpListener.close();
+      await p;
+    });
+
+    await t.step("when the connection is accepted", async (t) => {
+      const fakeTcpListener = createFakeTcpListener();
+      sinon.stub(fakeTcpListener, "addr").get(() => ({
+        hostname: "stub.example.net",
+        port: 99999,
+      }));
+
+      const fakeTcpConn = createFakeTcpConn();
+      const connStreamCloseWaiter = Promise.withResolvers<void>();
+      sinon.stub(fakeTcpConn, "remoteAddr").get(() => ({
+        hostname: "stub-remote.example.net",
+        port: 98765,
+      }));
+      sinon.stub(fakeTcpConn, "readable").get(() =>
+        new ReadableStream({
+          start(con) {
+            connStreamCloseWaiter.promise.then(() => con.close());
+          },
+        })
+      );
+      sinon.stub(fakeTcpConn, "writable").get(() =>
+        new WritableStream({
+          start(con) {
+            connStreamCloseWaiter.promise.then(() =>
+              con.error("fake-tcpconn-writable-closed")
+            );
+          },
+        })
+      );
+
+      const fakeWorker = createFakeWorker();
+      using _globalThis_Worker = stub(
+        globalThis,
+        "Worker",
+        returnsNext([fakeWorker]),
+      );
+      using _worker_terminate = stub(fakeWorker, "terminate");
+      using _worker_postMessage = stub(fakeWorker, "postMessage");
+
+      using _deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+      using _listener_accept = stub(
+        fakeTcpListener,
+        "accept",
+        resolvesNext([fakeTcpConn, pendingPromise()]),
+      );
+      using console_info = stub(console, "info");
+      using console_error = stub(console, "error");
+
+      const p = main(["--quiet"]);
+
+      // Resolves microtasks.
+      await delay(0);
+
+      await t.step("does not outputs info logs", () => {
+        assertNotMatch(
+          console_info.calls.flatMap((c) => c.args).join(" "),
+          /is connected/,
+        );
+      });
+
+      fakeTcpListener.close();
+      await p;
+
+      await t.step("when the connection is closed", async (t) => {
+        connStreamCloseWaiter.resolve();
+
+        // Resolves microtasks.
+        await delay(0);
+
+        await t.step("outputs error logs", () => {
+          assertStringIncludes(
+            console_error.calls.flatMap((c) => c.args).join(" "),
+            "Internal error occurred and Host/Denops connection is dropped fake-tcpconn-writable-closed",
+          );
+        });
+      });
+    });
+  });
+});
