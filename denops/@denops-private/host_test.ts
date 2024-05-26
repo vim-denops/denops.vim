@@ -18,101 +18,69 @@ Deno.test("invoke", async (t) => {
 
   await t.step("calls 'load'", async (t) => {
     await t.step("ok", async () => {
-      const s = stub(service, "load");
-      try {
-        await invoke(service, "load", ["dummy", "dummy.ts"]);
-        assertSpyCalls(s, 1);
-        assertSpyCall(s, 0, { args: ["dummy", "dummy.ts"] });
-      } finally {
-        s.restore();
-      }
+      using s = stub(service, "load");
+      await invoke(service, "load", ["dummy", "dummy.ts"]);
+      assertSpyCalls(s, 1);
+      assertSpyCall(s, 0, { args: ["dummy", "dummy.ts"] });
     });
 
     await t.step("invalid args", () => {
-      const s = stub(service, "load");
-      try {
-        assertThrows(() => invoke(service, "load", []), AssertError);
-        assertSpyCalls(s, 0);
-      } finally {
-        s.restore();
-      }
+      using s = stub(service, "load");
+      assertThrows(() => invoke(service, "load", []), AssertError);
+      assertSpyCalls(s, 0);
     });
   });
 
   await t.step("calls 'reload'", async (t) => {
     await t.step("ok", async () => {
-      const s = stub(service, "reload");
-      try {
-        await invoke(service, "reload", ["dummy"]);
-        assertSpyCalls(s, 1);
-        assertSpyCall(s, 0, { args: ["dummy"] });
-      } finally {
-        s.restore();
-      }
+      using s = stub(service, "reload");
+      await invoke(service, "reload", ["dummy"]);
+      assertSpyCalls(s, 1);
+      assertSpyCall(s, 0, { args: ["dummy"] });
     });
 
     await t.step("invalid args", () => {
-      const s = stub(service, "reload");
-      try {
-        assertThrows(() => invoke(service, "reload", []), AssertError);
-        assertSpyCalls(s, 0);
-      } finally {
-        s.restore();
-      }
+      using s = stub(service, "reload");
+      assertThrows(() => invoke(service, "reload", []), AssertError);
+      assertSpyCalls(s, 0);
     });
   });
 
   await t.step("calls 'dispatch'", async (t) => {
     await t.step("ok", async () => {
-      const s = stub(service, "dispatch");
-      try {
-        await invoke(service, "dispatch", ["dummy", "fn", ["args"]]);
-        assertSpyCalls(s, 1);
-        assertSpyCall(s, 0, { args: ["dummy", "fn", ["args"]] });
-      } finally {
-        s.restore();
-      }
+      using s = stub(service, "dispatch");
+      await invoke(service, "dispatch", ["dummy", "fn", ["args"]]);
+      assertSpyCalls(s, 1);
+      assertSpyCall(s, 0, { args: ["dummy", "fn", ["args"]] });
     });
 
     await t.step("invalid args", () => {
-      const s = stub(service, "dispatch");
-      try {
-        assertThrows(() => invoke(service, "dispatch", []), AssertError);
-        assertSpyCalls(s, 0);
-      } finally {
-        s.restore();
-      }
+      using s = stub(service, "dispatch");
+      assertThrows(() => invoke(service, "dispatch", []), AssertError);
+      assertSpyCalls(s, 0);
     });
   });
 
   await t.step("calls 'dispatchAsync'", async (t) => {
     await t.step("ok", async () => {
-      const s = stub(service, "dispatchAsync");
-      try {
-        await invoke(service, "dispatchAsync", [
-          "dummy",
-          "fn",
-          ["args"],
-          "success",
-          "failure",
-        ]);
-        assertSpyCalls(s, 1);
-        assertSpyCall(s, 0, {
-          args: ["dummy", "fn", ["args"], "success", "failure"],
-        });
-      } finally {
-        s.restore();
-      }
+      using s = stub(service, "dispatchAsync");
+      await invoke(service, "dispatchAsync", [
+        "dummy",
+        "fn",
+        ["args"],
+        "success",
+        "failure",
+      ]);
+      assertSpyCalls(s, 1);
+      assertSpyCall(s, 0, {
+        args: ["dummy", "fn", ["args"], "success", "failure"],
+      });
     });
 
     await t.step("invalid args", () => {
-      const s = stub(service, "dispatchAsync");
-      try {
-        assertThrows(() => invoke(service, "dispatchAsync", []), AssertError);
-        assertSpyCalls(s, 0);
-      } finally {
-        s.restore();
-      }
+      using s = stub(service, "dispatchAsync");
+      assertThrows(() => invoke(service, "dispatchAsync", []), AssertError);
+      assertSpyCalls(s, 0);
     });
   });
 
