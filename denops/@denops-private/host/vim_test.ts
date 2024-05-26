@@ -96,8 +96,14 @@ Deno.test("Vim", async (t) => {
 
       await t.step("notify() calls the function", () => {
         host.notify("abs", -4);
-        host.notify("@@@@@", -4); // should not throw
       });
+
+      await t.step(
+        "notify() does not throws if calls a non-existent function",
+        () => {
+          host.notify("@@@@@", -4); // should not throw
+        },
+      );
 
       await t.step(
         "'void' message does nothing",
