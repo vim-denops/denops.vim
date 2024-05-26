@@ -13,10 +13,13 @@ import {
   assertSpyCalls,
   resolvesNext,
   returnsNext,
+  spy,
   type Stub,
   stub,
 } from "jsr:@std/testing@0.224.0/mock";
+import { FakeTime } from "jsr:@std/testing@0.224.0/time";
 import { delay } from "jsr:@std/async@0.224.0/delay";
+import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import {
   createFakeTcpConn,
   createFakeTcpListener,
@@ -42,6 +45,8 @@ const stubDenoListen = (
 };
 
 Deno.test("main()", async (t) => {
+  using deno_addSignalListener = stub(Deno, "addSignalListener");
+
   await t.step("listens", async (t) => {
     await t.step("127.0.0.1:32123", async () => {
       const fakeTcpListener = createFakeTcpListener();
@@ -211,7 +216,7 @@ Deno.test("main()", async (t) => {
         returnsNext([fakeWorker]),
       );
       using worker_terminate = stub(fakeWorker, "terminate");
-      using _worker_postMessage = stub(fakeWorker, "postMessage");
+      using worker_postMessage = stub(fakeWorker, "postMessage");
 
       using _deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
       using _listener_accept = stub(
@@ -251,21 +256,48 @@ Deno.test("main()", async (t) => {
 
       await t.step("when the listener is closed", async (t) => {
         fakeTcpListener.close();
-        await p;
+        await delay(0);
 
         await t.step("does not calls Worker.terminate()", () => {
           assertSpyCalls(worker_terminate, 0);
         });
+
+        await t.step("pendings main() Promise", async () => {
+          assertEquals(await promiseState(p), "pending");
+        });
       });
 
       await t.step("when the connection is closed", async (t) => {
-        await t.step("calls Worker.terminate()", async () => {
-          connStreamCloseWaiter.resolve();
+        connStreamCloseWaiter.resolve();
+        await delay(0);
 
-          // Resolves microtasks.
+        await t.step("does not calls Worker.terminate()", () => {
+          assertSpyCalls(worker_terminate, 0);
+        });
+
+        await t.step("pendings main() Promise", async () => {
+          assertEquals(await promiseState(p), "pending");
+        });
+
+        await t.step(
+          "post a `null` message to tell the worker to close",
+          () => {
+            assertSpyCalls(worker_postMessage, 1);
+            assertSpyCallArgs(worker_postMessage, 0, [null]);
+          },
+        );
+
+        await t.step("and the worker stream is closed", async (t) => {
+          fakeWorker.onmessage(new MessageEvent("message", { data: null }));
           await delay(0);
 
-          assertSpyCalls(worker_terminate, 1);
+          await t.step("calls Worker.terminate()", () => {
+            assertSpyCalls(worker_terminate, 1);
+          });
+
+          await t.step("resolves main() Promise", async () => {
+            assertEquals(await promiseState(p), "fulfilled");
+          });
         });
 
         await t.step("outputs error logs", () => {
@@ -276,6 +308,7 @@ Deno.test("main()", async (t) => {
         });
       });
     }
+
     {
       const fakeTcpListener = createFakeTcpListener();
       sinon.stub(fakeTcpListener, "addr").get(() => ({
@@ -325,25 +358,109 @@ Deno.test("main()", async (t) => {
       using console_error = stub(console, "error");
 
       const p = main([]);
-
-      // Resolves microtasks.
       await delay(0);
 
-      assertSpyCalls(globalThis_Worker, 1);
+      await t.step("when the connection is closed", async (t) => {
+        assertSpyCalls(globalThis_Worker, 1);
 
-      fakeTcpListener.close();
-      await p;
+        await t.step("when the worker close times out", async (t) => {
+          using _time = new FakeTime();
+
+          connStreamCloseWaiter.resolve();
+          const WORKER_CLOSE_TIMEOUT_MS = 5000;
+          await _time.tickAsync(WORKER_CLOSE_TIMEOUT_MS);
+          await _time.nextAsync();
+
+          await t.step("calls Worker.terminate()", () => {
+            assertSpyCalls(worker_terminate, 1);
+          });
+        });
+
+        await t.step("outputs error logs", () => {
+          assertMatch(
+            console_error.calls.flatMap((c) => c.args).join(" "),
+            /Internal error occurred/,
+          );
+        });
+
+        await t.step("pendings main() Promise", async () => {
+          assertEquals(await promiseState(p), "pending");
+        });
+
+        await t.step("and the listner is closed", async (t) => {
+          fakeTcpListener.close();
+
+          await t.step("resolves main() Promise", async () => {
+            assertEquals(await promiseState(p), "fulfilled");
+          });
+        });
+      });
+    }
+
+    {
+      const fakeTcpListener = createFakeTcpListener();
+      sinon.stub(fakeTcpListener, "addr").get(() => ({
+        hostname: "stub.example.net",
+        port: 99999,
+      }));
+
+      const fakeTcpConn = createFakeTcpConn();
+      const connStreamCloseWaiter = Promise.withResolvers<void>();
+      sinon.stub(fakeTcpConn, "remoteAddr").get(() => ({
+        hostname: "stub-remote.example.net",
+        port: 98765,
+      }));
+      sinon.stub(fakeTcpConn, "readable").get(() =>
+        new ReadableStream({
+          start(con) {
+            connStreamCloseWaiter.promise.then(() => con.close());
+          },
+        })
+      );
+      sinon.stub(fakeTcpConn, "writable").get(() =>
+        new WritableStream({
+          start(con) {
+            connStreamCloseWaiter.promise.then(() =>
+              con.error("fake-tcpconn-writable-closed")
+            );
+          },
+        })
+      );
+
+      const fakeWorker = createFakeWorker();
+      using globalThis_Worker = stub(
+        globalThis,
+        "Worker",
+        returnsNext([fakeWorker]),
+      );
+      using worker_terminate = stub(fakeWorker, "terminate");
+      using _worker_postMessage = stub(fakeWorker, "postMessage");
+
+      using _deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+      using _listener_accept = stub(
+        fakeTcpListener,
+        "accept",
+        resolvesNext([fakeTcpConn, pendingPromise()]),
+      );
+      using _console_info = stub(console, "info");
+      using console_error = stub(console, "error");
+
+      const p = main([]);
+      await delay(0);
 
       await t.step("when the worker stream is closed", async (t) => {
-        await t.step("calls Worker.terminate()", async () => {
-          assertSpyCalls(worker_terminate, 0);
+        assertSpyCalls(globalThis_Worker, 1);
+        fakeTcpListener.close();
 
-          fakeWorker.onmessage(new MessageEvent("message", { data: null }));
+        fakeWorker.onmessage(new MessageEvent("message", { data: null }));
+        await delay(0);
 
-          // Resolves microtasks.
-          await delay(0);
-
+        await t.step("calls Worker.terminate()", () => {
           assertSpyCalls(worker_terminate, 1);
+        });
+
+        await t.step("resolves main() Promise", async () => {
+          assertEquals(await promiseState(p), "fulfilled");
         });
 
         await t.step("does not outputs error logs", () => {
@@ -423,8 +540,6 @@ Deno.test("main()", async (t) => {
       using console_error = stub(console, "error");
 
       const p = main(["--quiet"]);
-
-      // Resolves microtasks.
       await delay(0);
 
       await t.step("does not outputs info logs", () => {
@@ -435,20 +550,61 @@ Deno.test("main()", async (t) => {
       });
 
       fakeTcpListener.close();
-      await p;
 
       await t.step("when the connection is closed", async (t) => {
         connStreamCloseWaiter.resolve();
-
-        // Resolves microtasks.
         await delay(0);
 
-        await t.step("outputs error logs", () => {
-          assertStringIncludes(
-            console_error.calls.flatMap((c) => c.args).join(" "),
-            "Internal error occurred and Host/Denops connection is dropped fake-tcpconn-writable-closed",
-          );
+        await t.step("and the worker stream is closed", async (t) => {
+          fakeWorker.onmessage(new MessageEvent("message", { data: null }));
+          await delay(0);
+
+          await t.step("outputs error logs", () => {
+            assertStringIncludes(
+              console_error.calls.flatMap((c) => c.args).join(" "),
+              "Internal error occurred and Host/Denops connection is dropped fake-tcpconn-writable-closed",
+            );
+          });
         });
+      });
+
+      await p;
+    });
+  });
+
+  await t.step("listens SIGINT", async (t) => {
+    const prevSignalListenerCalls = deno_addSignalListener.calls.length;
+    const fakeTcpListener = createFakeTcpListener();
+    sinon.stub(fakeTcpListener, "addr").get(() => ({
+      hostname: "stub.example.net",
+      port: 99999,
+    }));
+    using listener_close = spy(fakeTcpListener, "close");
+    using _deno_listen = stubDenoListen(returnsNext([fakeTcpListener]));
+    using _console_info = stub(console, "info");
+
+    const mainPromise = main([]);
+    await delay(0);
+
+    assertSpyCalls(deno_addSignalListener, prevSignalListenerCalls + 1);
+    const [
+      signal,
+      signalHandler,
+    ] = deno_addSignalListener.calls[prevSignalListenerCalls].args;
+    assertEquals(signal, "SIGINT");
+
+    await t.step("when SINGINT is trapped", async (t) => {
+      assertSpyCalls(listener_close, 0);
+
+      signalHandler();
+      await delay(0);
+
+      await t.step("closes the listener", () => {
+        assertSpyCalls(listener_close, 1);
+      });
+
+      await t.step("resolves main() Promise", async () => {
+        assertEquals(await promiseState(mainPromise), "fulfilled");
       });
     });
   });

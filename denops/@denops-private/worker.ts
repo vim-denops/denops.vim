@@ -7,6 +7,7 @@ import {
 } from "jsr:@lambdalisue/workerio@4.0.1";
 import { ensure } from "jsr:@core/unknownutil@3.18.0";
 import { pop } from "jsr:@lambdalisue/streamtools@1.0.0";
+import { asyncSignal } from "jsr:@milly/async-signal@^1.0.0";
 import type { HostConstructor } from "./host.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";
@@ -79,10 +80,14 @@ async function connectHost(): Promise<void> {
   };
 
   // Start service
+  using sigintTrap = asyncSignal("SIGINT");
   using service = new Service(meta);
   await host.init(service);
   await host.call("execute", "doautocmd <nomodeline> User DenopsReady", "");
-  await host.waitClosed();
+  await Promise.race([
+    host.waitClosed(),
+    sigintTrap,
+  ]);
 }
 
 export async function main(): Promise<void> {
@@ -100,6 +105,7 @@ export async function main(): Promise<void> {
       err,
     );
   }
+  self.close();
 }
 
 if (import.meta.main) {
