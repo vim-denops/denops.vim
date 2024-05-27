@@ -146,7 +146,7 @@ class Plugin {
       await mod.main(this.#denops);
       await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
     } catch (e) {
-      console.error(`Failed to load plguin '${this.name}': ${e}`);
+      console.error(`Failed to load plugin '${this.name}': ${e}`);
       await emit(this.#denops, `DenopsSystemPluginFail:${this.name}`);
     }
   }

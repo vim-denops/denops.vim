@@ -2,8 +2,14 @@ import {
   assertEquals,
   assertMatch,
   assertRejects,
+  assertStringIncludes,
 } from "jsr:@std/assert@0.225.1";
-import { assertSpyCall, stub } from "jsr:@std/testing@0.224.0/mock";
+import {
+  assertSpyCall,
+  assertSpyCalls,
+  stub,
+} from "jsr:@std/testing@0.224.0/mock";
+import { delay } from "jsr:@std/async@0.224.0/delay";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
 import { withNeovim } from "../testutil/with.ts";
@@ -40,13 +46,9 @@ Deno.test("Neovim", async (t) => {
       );
 
       await t.step("init() calls Service.bind()", async () => {
-        const s = stub(service, "bind");
-        try {
-          await host.init(service);
-          assertSpyCall(s, 0, { args: [host] });
-        } finally {
-          s.restore();
-        }
+        using s = stub(service, "bind");
+        await host.init(service);
+        assertSpyCall(s, 0, { args: [host] });
       });
 
       await t.step("redraw() does nothing", async () => {
@@ -97,8 +99,21 @@ Deno.test("Neovim", async (t) => {
 
       await t.step("notify() calls the function", () => {
         host.notify("abs", -4);
-        host.notify("@@@@@", -4); // should not throw
       });
+
+      await t.step(
+        "notify() does not throws if calls a non-existent function",
+        async () => {
+          using console_error = stub(console, "error");
+          host.notify("@@@@@", -4); // should not throw
+          await delay(100); // maybe flaky
+          assertSpyCalls(console_error, 1);
+          assertStringIncludes(
+            console_error.calls.flatMap((c) => c.args).join(" "),
+            "nvim_error_event(0) Vim:E117: Unknown function: @@@@@",
+          );
+        },
+      );
 
       await t.step(
         "'void' message does nothing",
@@ -114,34 +129,26 @@ Deno.test("Neovim", async (t) => {
       await t.step(
         "'invoke' message calls Service method",
         async () => {
-          const s = stub(service, "reload");
-          try {
-            await host.call(
-              "denops#_internal#test#request",
-              "invoke",
-              ["reload", ["dummy"]],
-            );
-            assertSpyCall(s, 0, { args: ["dummy"] });
-          } finally {
-            s.restore();
-          }
+          using s = stub(service, "reload");
+          await host.call(
+            "denops#_internal#test#request",
+            "invoke",
+            ["reload", ["dummy"]],
+          );
+          assertSpyCall(s, 0, { args: ["dummy"] });
         },
       );
 
       await t.step(
         "'nvim_error_event' message shows error message",
         async () => {
-          const s = stub(console, "error");
-          try {
-            await host.call(
-              "denops#_internal#test#request",
-              "nvim_error_event",
-              [0, "message"],
-            );
-            assertSpyCall(s, 0, { args: ["nvim_error_event(0)", "message"] });
-          } finally {
-            s.restore();
-          }
+          using s = stub(console, "error");
+          await host.call(
+            "denops#_internal#test#request",
+            "nvim_error_event",
+            [0, "message"],
+          );
+          assertSpyCall(s, 0, { args: ["nvim_error_event(0)", "message"] });
         },
       );
 

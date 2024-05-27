@@ -1,4 +1,8 @@
-import { AssertionError } from "jsr:@std/assert@^0.225.1/assertion-error";
+import { AssertionError } from "jsr:@std/assert@0.225.1/assertion-error";
+import { getConfig } from "./conf.ts";
+
+const DEFAULT_TIMEOUT = 30_000;
+const DEFAULT_INTERVAL = 50;
 
 export type WaitOptions = {
   /**
@@ -23,7 +27,11 @@ export async function wait<T>(
   fn: () => T | Promise<T>,
   options?: WaitOptions,
 ): Promise<T> {
-  const { timeout = 10_000, interval = 50, message } = options ?? {};
+  const {
+    timeout = DEFAULT_TIMEOUT,
+    interval = DEFAULT_INTERVAL,
+    message,
+  } = { ...getConfig(), ...options };
   const TIMEOUT = {};
 
   let timeoutId: number | undefined;
