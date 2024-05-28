@@ -2,7 +2,7 @@ import {
   readableStreamFromWorker,
   writableStreamFromWorker,
 } from "jsr:@lambdalisue/workerio@4.0.0";
-import { parseArgs } from "jsr:@std/cli/parse-args";
+import { parseArgs } from "jsr:@std/cli@0.224.3/parse-args";
 
 // Disable "Native acceleration" feature of `msgpackr` as an workaround of Deno panic.
 // https://github.com/denoland/deno/issues/23792
