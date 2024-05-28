@@ -2,7 +2,7 @@ import {
   readableStreamFromWorker,
   writableStreamFromWorker,
 } from "jsr:@lambdalisue/workerio@4.0.0";
-import { parseArgs } from "jsr:@std/cli/parse-args";
+import { parseArgs } from "jsr:@std/cli@0.224.3/parse-args";
 
 const WORKER_SCRIPT = import.meta.resolve("./worker.ts");
 
