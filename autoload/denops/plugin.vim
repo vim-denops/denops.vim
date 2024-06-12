@@ -1,5 +1,6 @@
 let s:loaded_plugins = {}
 let s:load_callbacks = {}
+let s:registered_files = {}
 
 function! denops#plugin#is_loaded(name) abort
   return has_key(s:loaded_plugins, a:name)
@@ -73,6 +74,7 @@ endfunction
 function! denops#plugin#load(name, script) abort
   let l:script = denops#_internal#path#norm(a:script)
   let l:args = [a:name, l:script]
+  let s:registered_files[l:script] = l:script
   call denops#_internal#echo#debug(printf('load plugin: %s', l:args))
   call denops#_internal#server#chan#notify('invoke', ['load', l:args])
 endfunction
@@ -108,6 +110,10 @@ function! denops#plugin#check_type(...) abort
         \   : denops#_internal#echo#info('Type check succeeded')
         \ },
         \ })
+endfunction
+
+function! denops#plugin#registered_files() abort
+  return values(s:registered_files)
 endfunction
 
 function! s:relay_autocmd(name) abort

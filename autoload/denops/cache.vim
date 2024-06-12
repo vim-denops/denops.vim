@@ -5,7 +5,7 @@ function! denops#cache#update(...) abort
   let l:options = extend(#{ reload: v:false }, a:0 ? a:1 : {})
   let l:entryfiles = extend([
         \ denops#_internal#path#join([s:root, 'denops', '@denops-private', 'mod.ts']),
-        \], map(denops#_internal#plugin#collect(), { _, v -> v.script }))
+        \], denops#plugin#registered_files())
 
   let l:args = [g:denops#deno, 'cache']
 
