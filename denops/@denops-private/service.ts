@@ -144,11 +144,29 @@ class Plugin {
 
   async load(suffix = ""): Promise<void> {
     try {
-      const mod = await import(`${this.script}${suffix}`);
       await emit(this.#denops, `DenopsSystemPluginPre:${this.name}`);
+      const mod = await import(`${this.script}${suffix}`);
       await mod.main(this.#denops);
       await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
     } catch (e) {
+      // Show a warning message when Deno module cache issue is detected
+      // https://github.com/vim-denops/denops.vim/issues/358
+      if (
+        e instanceof TypeError &&
+        e.message.startsWith(
+          "Could not find constraint in the list of versions: ",
+        )
+      ) {
+        console.warn("*".repeat(80));
+        console.warn(`Deno module cache issue is detected.`);
+        console.warn(
+          `Execute 'call denops#cache#update(#{reload: v:true})' and restart Vim/Neovim.`,
+        );
+        console.warn(
+          `See https://github.com/vim-denops/denops.vim/issues/358 for more detail.`,
+        );
+        console.warn("*".repeat(80));
+      }
       console.error(`Failed to load plugin '${this.name}': ${e}`);
       await emit(this.#denops, `DenopsSystemPluginFail:${this.name}`);
     }
