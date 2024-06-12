@@ -144,8 +144,8 @@ class Plugin {
 
   async load(suffix = ""): Promise<void> {
     try {
-      const mod = await import(`${this.script}${suffix}`);
       await emit(this.#denops, `DenopsSystemPluginPre:${this.name}`);
+      const mod = await import(`${this.script}${suffix}`);
       await mod.main(this.#denops);
       await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
     } catch (e) {
