@@ -37,7 +37,7 @@ function formatArgs(args: unknown[]): string[] {
   });
 }
 
-async function main(): Promise<void> {
+async function connectHost(): Promise<void> {
   const writer = writableStreamFromWorker(self);
   const [reader, detector] = readableStreamFromWorker(self).tee();
 
@@ -85,17 +85,23 @@ async function main(): Promise<void> {
   await host.waitClosed();
 }
 
-if (import.meta.main) {
+async function main(): Promise<void> {
   // Avoid denops server crash via UnhandledRejection
   globalThis.addEventListener("unhandledrejection", (event) => {
     event.preventDefault();
     console.error(`Unhandled rejection:`, event.reason);
   });
 
-  await main().catch((err) => {
+  try {
+    await connectHost();
+  } catch (err) {
     console.error(
       `Internal error occurred in Worker`,
       err,
     );
-  });
+  }
+}
+
+if (import.meta.main) {
+  await main();
 }
