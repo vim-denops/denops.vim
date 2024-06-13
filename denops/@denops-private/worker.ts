@@ -1,7 +1,10 @@
+/// <reference no-default-lib="true" />
+/// <reference lib="deno.worker" />
+
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
-} from "jsr:@lambdalisue/workerio@4.0.0";
+} from "jsr:@lambdalisue/workerio@4.0.1";
 import { ensure } from "jsr:@core/unknownutil@3.18.0";
 import { pop } from "jsr:@lambdalisue/streamtools@1.0.0";
 import type { HostConstructor } from "./host.ts";
@@ -34,10 +37,9 @@ function formatArgs(args: unknown[]): string[] {
   });
 }
 
-async function main(): Promise<void> {
-  const worker = self as unknown as Worker;
-  const writer = writableStreamFromWorker(worker);
-  const [reader, detector] = readableStreamFromWorker(worker).tee();
+async function connectHost(): Promise<void> {
+  const writer = writableStreamFromWorker(self);
+  const [reader, detector] = readableStreamFromWorker(self).tee();
 
   // Detect host from payload
   const hostCtor = await detectHost(detector);
@@ -83,17 +85,23 @@ async function main(): Promise<void> {
   await host.waitClosed();
 }
 
-if (import.meta.main) {
+export async function main(): Promise<void> {
   // Avoid denops server crash via UnhandledRejection
   globalThis.addEventListener("unhandledrejection", (event) => {
     event.preventDefault();
     console.error(`Unhandled rejection:`, event.reason);
   });
 
-  await main().catch((err) => {
+  try {
+    await connectHost();
+  } catch (err) {
     console.error(
       `Internal error occurred in Worker`,
       err,
     );
-  });
+  }
+}
+
+if (import.meta.main) {
+  await main();
 }
