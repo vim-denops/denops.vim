@@ -85,7 +85,7 @@ async function connectHost(): Promise<void> {
   await host.waitClosed();
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   // Avoid denops server crash via UnhandledRejection
   globalThis.addEventListener("unhandledrejection", (event) => {
     event.preventDefault();

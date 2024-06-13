@@ -1,4 +1,5 @@
 import { AssertionError, unimplemented } from "jsr:@std/assert@0.225.2";
+import type { Meta } from "jsr:@denops/core@6.0.6";
 
 /** Returns a Promise that is never resolves or rejects. */
 export function pendingPromise(): Promise<never> {
@@ -99,5 +100,15 @@ export function createFakeWorker(): Worker {
     removeEventListener: () => unimplemented(),
     dispatchEvent: () => unimplemented(),
     terminate: () => unimplemented(),
+  };
+}
+
+/** Returns as fake `Meta` object. */
+export function createFakeMeta(): Meta {
+  return {
+    mode: "test",
+    host: "vim",
+    version: "9.1.457",
+    platform: "linux",
   };
 }
