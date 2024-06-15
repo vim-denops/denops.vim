@@ -35,6 +35,7 @@ export async function useSharedServer(
   };
   const aborter = new AbortController();
   const { signal } = aborter;
+
   const cmd = Deno.execPath();
   const script = resolve(denopsPath, "denops/@denops-private/cli.ts");
   const args = [
@@ -53,31 +54,47 @@ export async function useSharedServer(
     env,
     signal,
   }).spawn();
-  try {
-    const [stdout, verboseStdout] = proc.stdout
-      .pipeThrough(new TextDecoderStream(), { signal })
-      .pipeThrough(new TextLineStream())
-      .tee();
-    if (verbose) {
-      verboseStdout.pipeTo(
-        new WritableStream({
-          write: (out) => console.log(out),
-        }),
-      ).catch(() => {});
+
+  let stdout = proc.stdout
+    .pipeThrough(new TextDecoderStream(), { signal })
+    .pipeThrough(new TextLineStream());
+  if (verbose) {
+    const [splitStdout, verboseStdout] = stdout.tee();
+    stdout = splitStdout;
+    verboseStdout.pipeTo(
+      new WritableStream({
+        write: (out) => console.log(out),
+      }),
+    ).catch(() => {});
+  }
+
+  const abort = async (reason: unknown) => {
+    try {
+      aborter.abort(reason);
+    } catch {
+      // Already exited, do nothing.
     }
+    await Promise.all([
+      stdout.locked ? undefined : stdout.cancel(reason),
+      proc.status,
+    ]);
+    await proc.stdout.cancel(reason);
+  };
+
+  try {
     const addr = await deadline(pop(stdout), timeout);
     assert(typeof addr === "string");
     return {
       addr,
       stdout,
       async [Symbol.asyncDispose]() {
-        aborter.abort("useSharedServer disposed");
-        await proc.status;
+        if (!signal.aborted) {
+          await abort("useSharedServer disposed");
+        }
       },
     };
   } catch (e) {
-    aborter.abort(e);
-    await proc.status;
+    await abort(e);
     throw e;
   }
 }
