@@ -80,8 +80,8 @@ export class Vim implements Host {
     return [ret, ""];
   }
 
-  notify(fn: string, ...args: unknown[]): void {
-    this.#client.callNoReply(fn, ...args);
+  async notify(fn: string, ...args: unknown[]): Promise<void> {
+    await this.#client.callNoReply(fn, ...args);
   }
 
   init(service: Service): Promise<void> {

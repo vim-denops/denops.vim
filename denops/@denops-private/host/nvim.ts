@@ -1,5 +1,5 @@
 import { ensure, is } from "jsr:@core/unknownutil@3.18.0";
-import { Client, Session } from "jsr:@lambdalisue/messagepack-rpc@2.1.1";
+import { Client, Session } from "jsr:@lambdalisue/messagepack-rpc@2.4.0";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { getVersionOr } from "../version.ts";
 import { formatCall, type Host, invoke, type Service } from "../host.ts";
@@ -89,8 +89,8 @@ export class Neovim implements Host {
     return [ret, ""];
   }
 
-  notify(fn: string, ...args: unknown[]): void {
-    this.#client.notify("nvim_call_function", fn, args);
+  async notify(fn: string, ...args: unknown[]): Promise<void> {
+    await this.#client.notify("nvim_call_function", fn, args);
   }
 
   async init(service: Service): Promise<void> {
