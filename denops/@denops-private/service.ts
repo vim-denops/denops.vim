@@ -2,6 +2,7 @@ import type { Denops, Meta } from "jsr:@denops/core@6.0.6";
 import { toFileUrl } from "jsr:@std/path@0.225.0/to-file-url";
 import { toErrorObject } from "jsr:@lambdalisue/errorutil@1.0.0";
 import { DenopsImpl, type Host } from "./denops.ts";
+import type { CallbackId, Service as HostService } from "./host.ts";
 
 // We can use `PromiseWithResolvers<void>` but Deno 1.38 doesn't have `PromiseWithResolvers`
 type Waiter = {
@@ -12,7 +13,7 @@ type Waiter = {
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
-export class Service implements Disposable {
+export class Service implements HostService, Disposable {
   #interruptController = new AbortController();
   #plugins = new Map<string, Plugin>();
   #waiters = new Map<string, Waiter>();
@@ -107,8 +108,8 @@ export class Service implements Disposable {
     name: string,
     fn: string,
     args: unknown[],
-    success: string, // Callback ID
-    failure: string, // Callback ID
+    success: CallbackId,
+    failure: CallbackId,
   ): Promise<void> {
     if (!this.#host) {
       throw new Error("No host is bound to the service");
