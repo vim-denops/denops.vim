@@ -22,9 +22,9 @@ export interface Host extends AsyncDisposable {
   ): Promise<[unknown[], string]>;
 
   /**
-   * Call host function and do nothing
+   * Call host function and does not check results
    */
-  notify(fn: string, ...args: unknown[]): void;
+  notify(fn: string, ...args: unknown[]): Promise<void>;
 
   /**
    * Initialize host
