@@ -45,7 +45,7 @@ export type HostConstructor = {
 };
 
 // Minimum interface of Service that Host is relies on
-type CallbackId = string;
+export type CallbackId = string;
 export type Service = {
   bind(host: Host): void;
   load(name: string, script: string): Promise<void>;
