@@ -4,12 +4,19 @@ import {
   assertEquals,
   assertInstanceOf,
   assertMatch,
+  assertObjectMatch,
 } from "jsr:@std/assert@0.225.2";
-import { assertSpyCalls, stub } from "jsr:@std/testing@0.224.0/mock";
+import {
+  assertSpyCalls,
+  resolvesNext,
+  stub,
+} from "jsr:@std/testing@0.224.0/mock";
 import { delay } from "jsr:@std/async@0.224.0/delay";
 import { DisposableStack } from "jsr:@nick/dispose@1.1.0/disposable-stack";
 import * as nvimCodec from "jsr:@lambdalisue/messagepack@^1.0.1";
 import { createFakeMeta } from "./testutil/mock.ts";
+import { Neovim } from "./host/nvim.ts";
+import { Vim } from "./host/vim.ts";
 import { main } from "./worker.ts";
 
 const CONSOLE_PATCH_METHODS = [
@@ -306,6 +313,33 @@ for (const { host, mode } of matrix) {
                     );
                   }
                 },
+              });
+
+              await t.step(`calls native \`console.${name}\``, async () => {
+                const notifyError = new Error("fake-post-error");
+                using _host_notify = stub(
+                  (host === "vim" ? Vim : Neovim).prototype,
+                  "notify",
+                  resolvesNext<void>([notifyError]),
+                );
+                const nativeMethod = consoleStub[name];
+                nativeMethod.resetHistory();
+                const fn = consoleStub[name].set.getCall(0).args[0];
+                const error = new Error("fake-error");
+
+                fn.apply(globalThis.console, ["foo", 123, false, error]);
+
+                await delay(0);
+                assertEquals(nativeMethod.callCount, 1);
+                assertObjectMatch(nativeMethod.getCall(0), {
+                  thisValue: globalThis.console,
+                  args: [
+                    "foo",
+                    123,
+                    false,
+                    error,
+                  ],
+                });
               });
             }
           });
