@@ -1,4 +1,4 @@
-import { ensure, is } from "jsr:@core/unknownutil@3.18.0";
+import { ensure, is, type Predicate } from "jsr:@core/unknownutil@3.18.0";
 
 /**
  * Host (Vim/Neovim) which is visible from Service
@@ -45,7 +45,7 @@ export type HostConstructor = {
 };
 
 // Minimum interface of Service that Host is relies on
-type CallbackId = string;
+export type CallbackId = string;
 export type Service = {
   bind(host: Host): void;
   load(name: string, script: string): Promise<void>;
@@ -61,37 +61,26 @@ export type Service = {
   ): Promise<void>;
 };
 
+type ServiceForInvoke = Omit<Service, "bind">;
+
 export function invoke(
-  service: Omit<Service, "bind">,
+  service: ServiceForInvoke,
   name: string,
   args: unknown[],
 ): Promise<unknown> {
   switch (name) {
     case "load":
-      return service.load(
-        ...ensure(args, is.TupleOf([is.String, is.String] as const)),
-      );
+      return service.load(...ensure(args, serviceMethodArgs.load));
     case "reload":
-      return service.reload(
-        ...ensure(args, is.TupleOf([is.String] as const)),
-      );
+      return service.reload(...ensure(args, serviceMethodArgs.reload));
     case "interrupt":
-      service.interrupt(
-        ...ensure(args, is.ParametersOf([is.OptionalOf(is.Unknown)] as const)),
-      );
+      service.interrupt(...ensure(args, serviceMethodArgs.interrupt));
       return Promise.resolve();
     case "dispatch":
-      return service.dispatch(
-        ...ensure(args, is.TupleOf([is.String, is.String, is.Array] as const)),
-      );
+      return service.dispatch(...ensure(args, serviceMethodArgs.dispatch));
     case "dispatchAsync":
       return service.dispatchAsync(
-        ...ensure(
-          args,
-          is.TupleOf(
-            [is.String, is.String, is.Array, is.String, is.String] as const,
-          ),
-        ),
+        ...ensure(args, serviceMethodArgs.dispatchAsync),
       );
     default:
       throw new Error(`Service does not have a method '${name}'`);
@@ -101,3 +90,15 @@ export function invoke(
 export function formatCall(fn: string, ...args: unknown[]): string {
   return `${fn}(${args.map((v) => JSON.stringify(v)).join(", ")})`;
 }
+
+const serviceMethodArgs = {
+  load: is.ParametersOf([is.String, is.String] as const),
+  reload: is.ParametersOf([is.String] as const),
+  interrupt: is.ParametersOf([is.OptionalOf(is.Unknown)] as const),
+  dispatch: is.ParametersOf([is.String, is.String, is.Array] as const),
+  dispatchAsync: is.ParametersOf(
+    [is.String, is.String, is.Array, is.String, is.String] as const,
+  ),
+} as const satisfies {
+  [K in keyof ServiceForInvoke]: Predicate<Parameters<ServiceForInvoke[K]>>;
+};
