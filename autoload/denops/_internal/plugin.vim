@@ -37,6 +37,10 @@ function! denops#_internal#plugin#get(name) abort
   return s:plugins[a:name]
 endfunction
 
+function! denops#_internal#plugin#list() abort
+  return values(s:plugins)
+endfunction
+
 function! denops#_internal#plugin#load(name, script) abort
   const l:script = denops#_internal#path#norm(a:script)
   const l:args = [a:name, l:script]

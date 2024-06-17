@@ -67,8 +67,8 @@ endfunction
 
 function! denops#plugin#check_type(...) abort
   let l:plugins = a:0
-        \ ? [denops#_internal#plugin#find(a:1)]
-        \ : denops#_internal#plugin#collect()
+        \ ? [denops#_internal#plugin#get(a:1)]
+        \ : denops#_internal#plugin#list()
   let l:args = [g:denops#deno, 'check']
   let l:args = extend(l:args, map(l:plugins, { _, v -> v.script }))
   let l:job = denops#_internal#job#start(l:args, {
