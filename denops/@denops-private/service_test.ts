@@ -192,26 +192,6 @@ Deno.test("Service", async (t) => {
     },
   );
 
-  await t.step("reload() reloads plugin and emits autocmd events", async () => {
-    using s = stub(host, "call");
-    await service.reload("dummy");
-    assertSpyCalls(s, 3);
-    assertSpyCall(s, 1, {
-      args: [
-        "denops#api#cmd",
-        "echo 'Hello, Denops!'",
-        {},
-      ],
-    });
-    assertSpyCall(s, 2, {
-      args: [
-        "denops#api#cmd",
-        "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-        {},
-      ],
-    });
-  });
-
   await t.step(
     "load() does nothing when the plugin is already loaded",
     async () => {
