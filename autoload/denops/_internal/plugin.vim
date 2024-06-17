@@ -5,31 +5,6 @@ const s:STATE_FAILED = 'failed'
 
 let s:plugins = {}
 
-function! denops#_internal#plugin#collect() abort
-  const l:pattern = denops#_internal#path#join(['denops', '*', 'main.ts'])
-  let l:plugins = []
-  for l:script in globpath(&runtimepath, l:pattern, 1, 1, 1)
-    let l:name = fnamemodify(l:script, ':h:t')
-    if l:name[:0] ==# '@' || !filereadable(l:script)
-      continue
-    endif
-    call add(l:plugins, #{ name: l:name, script: l:script })
-  endfor
-  return l:plugins
-endfunction
-
-function! denops#_internal#plugin#find(name) abort
-  const l:pattern = denops#_internal#path#join(['denops', a:name, 'main.ts'])
-  for l:script in globpath(&runtimepath, l:pattern, 1, 1, 1)
-    let l:name = fnamemodify(l:script, ':h:t')
-    if l:name[:0] ==# '@' || !filereadable(l:script)
-      continue
-    endif
-    return #{ name: l:name, script: l:script }
-  endfor
-  throw printf('Denops plugin "%s" does not exist in the runtimepath', a:name)
-endfunction
-
 function! denops#_internal#plugin#get(name) abort
   if !has_key(s:plugins, a:name)
     let s:plugins[a:name] = #{name: a:name, script: '', state: s:STATE_RESERVED, callbacks: []}

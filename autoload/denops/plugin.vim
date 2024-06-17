@@ -58,11 +58,17 @@ function! denops#plugin#reload(name) abort
 endfunction
 
 function! denops#plugin#discover() abort
-  let l:plugins = denops#_internal#plugin#collect()
-  call denops#_internal#echo#debug(printf('%d plugins are discovered', len(l:plugins)))
-  for l:plugin in l:plugins
-    call denops#plugin#load(l:plugin.name, l:plugin.script)
+  const l:pattern = denops#_internal#path#join(['denops', '*', 'main.ts'])
+  let l:counter = 0 
+  for l:script in globpath(&runtimepath, l:pattern, 1, 1, 1)
+    let l:name = fnamemodify(l:script, ':h:t')
+    if l:name[:0] ==# '@' || !filereadable(l:script)
+      continue
+    endif
+    call denops#plugin#load(l:name, l:script)
+    let l:counter += 1
   endfor
+  call denops#_internal#echo#debug(printf('%d plugins are discovered', l:counter))
 endfunction
 
 function! denops#plugin#check_type(...) abort
@@ -93,11 +99,23 @@ function! denops#plugin#register(name, ...) abort
         \ 'denops#plugin#register() is deprecated. Use denops#plugin#load() instead.',
         \)
   if a:0 is# 0 || type(a:1) is# v:t_dict
-    let l:script = denops#_internal#plugin#find(a:name).script
+    let l:script = s:find_script(a:name)
   else
     let l:script = a:1
   endif
   return denops#plugin#load(a:name, l:script)
+endfunction
+
+function! s:find_script(name) abort
+  const l:pattern = denops#_internal#path#join(['denops', a:name, 'main.ts'])
+  for l:script in globpath(&runtimepath, l:pattern, 1, 1, 1)
+    let l:name = fnamemodify(l:script, ':h:t')
+    if l:name[:0] ==# '@' || !filereadable(l:script)
+      continue
+    endif
+    return l:script
+  endfor
+  throw printf('Denops plugin "%s" does not exist in the runtimepath', a:name)
 endfunction
 
 call denops#_internal#conf#define('denops#plugin#wait_interval', 200)
