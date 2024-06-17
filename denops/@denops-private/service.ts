@@ -19,10 +19,12 @@ export class Service implements HostService, Disposable {
   }
 
   #getWaiter(name: string): PromiseWithResolvers<void> {
-    if (!this.#waiters.has(name)) {
-      this.#waiters.set(name, Promise.withResolvers());
+    let waiter = this.#waiters.get(name);
+    if (!waiter) {
+      waiter = Promise.withResolvers();
+      this.#waiters.set(name, waiter);
     }
-    return this.#waiters.get(name)!;
+    return waiter;
   }
 
   get interrupted(): AbortSignal {
@@ -41,15 +43,14 @@ export class Service implements HostService, Disposable {
     if (!this.#host) {
       throw new Error("No host is bound to the service");
     }
-    let plugin = this.#plugins.get(name);
-    if (plugin) {
+    if (this.#plugins.has(name)) {
       if (this.#meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is already loaded. Skip`);
       }
       return;
     }
     const denops = new DenopsImpl(name, this.#meta, this.#host, this);
-    plugin = new Plugin(denops, name, script);
+    const plugin = new Plugin(denops, name, script);
     this.#plugins.set(name, plugin);
     await plugin.load(suffix);
     this.#getWaiter(name).resolve();
