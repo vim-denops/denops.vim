@@ -1,5 +1,5 @@
 function! denops#_internal#plugin#collect() abort
-  let l:pattern = denops#_internal#path#join(['denops', '*', 'main.ts'])
+  const l:pattern = denops#_internal#path#join(['denops', '*', 'main.ts'])
   let l:plugins = []
   for l:script in globpath(&runtimepath, l:pattern, 1, 1, 1)
     let l:name = fnamemodify(l:script, ':h:t')
@@ -12,7 +12,7 @@ function! denops#_internal#plugin#collect() abort
 endfunction
 
 function! denops#_internal#plugin#find(name) abort
-  let l:pattern = denops#_internal#path#join(['denops', a:name, 'main.ts'])
+  const l:pattern = denops#_internal#path#join(['denops', a:name, 'main.ts'])
   for l:script in globpath(&runtimepath, l:pattern, 1, 1, 1)
     let l:name = fnamemodify(l:script, ':h:t')
     if l:name[:0] ==# '@' || !filereadable(l:script)
