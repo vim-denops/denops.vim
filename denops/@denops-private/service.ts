@@ -4,19 +4,13 @@ import { toErrorObject } from "jsr:@lambdalisue/errorutil@1.0.0";
 import { DenopsImpl, type Host } from "./denops.ts";
 import type { CallbackId, Service as HostService } from "./host.ts";
 
-// We can use `PromiseWithResolvers<void>` but Deno 1.38 doesn't have `PromiseWithResolvers`
-type Waiter = {
-  promise: Promise<void>;
-  resolve: () => void;
-};
-
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
 export class Service implements HostService, Disposable {
   #interruptController = new AbortController();
   #plugins = new Map<string, Plugin>();
-  #waiters = new Map<string, Waiter>();
+  #waiters = new Map<string, PromiseWithResolvers<void>>();
   #meta: Meta;
   #host?: Host;
 
@@ -24,7 +18,7 @@ export class Service implements HostService, Disposable {
     this.#meta = meta;
   }
 
-  #getWaiter(name: string): Waiter {
+  #getWaiter(name: string): PromiseWithResolvers<void> {
     if (!this.#waiters.has(name)) {
       this.#waiters.set(name, Promise.withResolvers());
     }
