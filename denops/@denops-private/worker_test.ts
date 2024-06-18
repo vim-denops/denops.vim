@@ -9,6 +9,7 @@ import {
 import {
   assertSpyCalls,
   resolvesNext,
+  spy,
   stub,
 } from "jsr:@std/testing@0.224.0/mock";
 import { delay } from "jsr:@std/async@0.224.0/delay";
@@ -17,6 +18,7 @@ import * as nvimCodec from "jsr:@lambdalisue/messagepack@^1.0.1";
 import { createFakeMeta } from "./testutil/mock.ts";
 import { Neovim } from "./host/nvim.ts";
 import { Vim } from "./host/vim.ts";
+import { Service } from "./service.ts";
 import { main } from "./worker.ts";
 
 const CONSOLE_PATCH_METHODS = [
@@ -125,6 +127,14 @@ for (const { host, mode } of matrix) {
       using _addEventListenerSpy = spyAddEventListener();
       using _denoCommandStub = stubDenoCommand();
       using deno_addSignalListener = stub(Deno, "addSignalListener");
+      using host_asyncDispose = spy(
+        (host === "vim" ? Vim : Neovim).prototype,
+        Symbol.asyncDispose,
+      );
+      using service_asyncDispose = spy(
+        Service.prototype,
+        Symbol.asyncDispose,
+      );
       using self_close = stub(globalThis, "close");
       const usePostMessageHistory = () => ({
         [Symbol.dispose]: () => messageStub.postMessage.resetHistory(),
@@ -353,15 +363,37 @@ for (const { host, mode } of matrix) {
         assertInstanceOf(signalHandler, Function);
       });
 
-      await t.step("closes worker when stream is closed", async () => {
-        assertSpyCalls(self_close, 0);
+      await t.step("before stream is closed", async (t) => {
+        await t.step("does not dispose service", () => {
+          assertSpyCalls(service_asyncDispose, 0);
+        });
 
-        // NOTE: Send `null` to close workerio stream.
-        messageStub.fakeHostMessage(null);
+        await t.step("does not dispose host", () => {
+          assertSpyCalls(host_asyncDispose, 0);
+        });
 
-        await delay(0);
-        assertSpyCalls(self_close, 1);
-        await mainPromise;
+        await t.step("does not close worker", () => {
+          assertSpyCalls(self_close, 0);
+        });
+      });
+
+      // NOTE: Send `null` to close workerio stream.
+      messageStub.fakeHostMessage(null);
+      await delay(0);
+
+      await t.step("after stream is closed", async (t) => {
+        await t.step("disposes service", () => {
+          assertSpyCalls(service_asyncDispose, 1);
+        });
+
+        await t.step("disposes host", () => {
+          assertSpyCalls(host_asyncDispose, 1);
+        });
+
+        await t.step("closes worker", async () => {
+          assertSpyCalls(self_close, 1);
+          await mainPromise;
+        });
       });
     });
 
@@ -397,6 +429,14 @@ for (const { host, mode } of matrix) {
       using _addEventListenerSpy = spyAddEventListener();
       using _denoCommandStub = stubDenoCommand();
       using deno_addSignalListener = stub(Deno, "addSignalListener");
+      using host_asyncDispose = spy(
+        (host === "vim" ? Vim : Neovim).prototype,
+        Symbol.asyncDispose,
+      );
+      using service_asyncDispose = spy(
+        Service.prototype,
+        Symbol.asyncDispose,
+      );
       using self_close = stub(globalThis, "close");
       const fakeMeta = { ...createFakeMeta(), host, mode };
 
@@ -439,6 +479,82 @@ for (const { host, mode } of matrix) {
           `${consoleStub.error.getCall(0).args[1]}`,
           /^SignalError: SIGINT is trapped/,
         );
+      });
+
+      await t.step("disposes service", () => {
+        assertSpyCalls(service_asyncDispose, 1);
+      });
+
+      await t.step("disposes host", () => {
+        assertSpyCalls(host_asyncDispose, 1);
+      });
+
+      await t.step("closes worker", async () => {
+        assertSpyCalls(self_close, 1);
+        await mainPromise;
+      });
+    });
+
+    await t.step("main() if service is closed", async (t) => {
+      using messageStub = stubMessage();
+      using _consoleStub = stubConsole();
+      using _addEventListenerSpy = spyAddEventListener();
+      using _denoCommandStub = stubDenoCommand();
+      using _deno_addSignalListener = stub(Deno, "addSignalListener");
+      using host_asyncDispose = spy(
+        (host === "vim" ? Vim : Neovim).prototype,
+        Symbol.asyncDispose,
+      );
+      using service_asyncDispose = spy(
+        Service.prototype,
+        Symbol.asyncDispose,
+      );
+      const service_waitClosed_waiter = Promise.withResolvers<void>();
+      using service_waitClosed = stub(
+        Service.prototype,
+        "waitClosed",
+        () => service_waitClosed_waiter.promise,
+      );
+      using self_close = stub(globalThis, "close");
+      const fakeMeta = { ...createFakeMeta(), host, mode };
+
+      const mainPromise = main();
+
+      if (host === "vim") {
+        // Initial message from the host.
+        messageStub.fakeHostMessage(vimCodec.encode([0, ["void"]]));
+        await delay(0);
+        // requests Meta data
+        messageStub.fakeHostMessage(vimCodec.encode([-1, [fakeMeta, ""]]));
+        await delay(0);
+        // doautocmd `User DenopsReady`
+        messageStub.fakeHostMessage(vimCodec.encode([-2, ["", ""]]));
+        await delay(0);
+      } else {
+        // Initial message from the host.
+        messageStub.fakeHostMessage(nvimCodec.encode([2, "void", []]));
+        await delay(0);
+        // requests Meta data
+        messageStub.fakeHostMessage(nvimCodec.encode([1, 0, null, fakeMeta]));
+        await delay(0);
+        // sets client info
+        messageStub.fakeHostMessage(nvimCodec.encode([1, 1, null, 0]));
+        await delay(0);
+        // doautocmd `User DenopsReady`
+        messageStub.fakeHostMessage(nvimCodec.encode([1, 2, null, ""]));
+        await delay(0);
+      }
+
+      assertSpyCalls(service_waitClosed, 1);
+      service_waitClosed_waiter.resolve();
+      await delay(0);
+
+      await t.step("disposes service", () => {
+        assertSpyCalls(service_asyncDispose, 1);
+      });
+
+      await t.step("disposes host", () => {
+        assertSpyCalls(host_asyncDispose, 1);
       });
 
       await t.step("closes worker", async () => {

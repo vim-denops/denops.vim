@@ -466,4 +466,79 @@ Deno.test("Service", async (t) => {
       assertThrows(() => signal.throwIfAborted(), "test");
     },
   );
+
+  const waitClosed = service.waitClosed();
+
+  const waitLoadedCalledBeforeClose = service.waitLoaded(
+    "whenclosedtestplugin",
+  );
+
+  await t.step(
+    "the result promise of waitClosed() become 'pending' when the service is not closed",
+    async () => {
+      assert(await promiseState(waitClosed), "pending");
+    },
+  );
+
+  await t.step(
+    "close() closes the service",
+    async () => {
+      await service.close();
+    },
+  );
+
+  await t.step(
+    "the result promise of waitClosed() become 'fulfilled' when the service is closed",
+    async () => {
+      assert(await promiseState(waitClosed), "fulfilled");
+    },
+  );
+
+  await t.step(
+    "the result promise of waitLoaded() become 'rejected' when the service is closed",
+    async () => {
+      assertEquals(await promiseState(waitLoadedCalledBeforeClose), "rejected");
+      await assertRejects(
+        () => waitLoadedCalledBeforeClose,
+        Error,
+        "Service closed",
+      );
+    },
+  );
+
+  await t.step(
+    "waitClosed() returns 'fulfilled' promise if the service is already closed",
+    async () => {
+      const actual = service.waitClosed();
+      assert(await promiseState(actual), "fulfilled");
+    },
+  );
+
+  await t.step(
+    "waitLoaded() returns 'rejected' promise if the service is already closed",
+    async () => {
+      await assertRejects(
+        () => service.waitLoaded("after-closed-test-plugin"),
+        Error,
+        "Service closed",
+      );
+    },
+  );
+
+  await t.step(
+    "load() rejects an error when the service is already closed",
+    async () => {
+      await assertRejects(
+        () => service.load("dummyValid", scriptValid),
+        Error,
+        "Service closed",
+      );
+    },
+  );
+
+  await t.step("[@@asyncDispose]() calls close()", async () => {
+    using service_close = stub(service, "close");
+    await service[Symbol.asyncDispose]();
+    assertSpyCalls(service_close, 1);
+  });
 });
