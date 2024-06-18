@@ -146,7 +146,7 @@ export class Service implements HostService, AsyncDisposable {
       }
       this.#waiters.clear();
       this.#plugins.clear();
-      this.#host = void 0;
+      this.#host = undefined;
       this.#closedWaiter.resolve();
     }
     return this.waitClosed();
