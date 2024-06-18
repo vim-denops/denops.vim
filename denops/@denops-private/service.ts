@@ -7,12 +7,14 @@ import type { CallbackId, Service as HostService } from "./host.ts";
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
-export class Service implements HostService, Disposable {
+export class Service implements HostService, AsyncDisposable {
   #interruptController = new AbortController();
   #plugins = new Map<string, Plugin>();
   #waiters = new Map<string, PromiseWithResolvers<void>>();
   #meta: Meta;
   #host?: Host;
+  #closed = false;
+  #closedWaiter = Promise.withResolvers<void>();
 
   constructor(meta: Meta) {
     this.#meta = meta;
@@ -22,6 +24,7 @@ export class Service implements HostService, Disposable {
     let waiter = this.#waiters.get(name);
     if (!waiter) {
       waiter = Promise.withResolvers();
+      waiter.promise.catch(() => {});
       this.#waiters.set(name, waiter);
     }
     return waiter;
@@ -40,6 +43,9 @@ export class Service implements HostService, Disposable {
     script: string,
     suffix = "",
   ): Promise<void> {
+    if (this.#closed) {
+      throw new Error("Service closed");
+    }
     if (!this.#host) {
       throw new Error("No host is bound to the service");
     }
@@ -75,6 +81,9 @@ export class Service implements HostService, Disposable {
   }
 
   waitLoaded(name: string): Promise<void> {
+    if (this.#closed) {
+      return Promise.reject(new Error("Service closed"));
+    }
     return this.#getWaiter(name).promise;
   }
 
@@ -128,8 +137,27 @@ export class Service implements HostService, Disposable {
     }
   }
 
-  [Symbol.dispose](): void {
-    this.#plugins.clear();
+  close(): Promise<void> {
+    if (!this.#closed) {
+      this.#closed = true;
+      const error = new Error("Service closed");
+      for (const { reject } of this.#waiters.values()) {
+        reject(error);
+      }
+      this.#waiters.clear();
+      this.#plugins.clear();
+      this.#host = void 0;
+      this.#closedWaiter.resolve();
+    }
+    return this.waitClosed();
+  }
+
+  waitClosed(): Promise<void> {
+    return this.#closedWaiter.promise;
+  }
+
+  [Symbol.asyncDispose](): Promise<void> {
+    return this.close();
   }
 }
 
