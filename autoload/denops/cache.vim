@@ -1,11 +1,11 @@
-let s:root = expand('<sfile>:p:h:h:h')
+const s:root = expand('<sfile>:p:h:h:h')
+const s:mod = denops#_internal#path#join([s:root, 'denops', '@denops-private', 'mod.ts'])
 let s:job = v:null
 
 function! denops#cache#update(...) abort
-  let l:options = extend(#{ reload: v:false }, a:0 ? a:1 : {})
-  let l:entryfiles = extend([
-        \ denops#_internal#path#join([s:root, 'denops', '@denops-private', 'mod.ts']),
-        \], map(denops#_internal#plugin#collect(), { _, v -> v.script }))
+  const l:options = extend(#{ reload: v:false }, a:0 ? a:1 : {})
+  const l:plugins = denops#_internal#plugin#list()
+  const l:entryfiles = extend([s:mod], map(copy(l:plugins), { _, v -> v.script }))
 
   let l:args = [g:denops#deno, 'cache']
 

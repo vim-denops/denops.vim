@@ -1,8 +1,5 @@
-let s:loaded_plugins = {}
-let s:load_callbacks = {}
-
 function! denops#plugin#is_loaded(name) abort
-  return has_key(s:loaded_plugins, a:name)
+  return denops#_internal#plugin#get(a:name).state =~# '^\%(loaded\|failed\)$'
 endfunction
 
 function! denops#plugin#wait(name, ...) abort
@@ -21,80 +18,63 @@ function! denops#plugin#wait(name, ...) abort
     endif
     return -2
   endif
-  if has_key(s:loaded_plugins, a:name)
-    return s:loaded_plugins[a:name]
-  endif
-  let l:ret = denops#_internal#wait#for(
-        \ l:options.timeout,
-        \ { -> has_key(s:loaded_plugins, a:name) },
-        \ l:options.interval,
-        \)
-  if l:ret is# -1
-    if !l:options.silent
-      call denops#_internal#echo#error(printf(
-            \ 'Failed to wait for "%s" to start. It took more than %d milliseconds and timed out.',
-            \ a:name,
-            \ l:options.timeout,
-            \))
+  if !denops#plugin#is_loaded(a:name)
+    let l:ret = denops#_internal#wait#for(
+          \ l:options.timeout,
+          \ { -> denops#plugin#is_loaded(a:name) },
+          \ l:options.interval,
+          \)
+    if l:ret is# -1
+      if !l:options.silent
+        call denops#_internal#echo#error(printf(
+              \ 'Failed to wait for "%s" to start. It took more than %d milliseconds and timed out.',
+              \ a:name,
+              \ l:options.timeout,
+              \))
+      endif
+      return -1
     endif
-    return -1
   endif
+  return denops#_internal#plugin#get(a:name).state ==# 'loaded' ? 0 : -3
 endfunction
 
 function! denops#plugin#wait_async(name, callback) abort
-  if has_key(s:loaded_plugins, a:name)
-    if s:loaded_plugins[a:name] isnot# 0
-      return
-    endif
+  let l:plugin = denops#_internal#plugin#get(a:name)
+  if l:plugin.state ==# 'loaded'
     call a:callback()
     return
+  elseif l:plugin.state ==# 'failed'
+    return
   endif
-  let l:callbacks = get(s:load_callbacks, a:name, [])
-  call add(l:callbacks, a:callback)
-  let s:load_callbacks[a:name] = l:callbacks
-endfunction
-
-" DEPRECATED
-" Some plugins (e.g. dein.vim) use this function with options thus we cannot
-" change the interface of this function.
-" That's why we introduce 'load' function that replaces this function.
-function! denops#plugin#register(name, ...) abort
-  call denops#_internal#echo#deprecate(
-        \ 'denops#plugin#register() is deprecated. Use denops#plugin#load() instead.',
-        \)
-  if a:0 is# 0 || type(a:1) is# v:t_dict
-    let l:script = denops#_internal#plugin#find(a:name).script
-  else
-    let l:script = a:1
-  endif
-  return denops#plugin#load(a:name, l:script)
+  call add(l:plugin.callbacks, a:callback)
 endfunction
 
 function! denops#plugin#load(name, script) abort
-  let l:script = denops#_internal#path#norm(a:script)
-  let l:args = [a:name, l:script]
-  call denops#_internal#echo#debug(printf('load plugin: %s', l:args))
-  call denops#_internal#server#chan#notify('invoke', ['load', l:args])
+  call denops#_internal#plugin#load(a:name, a:script)
 endfunction
 
 function! denops#plugin#reload(name) abort
-  let l:args = [a:name]
-  call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
-  call denops#_internal#server#chan#notify('invoke', ['reload', l:args])
+  call denops#_internal#plugin#reload(a:name)
 endfunction
 
 function! denops#plugin#discover() abort
-  let l:plugins = denops#_internal#plugin#collect()
-  call denops#_internal#echo#debug(printf('%d plugins are discovered', len(l:plugins)))
-  for l:plugin in l:plugins
-    call denops#plugin#load(l:plugin.name, l:plugin.script)
+  const l:pattern = denops#_internal#path#join(['denops', '*', 'main.ts'])
+  let l:counter = 0 
+  for l:script in globpath(&runtimepath, l:pattern, 1, 1, 1)
+    let l:name = fnamemodify(l:script, ':h:t')
+    if l:name[:0] ==# '@' || !filereadable(l:script)
+      continue
+    endif
+    call denops#plugin#load(l:name, l:script)
+    let l:counter += 1
   endfor
+  call denops#_internal#echo#debug(printf('%d plugins are discovered', l:counter))
 endfunction
 
 function! denops#plugin#check_type(...) abort
   let l:plugins = a:0
-        \ ? [denops#_internal#plugin#find(a:1)]
-        \ : denops#_internal#plugin#collect()
+        \ ? [denops#_internal#plugin#get(a:1)]
+        \ : denops#_internal#plugin#list()
   let l:args = [g:denops#deno, 'check']
   let l:args = extend(l:args, map(l:plugins, { _, v -> v.script }))
   let l:job = denops#_internal#job#start(l:args, {
@@ -110,38 +90,33 @@ function! denops#plugin#check_type(...) abort
         \ })
 endfunction
 
-function! s:relay_autocmd(name) abort
-  let l:plugin = matchstr(expand('<amatch>'), '^[^:]\+:\zs.*')
-  execute printf('doautocmd <nomodeline> User %s:%s', a:name, l:plugin)
-endfunction
-
-function! s:DenopsSystemPluginPost() abort
-  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginPost:\zs.*')
-  let s:loaded_plugins[l:plugin] = 0
-  if has_key(s:load_callbacks, l:plugin)
-    for l:Callback in remove(s:load_callbacks, l:plugin)
-      call l:Callback()
-    endfor
+" DEPRECATED
+" Some plugins (e.g. dein.vim) use this function with options thus we cannot
+" change the interface of this function.
+" That's why we introduce 'load' function that replaces this function.
+function! denops#plugin#register(name, ...) abort
+  call denops#_internal#echo#deprecate(
+        \ 'denops#plugin#register() is deprecated. Use denops#plugin#load() instead.',
+        \)
+  if a:0 is# 0 || type(a:1) is# v:t_dict
+    let l:script = s:find_script(a:name)
+  else
+    let l:script = a:1
   endif
-  execute printf('doautocmd <nomodeline> User DenopsPluginPost:%s', l:plugin)
+  return denops#plugin#load(a:name, l:script)
 endfunction
 
-function! s:DenopsSystemPluginFail() abort
-  let l:plugin = matchstr(expand('<amatch>'), 'DenopsSystemPluginFail:\zs.*')
-  let s:loaded_plugins[l:plugin] = -3
-  if has_key(s:load_callbacks, l:plugin)
-    call remove(s:load_callbacks, l:plugin)
-  endif
-  execute printf('doautocmd <nomodeline> User DenopsPluginFail:%s', l:plugin)
+function! s:find_script(name) abort
+  const l:pattern = denops#_internal#path#join(['denops', a:name, 'main.ts'])
+  for l:script in globpath(&runtimepath, l:pattern, 1, 1, 1)
+    let l:name = fnamemodify(l:script, ':h:t')
+    if l:name[:0] ==# '@' || !filereadable(l:script)
+      continue
+    endif
+    return l:script
+  endfor
+  throw printf('Denops plugin "%s" does not exist in the runtimepath', a:name)
 endfunction
-
-augroup denops_autoload_plugin_internal
-  autocmd!
-  autocmd User DenopsSystemPluginPre:* call s:relay_autocmd('DenopsPluginPre')
-  autocmd User DenopsSystemPluginPost:* ++nested call s:DenopsSystemPluginPost()
-  autocmd User DenopsSystemPluginFail:* call s:DenopsSystemPluginFail()
-  autocmd User DenopsClosed let s:loaded_plugins = {}
-augroup END
 
 call denops#_internal#conf#define('denops#plugin#wait_interval', 200)
 call denops#_internal#conf#define('denops#plugin#wait_timeout', 30000)
