@@ -54,7 +54,7 @@ endfunction
 
 function! s:DenopsSystemPluginFail() abort
   const l:name = matchstr(expand('<amatch>'), 'DenopsSystemPluginFail:\zs.*')
-  let l:plugin = denops#_internal#plugin#get(a:name)
+  let l:plugin = denops#_internal#plugin#get(l:name)
   let l:plugin.state = s:STATE_FAILED
   let l:plugin.callbacks = []
   execute printf('doautocmd <nomodeline> User DenopsPluginFail:%s', l:name)
