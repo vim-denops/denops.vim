@@ -14,7 +14,7 @@ import { Vim } from "./vim.ts";
 Deno.test("Vim", async (t) => {
   let waitClosed: Promise<void> | undefined;
   await withVim({
-    fn: async (reader, writer) => {
+    fn: async ({ reader, writer }) => {
       const service: Service = {
         bind: () => unimplemented(),
         load: () => unimplemented(),
