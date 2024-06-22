@@ -5,7 +5,7 @@ import { wait } from "../../denops/@denops-private/testutil/wait.ts";
 testHost({
   name: "denops#server#status()",
   mode: "all",
-  fn: async (host, t) => {
+  fn: async ({ host, t }) => {
     await t.step(
       "returns 'stopped' when no server running",
       async () => {
@@ -84,7 +84,7 @@ testHost({
 testHost({
   name: "Denops server",
   mode: "all",
-  fn: async (host, t) => {
+  fn: async ({ host, t }) => {
     // NOTE: The status may transition to `preparing`, so get it within execute.
     // SEE: https://github.com/vim-denops/denops.vim/issues/354
     await host.call("execute", [

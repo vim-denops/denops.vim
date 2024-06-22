@@ -12,7 +12,7 @@ testHost({
   postlude: [
     "runtime plugin/denops.vim",
   ],
-  fn: async (host) => {
+  fn: async ({ host }) => {
     await wait(() => host.call("eval", "!has('vim_starting')"));
     const actual = await host.call("denops#server#status") as string;
     assertMatch(actual, /^(starting|preparing|running)$/);
@@ -21,7 +21,7 @@ testHost({
 
 testHost({
   name: "'plugin/denops.vim' starts a local server when sourced after VimEnter",
-  fn: async (host) => {
+  fn: async ({ host }) => {
     await wait(() => host.call("eval", "!has('vim_starting')"));
     await host.call("execute", [
       "runtime plugin/denops.vim",
@@ -42,7 +42,7 @@ for (const mode of ["vim", "nvim"] as const) {
           `let g:denops_server_addr = '${server.addr}'`,
           "runtime plugin/denops.vim",
         ],
-        fn: async (host) => {
+        fn: async ({ host }) => {
           await wait(() => host.call("eval", "!has('vim_starting')"));
           const actual = await host.call("denops#server#status") as string;
           assertMatch(actual, /^(preparing|running)$/);
