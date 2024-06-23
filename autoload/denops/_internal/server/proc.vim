@@ -63,7 +63,7 @@ function! denops#_internal#server#proc#is_started() abort
 endfunction
 
 function! s:start(options) abort
-  let l:args = [g:denops#deno, 'run']
+  let l:args = [g:denops#server#deno, 'run']
   let l:args += g:denops#server#deno_args
   let l:args += [
         \ s:SCRIPT,
