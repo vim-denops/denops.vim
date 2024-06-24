@@ -4,7 +4,7 @@ import {
   Message,
   Session,
 } from "https://deno.land/x/vim_channel_command@v3.0.0/mod.ts";
-import { formatCall, Host, invoke, Service } from "../host.ts";
+import { Host, invoke, Service } from "../host.ts";
 
 export class Vim implements Host {
   #session: Session;
@@ -53,7 +53,7 @@ export class Vim implements Host {
     }
     const [ret, err] = ensure(result, isCallReturn);
     if (err !== "") {
-      throw new Error(`Failed to call ${formatCall(fn, ...args)}: ${err}`);
+      throw new Error(`Failed to call '${fn}' in Vim: ${err}`);
     }
     return ret;
   }
@@ -72,9 +72,10 @@ export class Vim implements Host {
     const [ret, err] = ensure(result, isBatchReturn) as [unknown[], string];
     if (err) {
       const index = ret.length;
+      const fn = calls[index][0];
       return [
         ret,
-        `Failed to call ${formatCall(...calls[index])}: ${err}`,
+        `Failed to call '${fn}' in Vim: ${err}`,
       ];
     }
     return [ret, ""];

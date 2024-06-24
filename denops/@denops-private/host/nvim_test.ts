@@ -67,7 +67,7 @@ Deno.test("Neovim", async (t) => {
           await assertRejects(
             () => host.call("@@@@@", -4),
             Error,
-            "Failed to call @@@@@(-4): Vim:E117: Unknown function: @@@@@ (code: 0)",
+            "Failed to call '@@@@@' in Neovim: Vim:E117: Unknown function: @@@@@ (code: 0)",
           );
         },
       );
@@ -93,7 +93,7 @@ Deno.test("Neovim", async (t) => {
           assertEquals(ret, [4, 10]);
           assertMatch(
             err,
-            /Failed to call @@@@@\(-9\): Vim:E117: Unknown function: @@@@@/,
+            /Failed to call '@@@@@' in Neovim: Vim:E117: Unknown function: @@@@@/,
           );
         },
       );
