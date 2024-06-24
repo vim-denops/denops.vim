@@ -22,6 +22,9 @@ const scriptInvalid =
 const scriptInvalidConstraint =
   new URL("./testdata/dummy_invalid_constraint_plugin.ts", import.meta.url)
     .href;
+const scriptInvalidConstraint2 =
+  new URL("./testdata/dummy_invalid_constraint_plugin2.ts", import.meta.url)
+    .href;
 
 Deno.test("Service", async (t) => {
   const meta: Meta = {
@@ -179,6 +182,48 @@ Deno.test("Service", async (t) => {
           args: [
             "denops#api#cmd",
             "doautocmd <nomodeline> User DenopsSystemPluginFail:dummyFailConstraint",
+            {},
+          ],
+        });
+      } finally {
+        s.restore();
+        c.restore();
+      }
+    },
+  );
+
+  await t.step(
+    "load() loads plugin and emits autocmd events (could not find version)",
+    async () => {
+      const c = stub(console, "warn");
+      const s = stub(host, "call");
+      try {
+        await service.load("dummyFailConstraint2", scriptInvalidConstraint2);
+        const expects = [
+          "********************************************************************************",
+          "Deno module cache issue is detected.",
+          "Execute 'call denops#cache#update(#{reload: v:true})' and restart Vim/Neovim.",
+          "See https://github.com/vim-denops/denops.vim/issues/358 for more detail.",
+          "********************************************************************************",
+        ];
+        assertSpyCalls(c, expects.length);
+        for (let i = 0; i < expects.length; i++) {
+          assertSpyCall(c, i, {
+            args: [expects[i]],
+          });
+        }
+        assertSpyCalls(s, 2);
+        assertSpyCall(s, 0, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummyFailConstraint2",
+            {},
+          ],
+        });
+        assertSpyCall(s, 1, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginFail:dummyFailConstraint2",
             {},
           ],
         });
