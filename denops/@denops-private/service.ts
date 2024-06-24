@@ -151,12 +151,7 @@ class Plugin {
     } catch (e) {
       // Show a warning message when Deno module cache issue is detected
       // https://github.com/vim-denops/denops.vim/issues/358
-      if (
-        e instanceof TypeError &&
-        e.message.startsWith(
-          "Could not find constraint in the list of versions: ",
-        )
-      ) {
+      if (isDenoCacheIssueError(e)) {
         console.warn("*".repeat(80));
         console.warn(`Deno module cache issue is detected.`);
         console.warn(
@@ -198,6 +193,18 @@ function resolveScriptUrl(script: string): string {
   } catch {
     return new URL(script, import.meta.url).href;
   }
+}
+
+// See https://github.com/vim-denops/denops.vim/issues/358 for details
+function isDenoCacheIssueError(e: unknown): boolean {
+  const expects = [
+    "Could not find constraint in the list of versions: ", // Deno 1.40?
+    "Could not find version of ", // Deno 1.38
+  ] as const;
+  if (e instanceof TypeError) {
+    return expects.some((expect) => e.message.startsWith(expect));
+  }
+  return false;
 }
 
 // NOTE:
