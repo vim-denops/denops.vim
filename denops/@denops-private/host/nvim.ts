@@ -5,7 +5,7 @@ import {
 } from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { getVersionOr } from "../version.ts";
-import { formatCall, Host, invoke, Service } from "../host.ts";
+import { Host, invoke, Service } from "../host.ts";
 
 export class Neovim implements Host {
   #session: Session;
@@ -63,9 +63,7 @@ export class Neovim implements Host {
       if (isNvimErrorObject(err)) {
         const [code, message] = err;
         throw new Error(
-          `Failed to call ${
-            formatCall(fn, ...args)
-          }: ${message} (code: ${code})`,
+          `Failed to call '${fn}' in Neovim: ${message} (code: ${code})`,
         );
       }
       throw err;
@@ -82,11 +80,10 @@ export class Neovim implements Host {
     const [ret, err] = ensure(result, isNvimCallAtomicReturn);
     if (err) {
       const [index, code, message] = err;
+      const fn = calls[index][0];
       return [
         ret,
-        `Failed to call ${
-          formatCall(...calls[index])
-        }: ${message} (code: ${code})`,
+        `Failed to call '${fn}' in Neovim: ${message} (code: ${code})`,
       ];
     }
     return [ret, ""];

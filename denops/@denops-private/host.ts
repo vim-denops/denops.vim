@@ -91,7 +91,3 @@ export function invoke(
       throw new Error(`Service does not have a method '${name}'`);
   }
 }
-
-export function formatCall(fn: string, ...args: unknown[]): string {
-  return `${fn}(${args.map((v) => JSON.stringify(v)).join(", ")})`;
-}
