@@ -173,7 +173,14 @@ class Plugin {
   }
 
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
-    return await this.#denops.dispatcher[fn](...args);
+    try {
+      return await this.#denops.dispatcher[fn](...args);
+    } catch (err) {
+      const errMsg = err.message ?? err;
+      throw new Error(
+        `Failed to call '${fn}' API in '${this.name}': ${errMsg}`,
+      );
+    }
   }
 }
 

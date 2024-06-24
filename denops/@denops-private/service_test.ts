@@ -311,7 +311,7 @@ Deno.test("Service", async (t) => {
           ],
         });
         assert(typeof err === "string");
-        assertMatch(err, /invalid call/);
+        assertMatch(err, /Failed to call 'test' API in 'dummy': invalid call/);
       } finally {
         s.restore();
       }
