@@ -147,6 +147,7 @@ augroup denops_server_internal
   autocmd User DenopsClosed let s:is_ready = v:false
 augroup END
 
+call denops#_internal#conf#define('denops#server#deno', g:denops#deno)
 call denops#_internal#conf#define('denops#server#deno_args', [
       \ '-q',
       \ '--no-lock',
