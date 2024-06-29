@@ -147,12 +147,19 @@ VARIABLE						*denops-variable*
 	|g:denops#server#restart_interval|.
 	Default: 3
 
-*g:denops#server#reconnect_interval*
-	Interval in milliseconds before retrying connection to the server.
+*g:denops#server#reconnect_delay*
+	The delay in milliseconds before reconnecting to the server.
 	Default: 100
 
+*g:denops#server#reconnect_interval*
+	Interval in milliseconds to avoid infinite errors. Denops will reset
+	internal counter when the channel keeps connecting more than this
+	interval.
+	Default: 1000
+
 *g:denops#server#reconnect_threshold*
-	The number of reconnect counts on connection failure.
+	The number of reconnect counts on connection failure within
+	|g:denops#server#reconnect_interval|.
 	Default: 3
 
 *g:denops#server#close_timeout*
