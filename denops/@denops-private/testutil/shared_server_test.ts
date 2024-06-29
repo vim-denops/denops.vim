@@ -1,4 +1,5 @@
 import {
+  assertEquals,
   assertInstanceOf,
   assertMatch,
   assertNotMatch,
@@ -10,9 +11,19 @@ import { useSharedServer } from "./shared_server.ts";
 
 Deno.test("useSharedServer()", async (t) => {
   await t.step("if `verbose` is not specified", async (t) => {
-    await t.step("returns `result.addr`", async () => {
-      await using server = await useSharedServer();
-      assertMatch(server.addr, /^127\.0\.0\.1:\d+$/);
+    await t.step("returns `result.addr`", async (t) => {
+      await using server = await useSharedServer({ verbose: true });
+      const { addr } = server;
+
+      await t.step("`addr.host` is string", () => {
+        assertEquals(addr.host, "127.0.0.1");
+      });
+      await t.step("`addr.port` is number", () => {
+        assertEquals(typeof addr.port, "number");
+      });
+      await t.step("`addr.toString()` returns the address", () => {
+        assertMatch(addr.toString(), /^127\.0\.0\.1:\d+$/);
+      });
     });
 
     await t.step("returns `result.stdout`", async () => {
@@ -44,9 +55,19 @@ Deno.test("useSharedServer()", async (t) => {
   });
 
   await t.step("if `verbose` is true", async (t) => {
-    await t.step("returns `result.addr`", async () => {
+    await t.step("returns `result.addr`", async (t) => {
       await using server = await useSharedServer({ verbose: true });
-      assertMatch(server.addr, /^127\.0\.0\.1:\d+$/);
+      const { addr } = server;
+
+      await t.step("`addr.host` is string", () => {
+        assertEquals(addr.host, "127.0.0.1");
+      });
+      await t.step("`addr.port` is number", () => {
+        assertEquals(typeof addr.port, "number");
+      });
+      await t.step("`addr.toString()` returns the address", () => {
+        assertMatch(addr.toString(), /^127\.0\.0\.1:\d+$/);
+      });
     });
 
     await t.step("returns `result.stdout`", async () => {
