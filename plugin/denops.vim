@@ -25,21 +25,11 @@ augroup denops_plugin_internal
   autocmd User DenopsReady call denops#plugin#discover()
 augroup END
 
-function! s:init() abort
-  if !empty(get(g:, 'denops_server_addr'))
-    if denops#server#connect()
-      return
-    endif
-    " Fallback to a local denops server
-  endif
-  call denops#server#start()
-endfunction
-
 if has('vim_starting')
   augroup denops_plugin_internal_startup
     autocmd!
-    autocmd VimEnter * call s:init()
+    autocmd VimEnter * call denops#server#connect_or_start()
   augroup END
 else
-  call s:init()
+  call denops#server#connect_or_start()
 endif
