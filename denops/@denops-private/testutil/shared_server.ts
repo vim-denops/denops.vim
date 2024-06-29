@@ -11,6 +11,8 @@ const origError = console.error.bind(console);
 const noop = () => {};
 
 export interface UseSharedServerOptions {
+  /** The port number of the shared server. */
+  port?: number;
   /** Print shared-server messages. */
   verbose?: boolean;
   /** Environment variables.  */
@@ -21,7 +23,11 @@ export interface UseSharedServerOptions {
 
 export interface UseSharedServerResult extends AsyncDisposable {
   /** Address to connect to the shared server. */
-  addr: string;
+  addr: {
+    host: string;
+    port: number;
+    toString(): string;
+  };
   /** Shared server standard output. */
   stdout: ReadableStream<string>;
   /** Shared server error output. */
@@ -34,7 +40,7 @@ export interface UseSharedServerResult extends AsyncDisposable {
 export async function useSharedServer(
   options?: UseSharedServerOptions,
 ): Promise<UseSharedServerResult> {
-  const { denopsPath, verbose, env, timeout = DEFAULT_TIMEOUT } = {
+  const { denopsPath, port = 0, verbose, env, timeout = DEFAULT_TIMEOUT } = {
     ...getConfig(),
     ...options,
   };
@@ -50,7 +56,7 @@ export async function useSharedServer(
     script,
     "--identity",
     "--port",
-    "0",
+    `${port}`,
   ];
   const proc = new Deno.Command(cmd, {
     args,
@@ -91,8 +97,13 @@ export async function useSharedServer(
   try {
     const addr = await deadline(addrPromise, timeout);
     assert(typeof addr === "string");
+    const [_, host, port] = addr.match(/^([^:]*):(\d+)(?:\n|$)/) ?? [];
     return {
-      addr: addr.replace(/\n.*/s, ""),
+      addr: {
+        host,
+        port: Number.parseInt(port),
+        toString: () => `${host}:${port}`,
+      },
       stdout: stdoutReader2,
       stderr: stderrReader,
       async [Symbol.asyncDispose]() {
