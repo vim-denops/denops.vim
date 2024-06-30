@@ -6,7 +6,7 @@ import {
 } from "https://deno.land/std@0.224.0/testing/mock.ts";
 import { AssertError } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
 import { invoke, Service } from "./host.ts";
-import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
+import { unimplemented } from "https://deno.land/x/errorutil@v1.0.2/mod.ts";
 
 Deno.test("invoke", async (t) => {
   const service: Omit<Service, "bind"> = {

@@ -6,7 +6,7 @@ import {
 } from "https://deno.land/std@0.224.0/testing/mock.ts";
 import { DenopsImpl, Host, Service } from "./denops.ts";
 import { promiseState } from "https://deno.land/x/async@v2.1.0/mod.ts";
-import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
+import { unimplemented } from "https://deno.land/x/errorutil@v1.0.2/mod.ts";
 
 Deno.test("DenopsImpl", async (t) => {
   const meta: Meta = {

@@ -4,7 +4,7 @@ import {
   isErrorObject,
   toErrorObject,
   tryOr,
-} from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
+} from "https://deno.land/x/errorutil@v1.0.2/mod.ts";
 
 export function errorSerializer(err: unknown): unknown {
   if (err instanceof Error) {
