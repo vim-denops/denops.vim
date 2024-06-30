@@ -1,9 +1,9 @@
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
-} from "https://deno.land/x/workerio@v3.1.0/mod.ts";
-import { ensure } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
-import { pop } from "https://deno.land/x/streamtools@v0.5.0/mod.ts";
+} from "https://deno.land/x/workerio@v3.1.1/mod.ts";
+import { ensure } from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
+import { pop } from "https://deno.land/x/streamtools@v1.0.0/mod.ts";
 import type { HostConstructor } from "./host.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";

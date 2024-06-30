@@ -1,9 +1,9 @@
 import type {
   Denops,
   Meta,
-} from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
-import { toFileUrl } from "https://deno.land/std@0.217.0/path/mod.ts";
-import { toErrorObject } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
+} from "https://deno.land/x/denops_core@v6.1.0/mod.ts";
+import { toFileUrl } from "https://deno.land/std@0.224.0/path/mod.ts";
+import { toErrorObject } from "https://deno.land/x/errorutil@v1.0.2/mod.ts";
 import { DenopsImpl, Host } from "./denops.ts";
 
 // We can use `PromiseWithResolvers<void>` but Deno 1.38 doesn't have `PromiseWithResolvers`
