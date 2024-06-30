@@ -141,7 +141,7 @@ function! s:on_close() abort
   let s:chan = v:null
   call s:clear_force_close_delayer()
   call denops#_internal#echo#debug(printf('Channel closed (%s)', s:addr))
-  doautocmd <nomodeline> User DenopsClosed
+  doautocmd <nomodeline> User DenopsSystemClosed
   if s:chan isnot# v:null || !s:options.reconnect_on_close || s:closed_on_purpose || s:exiting
     return
   endif
@@ -181,6 +181,6 @@ endfunction
 augroup denops_internal_server_chan_internal
   autocmd!
   autocmd VimLeave * let s:exiting = 1
-  autocmd User DenopsReady :
-  autocmd User DenopsClosed :
+  autocmd User DenopsSystemReady :
+  autocmd User DenopsSystemClosed :
 augroup END

@@ -193,59 +193,82 @@ function! s:disconnect(...) abort
   call denops#_internal#server#chan#close(l:options)
 endfunction
 
-function! s:DenopsProcessListen(expr) abort
-  let s:addr = matchstr(a:expr, '\<DenopsProcessListen:\zs.*')
+function! s:DenopsSystemProcessStarted() abort
+  doautocmd <nomodeline> User DenopsProcessStarted
+endfunction
+
+function! s:DenopsSystemProcessListen(expr) abort
+  let s:addr = matchstr(a:expr, '\<DenopsSystemProcessListen:\zs.*')
   let s:local_addr = s:addr
   call s:connect(s:addr, { 'reconnect_on_close': v:false })
 endfunction
 
-function! s:DenopsReady() abort
+function! s:DenopsSystemReady() abort
   let s:is_ready = v:true
   let l:callbacks = s:ready_callbacks
   let s:ready_callbacks = []
-  for l:Callback in l:callbacks
-    call l:Callback()
-  endfor
+  try
+    for l:Callback in l:callbacks
+      call l:Callback()
+    endfor
+  finally
+    doautocmd <nomodeline> User DenopsReady
+  endtry
 endfunction
 
-function! s:DenopsClosed() abort
-echom "DenopsClosed"
+function! s:DenopsSystemClosed() abort
   let s:closing = v:false
   let s:is_ready = v:false
   if denops#_internal#server#proc#is_started()
     let s:is_closed = v:true
   endif
-  " Shared server
-  if s:reconnect_once
-    let s:reconnect_once = v:false
-    call s:connect(s:addr, { 'reconnect_on_close': v:true })
-    return
-  endif
-  let s:addr = ""
-  " Local server
-  if s:stopping && denops#_internal#server#proc#is_started()
-    call s:force_stop()
-  endif
-  let s:local_addr = ""
+  try
+    " Shared server
+    if s:reconnect_once
+      let s:reconnect_once = v:false
+      call s:connect(s:addr, { 'reconnect_on_close': v:true })
+      return
+    endif
+    let s:addr = ""
+    " Local server
+    if s:stopping && denops#_internal#server#proc#is_started()
+      call s:force_stop()
+    endif
+    let s:local_addr = ""
+  finally
+    doautocmd <nomodeline> User DenopsClosed
+  endtry
 endfunction
 
-function! s:DenopsProcessStopped() abort
-echom "DenopsProcessStopped"
+function! s:DenopsSystemProcessStopped(expr) abort
+  let l:status = matchstr(a:expr, '\<DenopsSystemProcessStopped:\zs.*')
   let s:stopping = v:false
   let s:is_closed = v:false
-  " Local server
-  if s:restart_once
-    let s:restart_once = v:false
-    call denops#server#start()
-  endif
+  try
+    " Local server
+    if s:restart_once
+      let s:restart_once = v:false
+      call denops#server#start()
+    endif
+  finally
+    execute printf(
+          \ 'doautocmd <nomodeline> User DenopsProcessStopped:%s',
+          \ l:status,
+          \)
+  endtry
 endfunction
 
 augroup denops_server_internal
   autocmd!
-  autocmd User DenopsProcessListen:* call s:DenopsProcessListen(expand('<amatch>'))
-  autocmd User DenopsReady ++nested call s:DenopsReady()
-  autocmd User DenopsClosed call s:DenopsClosed()
-  autocmd User DenopsProcessStopped:* call s:DenopsProcessStopped()
+  autocmd User DenopsReady :
+  autocmd User DenopsClosed :
+  autocmd User DenopsProcessStarted :
+  autocmd User DenopsProcessStopped:* :
+  autocmd User DenopsSystemProcessStarted ++nested call s:DenopsSystemProcessStarted()
+  autocmd User DenopsSystemProcessListen:* ++nested call s:DenopsSystemProcessListen(expand('<amatch>'))
+  autocmd User DenopsSystemReady ++nested call s:DenopsSystemReady()
+  autocmd User DenopsSystemClosed ++nested call s:DenopsSystemClosed()
+  autocmd User DenopsSystemProcessStopped:* ++nested call s:DenopsSystemProcessStopped(expand('<amatch>'))
 augroup END
 
 call denops#_internal#conf#define('denops#server#deno', g:denops#deno)
