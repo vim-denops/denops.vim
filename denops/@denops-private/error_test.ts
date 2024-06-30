@@ -2,7 +2,7 @@ import {
   assert,
   assertEquals,
   assertInstanceOf,
-} from "https://deno.land/std@0.217.0/assert/mod.ts";
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { is } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 

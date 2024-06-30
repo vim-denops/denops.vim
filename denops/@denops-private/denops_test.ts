@@ -1,9 +1,9 @@
 import type { Meta } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
-import { assertEquals } from "https://deno.land/std@0.217.0/assert/mod.ts";
+import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   assertSpyCall,
   stub,
-} from "https://deno.land/std@0.217.0/testing/mock.ts";
+} from "https://deno.land/std@0.224.0/testing/mock.ts";
 import { DenopsImpl, Host, Service } from "./denops.ts";
 import { promiseState } from "https://deno.land/x/async@v2.1.0/mod.ts";
 import { unimplemented } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
