@@ -2,7 +2,7 @@ import { ensure, is } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
 import {
   Client,
   Session,
-} from "https://deno.land/x/messagepack_rpc@v2.0.3/mod.ts";
+} from "https://deno.land/x/messagepack_rpc@v2.1.1/mod.ts";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { getVersionOr } from "../version.ts";
 import { Host, invoke, Service } from "../host.ts";
