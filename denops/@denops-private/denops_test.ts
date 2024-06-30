@@ -1,4 +1,4 @@
-import type { Meta } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
+import type { Meta } from "https://deno.land/x/denops_core@v6.1.0/mod.ts";
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   assertSpyCall,
