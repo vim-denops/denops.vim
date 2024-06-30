@@ -62,7 +62,7 @@ function! s:start(options) abort
         \})
   let s:options = a:options
   call denops#_internal#echo#debug(printf('Server started: %s', l:args))
-  doautocmd <nomodeline> User DenopsProcessStarted
+  doautocmd <nomodeline> User DenopsSystemProcessStarted
 endfunction
 
 function! s:on_stdout(store, data) abort
@@ -75,7 +75,7 @@ function! s:on_stdout(store, data) abort
   let a:store.prepared = 1
   let l:addr = substitute(a:data, '\r\?\n$', '', 'g')
   call denops#_internal#echo#debug(printf('Server listen: %s', l:addr))
-  execute printf('doautocmd <nomodeline> User DenopsProcessListen:%s', l:addr)
+  execute printf('doautocmd <nomodeline> User DenopsSystemProcessListen:%s', l:addr)
 endfunction
 
 function! s:on_stderr(data) abort
@@ -89,7 +89,7 @@ endfunction
 function! s:on_exit(options, status) abort
   let s:job = v:null
   call denops#_internal#echo#debug(printf('Server stopped: %s', a:status))
-  execute printf('doautocmd <nomodeline> User DenopsProcessStopped:%s', a:status)
+  execute printf('doautocmd <nomodeline> User DenopsSystemProcessStopped:%s', a:status)
   if s:job isnot# v:null || !a:options.restart_on_exit || s:stopped_on_purpose || s:exiting
     return
   endif
@@ -132,7 +132,7 @@ endfunction
 augroup denops_internal_server_proc_internal
   autocmd!
   autocmd VimLeave * let s:exiting = 1
-  autocmd User DenopsProcessStarted :
-  autocmd User DenopsProcessListen:* :
-  autocmd User DenopsProcessStopped:* :
+  autocmd User DenopsSystemProcessStarted :
+  autocmd User DenopsSystemProcessListen:* :
+  autocmd User DenopsSystemProcessStopped:* :
 augroup END
