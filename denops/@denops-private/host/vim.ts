@@ -3,7 +3,7 @@ import {
   Client,
   Message,
   Session,
-} from "https://deno.land/x/vim_channel_command@v3.0.0/mod.ts";
+} from "https://deno.land/x/vim_channel_command@v3.1.1/mod.ts";
 import { Host, invoke, Service } from "../host.ts";
 
 export class Vim implements Host {
