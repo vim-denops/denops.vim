@@ -19,7 +19,7 @@ import { Neovim } from "./nvim.ts";
 Deno.test("Neovim", async (t) => {
   let waitClosed: Promise<void> | undefined;
   await withNeovim({
-    fn: async (reader, writer) => {
+    fn: async ({ reader, writer }) => {
       const service: Service = {
         bind: () => unimplemented(),
         load: () => unimplemented(),
@@ -27,6 +27,7 @@ Deno.test("Neovim", async (t) => {
         interrupt: () => unimplemented(),
         dispatch: () => unimplemented(),
         dispatchAsync: () => unimplemented(),
+        close: () => unimplemented(),
       };
 
       await using host = new Neovim(reader, writer);

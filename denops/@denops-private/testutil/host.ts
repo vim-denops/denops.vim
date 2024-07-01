@@ -3,7 +3,11 @@ import { Neovim } from "../host/nvim.ts";
 import { Vim } from "../host/vim.ts";
 import { withNeovim, WithOptions, withVim } from "./with.ts";
 
-export type HostFn<T> = (host: Host) => T;
+export type HostFn<T> = (helper: {
+  host: Host;
+  stdout: ReadableStream<string>;
+  stderr: ReadableStream<string>;
+}) => T;
 
 export interface WithHostOptions<T> extends Omit<WithOptions<T>, "fn"> {
   fn: HostFn<T>;
@@ -17,18 +21,18 @@ export function withHost<T>(
   const { mode, fn, ...withOptions } = options;
   if (mode === "vim") {
     return withVim({
-      fn: async (reader, writer) => {
+      fn: async ({ reader, writer, stdout, stderr }) => {
         await using host = new Vim(reader, writer);
-        return await fn(host);
+        return await fn({ host, stdout, stderr });
       },
       ...withOptions,
     });
   }
   if (mode === "nvim") {
     return withNeovim({
-      fn: async (reader, writer) => {
+      fn: async ({ reader, writer, stdout, stderr }) => {
         await using host = new Neovim(reader, writer);
-        return await fn(host);
+        return await fn({ host, stdout, stderr });
       },
       ...withOptions,
     });
@@ -36,7 +40,12 @@ export function withHost<T>(
   return Promise.reject(new TypeError(`Invalid mode: ${mode}`));
 }
 
-export type TestFn = (host: Host, t: Deno.TestContext) => void | Promise<void>;
+export type TestFn = (helper: {
+  host: Host;
+  t: Deno.TestContext;
+  stdout: ReadableStream<string>;
+  stderr: ReadableStream<string>;
+}) => void | Promise<void>;
 
 export interface TestHostOptions
   extends
@@ -65,7 +74,7 @@ export function testHost(
       fn: async (t) => {
         await withHost<void | Promise<void>>({
           mode,
-          fn: (host) => fn(host, t),
+          fn: ({ host, stdout, stderr }) => fn({ host, t, stdout, stderr }),
           ...hostOptions,
         });
       },

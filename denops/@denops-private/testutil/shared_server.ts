@@ -1,11 +1,14 @@
 import { assert } from "jsr:@std/assert@0.225.2";
 import { deadline } from "jsr:@std/async@0.224.0/deadline";
 import { resolve } from "jsr:@std/path@0.224.0/resolve";
-import { TextLineStream } from "jsr:@std/streams@0.224.0/text-line-stream";
-import { pop } from "jsr:@lambdalisue/streamtools@1.0.0";
+import { channel, pop } from "jsr:@lambdalisue/streamtools@1.0.0";
+import { tap } from "jsr:@milly/streams@^1.0.0/transform/tap";
 import { getConfig } from "./conf.ts";
 
 const DEFAULT_TIMEOUT = 30_000;
+const origLog = console.log.bind(console);
+const origError = console.error.bind(console);
+const noop = () => {};
 
 export interface UseSharedServerOptions {
   /** Print shared-server messages. */
@@ -21,6 +24,8 @@ export interface UseSharedServerResult extends AsyncDisposable {
   addr: string;
   /** Shared server standard output. */
   stdout: ReadableStream<string>;
+  /** Shared server error output. */
+  stderr: ReadableStream<string>;
 }
 
 /**
@@ -50,23 +55,25 @@ export async function useSharedServer(
   const proc = new Deno.Command(cmd, {
     args,
     stdout: "piped",
-    stderr: verbose ? "inherit" : "null",
+    stderr: "piped",
     env,
     signal,
   }).spawn();
 
-  let stdout = proc.stdout
-    .pipeThrough(new TextDecoderStream(), { signal })
-    .pipeThrough(new TextLineStream());
+  let stdout = proc.stdout.pipeThrough(new TextDecoderStream(), { signal });
+  let stderr = proc.stderr.pipeThrough(new TextDecoderStream(), { signal });
   if (verbose) {
-    const [splitStdout, verboseStdout] = stdout.tee();
-    stdout = splitStdout;
-    verboseStdout.pipeTo(
-      new WritableStream({
-        write: (out) => console.log(out),
-      }),
-    ).catch(() => {});
+    stdout = stdout.pipeThrough(tap((s) => origLog(s)));
+    stderr = stderr.pipeThrough(tap((s) => origError(s)));
   }
+  const { writer: stdoutWriter, reader: stdoutReader } = channel<string>();
+  stdout.pipeTo(stdoutWriter).catch(noop);
+  const { writer: stderrWriter, reader: stderrReader } = channel<string>();
+  stderr.pipeTo(stderrWriter).catch(noop);
+
+  const [addrReader, stdoutReader2] = stdoutReader.tee();
+  const addrPromise = pop(addrReader);
+  addrPromise.finally(() => addrReader.cancel());
 
   const abort = async (reason: unknown) => {
     try {
@@ -74,23 +81,22 @@ export async function useSharedServer(
     } catch {
       // Already exited, do nothing.
     }
-    await Promise.all([
-      stdout.locked ? undefined : stdout.cancel(reason),
-      proc.status,
+    await proc.status;
+    await Promise.allSettled([
+      proc.stdout.cancel(reason),
+      proc.stderr.cancel(reason),
     ]);
-    await proc.stdout.cancel(reason);
   };
 
   try {
-    const addr = await deadline(pop(stdout), timeout);
+    const addr = await deadline(addrPromise, timeout);
     assert(typeof addr === "string");
     return {
-      addr,
-      stdout,
+      addr: addr.replace(/\n.*/s, ""),
+      stdout: stdoutReader2,
+      stderr: stderrReader,
       async [Symbol.asyncDispose]() {
-        if (!signal.aborted) {
-          await abort("useSharedServer disposed");
-        }
+        await abort("useSharedServer disposed");
       },
     };
   } catch (e) {

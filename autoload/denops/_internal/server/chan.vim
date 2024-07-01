@@ -28,13 +28,13 @@ function! denops#_internal#server#chan#connect(addr, options) abort
   endif
   let l:retry_threshold = a:options.retry_threshold
   let l:retry_interval = a:options.retry_interval
-  let l:previous_exception = ''
-  for l:i in range(l:retry_threshold)
+  let l:i = 1
+  while v:true
     call denops#_internal#echo#debug(printf(
           \ 'Connecting to channel `%s` [%d/%d]',
           \ a:addr,
-          \ l:i + 1,
-          \ l:retry_threshold + 1,
+          \ l:i,
+          \ l:retry_threshold,
           \))
     try
       call s:connect(a:addr, a:options)
@@ -43,28 +43,46 @@ function! denops#_internal#server#chan#connect(addr, options) abort
       call denops#_internal#echo#debug(printf(
             \ 'Failed to connect channel `%s` [%d/%d]: %s',
             \ a:addr,
-            \ l:i + 1,
-            \ l:retry_threshold + 1,
+            \ l:i,
+            \ l:retry_threshold,
             \ v:exception,
             \))
-      let l:previous_exception = v:exception
+      if l:i >= l:retry_threshold
+        call denops#_internal#echo#error(printf(
+              \ 'Failed to connect channel `%s`: %s',
+              \ a:addr,
+              \ v:exception,
+              \))
+        return
+      endif
     endtry
     execute printf('sleep %dm', l:retry_interval)
-  endfor
-  call denops#_internal#echo#error(printf(
-        \ 'Failed to connect channel `%s`: %s',
-        \ a:addr,
-        \ l:previous_exception,
-        \))
+    let l:i += 1
+  endwhile
 endfunction
 
-function! denops#_internal#server#chan#close() abort
+" Args:
+"   options: {
+"     timeout: number (default: 0)
+"   }
+function! denops#_internal#server#chan#close(options) abort
   if s:chan is# v:null
     throw '[denops] Channel does not exist yet'
   endif
+  let l:options = extend({
+        \ 'timeout': 0,
+        \}, a:options)
   let s:closed_on_purpose = 1
-  call s:rpcclose(s:chan)
-  let s:chan = v:null
+  if l:options.timeout ==# 0
+    return s:force_close(l:options)
+  endif
+  if l:options.timeout > 0
+    let s:force_close_delayer = timer_start(
+          \ l:options.timeout,
+          \ { -> s:force_close(l:options) },
+          \)
+  endif
+  call denops#_internal#server#chan#notify('invoke', ['close', []])
 endfunction
 
 function! denops#_internal#server#chan#is_connected() abort
@@ -91,36 +109,56 @@ endfunction
 
 function! s:connect(addr, options) abort
   let s:closed_on_purpose = 0
-  let s:chan = s:rpcconnect(a:addr, {
-        \ 'on_close': { -> s:on_close(a:options) },
-        \})
   let s:addr = a:addr
   let s:options = a:options
+  let s:chan = s:rpcconnect(a:addr, {
+        \ 'on_close': { -> s:on_close() },
+        \})
   call denops#_internal#echo#debug(printf('Channel connected (%s)', a:addr))
   call s:rpcnotify(s:chan, 'void', [])
 endfunction
 
-function! s:on_close(options) abort
+function! s:force_close(options) abort
+  let l:chan = s:chan
   let s:chan = v:null
+  call s:clear_force_close_delayer()
+  call denops#_internal#echo#warn(printf(
+        \ 'Channel cannot close gracefully within %d millisec, force close (%s)',
+        \ a:options.timeout,
+        \ s:addr,
+        \))
+  call s:rpcclose(l:chan)
+endfunction
+
+function! s:clear_force_close_delayer() abort
+  if exists('s:force_close_delayer')
+    call timer_stop(s:force_close_delayer)
+    unlet s:force_close_delayer
+  endif
+endfunction
+
+function! s:on_close() abort
+  let s:chan = v:null
+  call s:clear_force_close_delayer()
   call denops#_internal#echo#debug(printf('Channel closed (%s)', s:addr))
-  doautocmd <nomodeline> User DenopsClosed
-  if !a:options.reconnect_on_close || s:closed_on_purpose || s:exiting
+  doautocmd <nomodeline> User DenopsSystemClosed
+  if s:chan isnot# v:null || !s:options.reconnect_on_close || s:closed_on_purpose || s:exiting
     return
   endif
   " Reconnect
-  if s:reconnect_guard(a:options)
+  if s:reconnect_guard()
     return
   endif
   call denops#_internal#echo#warn('Channel closed. Reconnecting...')
   call timer_start(
-        \ a:options.reconnect_delay,
+        \ s:options.reconnect_delay,
         \ { -> denops#_internal#server#chan#connect(s:addr, s:options) },
         \)
 endfunction
 
-function! s:reconnect_guard(options) abort
-  let l:reconnect_threshold = a:options.reconnect_threshold
-  let l:reconnect_interval = a:options.reconnect_interval
+function! s:reconnect_guard() abort
+  let l:reconnect_threshold = s:options.reconnect_threshold
+  let l:reconnect_interval = s:options.reconnect_interval
   let s:reconnect_count = get(s:, 'reconnect_count', 0) + 1
   if s:reconnect_count >= l:reconnect_threshold
     call denops#_internal#echo#warn(printf(
@@ -143,6 +181,6 @@ endfunction
 augroup denops_internal_server_chan_internal
   autocmd!
   autocmd VimLeave * let s:exiting = 1
-  autocmd User DenopsReady :
-  autocmd User DenopsClosed :
+  autocmd User DenopsSystemReady :
+  autocmd User DenopsSystemClosed :
 augroup END
