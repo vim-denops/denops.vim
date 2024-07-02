@@ -138,7 +138,7 @@ function! denops#server#wait(...) abort
         \ 'silent': 0,
         \}, a:0 ? a:1 : {},
         \)
-  if denops#server#status() ==# 'stopped'
+  if denops#server#status() ==# s:STATUS_STOPPED
     if !l:options.silent
       call denops#_internal#echo#error(
             \ 'Failed to wait `DenopsReady` autocmd. Denops server itself is not started.',

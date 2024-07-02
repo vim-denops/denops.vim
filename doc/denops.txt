@@ -132,8 +132,8 @@ VARIABLE						*denops-variable*
 	Default: ['-q', '--no-lock', '-A']
 
 *g:denops#server#restart_delay*
-	Restart delay in milliseconds to avoid #136.
-	https://github.com/vim-denops/denops.vim/issues/136
+	The delay in milliseconds before restarting the server.
+	This avoid #136. https://github.com/vim-denops/denops.vim/issues/136
 	Default: 100
 
 *g:denops#server#restart_interval*
@@ -143,7 +143,8 @@ VARIABLE						*denops-variable*
 	Default: 10000
 
 *g:denops#server#restart_threshold*
-        The number of restart counts within |g:denops#server#restart_interval|.
+        The number of restart counts on unexpected process terminattion within
+	|g:denops#server#restart_interval|.
 	Default: 3
 
 *g:denops#server#reconnect_interval*
