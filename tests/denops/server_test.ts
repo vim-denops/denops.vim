@@ -360,7 +360,7 @@ testHost({
         assertEquals(actual, "stopped");
       });
 
-      await t.step("outputs warning message", async () => {
+      await t.step("outputs warning message after delay", async () => {
         await delay(MESSAGE_DELAY);
         assertMatch(
           outputs.join(""),
@@ -430,7 +430,8 @@ testHost({
           assertEquals(await host.call("denops#server#status"), "running");
         });
 
-        await t.step("outputs warning message", () => {
+        await t.step("outputs warning message after delayed", async () => {
+          await delay(MESSAGE_DELAY);
           assertMatch(
             outputs.join(""),
             /Server stopped \(-?[0-9]+\)\. Restarting\.\.\./,
@@ -695,14 +696,6 @@ testHost({
           assertEquals(actual, "stopped");
         });
 
-        await t.step("outputs error message after delayed", async () => {
-          await delay(MESSAGE_DELAY);
-          assertMatch(
-            outputs.join(""),
-            /denops shared server address \(g:denops_server_addr\) is not given/,
-          );
-        });
-
         await t.step("does not fire DenopsReady", async () => {
           await assertRejects(
             () =>
@@ -721,6 +714,14 @@ testHost({
             assertFalse(await host.call("eval", "g:denops#disabled"));
           },
         );
+
+        await t.step("outputs error message after delayed", async () => {
+          await delay(MESSAGE_DELAY);
+          assertMatch(
+            outputs.join(""),
+            /denops shared server address \(g:denops_server_addr\) is not given/,
+          );
+        });
       });
 
       await t.step("if `g:denops_server_addr` is invalid", async (t) => {
@@ -755,14 +756,6 @@ testHost({
           assertEquals(actual, "stopped");
         });
 
-        await t.step("outputs warning message after delayed", async () => {
-          await delay(MESSAGE_DELAY);
-          assertMatch(
-            outputs.join(""),
-            /Failed to connect channel `127\.0\.0\.1:[0-9]+`:/,
-          );
-        });
-
         await t.step("does not fire DenopsReady", async () => {
           await assertRejects(
             () =>
@@ -781,6 +774,14 @@ testHost({
             assertFalse(await host.call("eval", "g:denops#disabled"));
           },
         );
+
+        await t.step("outputs warning message after delayed", async () => {
+          await delay(MESSAGE_DELAY);
+          assertMatch(
+            outputs.join(""),
+            /Failed to connect channel `127\.0\.0\.1:[0-9]+`:/,
+          );
+        });
       });
 
       await t.step("if `g:denops_server_addr` is valid", async (t) => {
