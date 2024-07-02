@@ -124,16 +124,57 @@ testHost({
     // NOTE: Disable startup on VimEnter.
     "autocmd! denops_plugin_internal_startup VimEnter",
   ],
-  fn: async ({ host, t, stderr }) => {
+  fn: async ({ mode, host, t, stderr }) => {
     let outputs: string[] = [];
     stderr.pipeTo(
       new WritableStream({ write: (s) => void outputs.push(s) }),
     ).catch(() => {});
 
+    async function forceShutdownServer() {
+      const serverPid = await host.call(
+        "eval",
+        mode === "vim"
+          ? "job_info(denops#_internal#server#proc#_get_job_for_test()).process"
+          : "jobpid(denops#_internal#server#proc#_get_job_for_test())",
+      ) as number;
+      Deno.kill(serverPid, "SIGKILL");
+    }
+
     await host.call("execute", [
       "autocmd User DenopsReady let g:__test_denops_ready_fired = 1",
+      "autocmd User DenopsClosed let g:__test_denops_closed_fired = 1",
+      "autocmd User DenopsProcessStarted let g:__test_denops_process_started_fired = 1",
       "autocmd User DenopsProcessStopped:* let g:__test_denops_process_stopped_fired = expand('<amatch>')",
     ], "");
+
+    await t.step("if denops disabled", async (t) => {
+      await using stack = new AsyncDisposableStack();
+      stack.defer(async () => {
+        await host.call("execute", [
+          "let g:denops#disabled = 0",
+        ], "");
+      });
+
+      await host.call("execute", [
+        "let g:denops#disabled = 1",
+        "let g:__test_denops_server_start_result = denops#server#start()",
+        "let g:__test_denops_server_status_when_start_called = denops#server#status()",
+      ], "");
+
+      await t.step("returns falsy", async () => {
+        assertFalse(
+          await host.call("eval", "g:__test_denops_server_start_result"),
+        );
+      });
+
+      await t.step("does not change status from 'stopped'", async () => {
+        const actual = await host.call(
+          "eval",
+          "g:__test_denops_server_status_when_start_called",
+        );
+        assertEquals(actual, "stopped");
+      });
+    });
 
     await t.step("if not yet started", async (t) => {
       await using stack = new AsyncDisposableStack();
@@ -146,6 +187,7 @@ testHost({
 
       await host.call("execute", [
         "silent! unlet g:__test_denops_ready_fired",
+        "silent! unlet g:__test_denops_process_started_fired",
         "let g:__test_denops_server_start_result = denops#server#start()",
         "let g:__test_denops_server_status_when_start_called = denops#server#status()",
       ], "");
@@ -160,6 +202,12 @@ testHost({
           "g:__test_denops_server_status_when_start_called",
         );
         assertEquals(actual, "starting");
+      });
+
+      await t.step("fires DenopsProcessStarted", async () => {
+        await wait(() =>
+          host.call("exists", "g:__test_denops_process_started_fired")
+        );
       });
 
       await t.step("fires DenopsReady", async () => {
@@ -270,9 +318,14 @@ testHost({
       await using stack = new AsyncDisposableStack();
       const saved_deno_path = await host.call("eval", "g:denops#server#deno");
       stack.defer(async () => {
+        await host.call("denops#server#stop");
+        await wait(
+          () => host.call("eval", "denops#server#status() ==# 'stopped'"),
+        );
         await host.call("execute", [
           `let g:denops#server#deno = '${saved_deno_path}'`,
-        ]);
+          `let g:denops#disabled = 0`,
+        ], "");
       });
 
       await host.call("execute", [
@@ -305,6 +358,135 @@ testHost({
       await t.step("changes status to 'stopped' asynchronously", async () => {
         const actual = await host.call("denops#server#status");
         assertEquals(actual, "stopped");
+      });
+
+      await t.step("outputs warning message after delay", async () => {
+        await delay(MESSAGE_DELAY);
+        assertMatch(
+          outputs.join(""),
+          /Server stopped 1 times .* Denops is disabled/,
+        );
+      });
+
+      await t.step("changes `g:denops#disabled` to truthy", async () => {
+        assert(await host.call("eval", "g:denops#disabled"));
+      });
+    });
+
+    await t.step("if the server is stopped unexpectedly", async (t) => {
+      await using stack = new AsyncDisposableStack();
+      stack.defer(async () => {
+        await host.call("denops#server#stop");
+        await wait(
+          () => host.call("eval", "denops#server#status() ==# 'stopped'"),
+        );
+      });
+
+      await host.call("execute", [
+        "let g:denops#server#restart_delay = 1000",
+        "let g:denops#server#restart_interval = 1000",
+        "let g:denops#server#restart_threshold = 1",
+        "call denops#server#start()",
+      ], "");
+      await wait(
+        () => host.call("eval", "denops#server#status() ==# 'running'"),
+      );
+      await host.call("execute", [
+        "silent! unlet g:__test_denops_ready_fired",
+        "silent! unlet g:__test_denops_closed_fired",
+        "silent! unlet g:__test_denops_process_started_fired",
+        "silent! unlet g:__test_denops_process_stopped_fired",
+      ], "");
+      outputs = [];
+
+      await forceShutdownServer();
+
+      await t.step("fires DenopsClosed", async () => {
+        await wait(() => host.call("exists", "g:__test_denops_closed_fired"));
+      });
+
+      await t.step("fires DenopsProcessStopped", async () => {
+        await wait(() =>
+          host.call("exists", "g:__test_denops_process_stopped_fired")
+        );
+      });
+
+      await t.step("changes status to 'stopped' asynchronously", async () => {
+        assertEquals(await host.call("denops#server#status"), "stopped");
+      });
+
+      await t.step("restart the server", async (t) => {
+        await t.step("fires DenopsProcessStarted", async () => {
+          await wait(() =>
+            host.call("exists", "g:__test_denops_process_started_fired")
+          );
+        });
+
+        await t.step("fires DenopsReady", async () => {
+          await wait(() => host.call("exists", "g:__test_denops_ready_fired"));
+        });
+
+        await t.step("changes status to 'running' asynchronously", async () => {
+          assertEquals(await host.call("denops#server#status"), "running");
+        });
+
+        await t.step("outputs warning message after delayed", async () => {
+          await delay(MESSAGE_DELAY);
+          assertMatch(
+            outputs.join(""),
+            /Server stopped \(-?[0-9]+\)\. Restarting\.\.\./,
+          );
+        });
+      });
+    });
+
+    await t.step("if restart count exceed", async (t) => {
+      await using stack = new AsyncDisposableStack();
+      stack.defer(async () => {
+        await host.call("denops#server#stop");
+        await wait(
+          () => host.call("eval", "denops#server#status() ==# 'stopped'"),
+        );
+        await host.call("execute", [
+          `let g:denops#disabled = 0`,
+        ], "");
+      });
+
+      await host.call("execute", [
+        "silent! unlet g:__test_denops_process_started_fired",
+        "let g:denops#server#restart_delay = 10",
+        "let g:denops#server#restart_interval = 30000",
+        "let g:denops#server#restart_threshold = 3",
+        "call denops#server#start()",
+      ], "");
+      outputs = [];
+
+      for (let i = 0; i < 4; i++) {
+        await wait(() =>
+          host.call("exists", "g:__test_denops_process_started_fired")
+        );
+        await host.call("execute", [
+          "unlet g:__test_denops_process_started_fired",
+        ], "");
+        await forceShutdownServer();
+      }
+
+      await t.step("changes `g:denops#disabled` to truthy", async () => {
+        await wait(() => host.call("eval", "g:denops#disabled"));
+      });
+
+      await t.step("changes status to 'stopped'", async () => {
+        await wait(() =>
+          host.call("eval", "denops#server#status() ==# 'stopped'")
+        );
+      });
+
+      await t.step("outputs warning message after delayed", async () => {
+        await delay(MESSAGE_DELAY);
+        assertMatch(
+          outputs.join(""),
+          /Server stopped 4 times within 30000 millisec/,
+        );
       });
     });
   },
@@ -457,7 +639,37 @@ testHost({
 
     await host.call("execute", [
       "autocmd User DenopsReady let g:__test_denops_ready_fired = 1",
+      "autocmd User DenopsClosed let g:__test_denops_closed_fired = 1",
     ], "");
+
+    await t.step("if denops disabled", async (t) => {
+      await using stack = new AsyncDisposableStack();
+      stack.defer(async () => {
+        await host.call("execute", [
+          "let g:denops#disabled = 0",
+        ], "");
+      });
+
+      await host.call("execute", [
+        "let g:denops#disabled = 1",
+        "let g:__test_denops_server_connect_result = denops#server#connect()",
+        "let g:__test_denops_server_status_when_connect_called = denops#server#status()",
+      ], "");
+
+      await t.step("returns falsy", async () => {
+        assertFalse(
+          await host.call("eval", "g:__test_denops_server_connect_result"),
+        );
+      });
+
+      await t.step("does not change status from 'stopped'", async () => {
+        const actual = await host.call(
+          "eval",
+          "g:__test_denops_server_status_when_connect_called",
+        );
+        assertEquals(actual, "stopped");
+      });
+    });
 
     await t.step("if not yet connected", async (t) => {
       await t.step("if `g:denops_server_addr` is empty", async (t) => {
@@ -484,14 +696,6 @@ testHost({
           assertEquals(actual, "stopped");
         });
 
-        await t.step("outputs error message after delayed", async () => {
-          await delay(MESSAGE_DELAY);
-          assertMatch(
-            outputs.join(""),
-            /denops shared server address \(g:denops_server_addr\) is not given/,
-          );
-        });
-
         await t.step("does not fire DenopsReady", async () => {
           await assertRejects(
             () =>
@@ -501,6 +705,21 @@ testHost({
               ),
             Error,
             "Timeout",
+          );
+        });
+
+        await t.step(
+          "does not change `g:denops#disabled` from falsy",
+          async () => {
+            assertFalse(await host.call("eval", "g:denops#disabled"));
+          },
+        );
+
+        await t.step("outputs error message after delayed", async () => {
+          await delay(MESSAGE_DELAY);
+          assertMatch(
+            outputs.join(""),
+            /denops shared server address \(g:denops_server_addr\) is not given/,
           );
         });
       });
@@ -515,8 +734,9 @@ testHost({
 
         await host.call("execute", [
           `let g:denops_server_addr = '${not_exists_address}'`,
-          "let g:denops#server#retry_interval = 10",
-          "let g:denops#server#retry_threshold = 1",
+          "let g:denops#server#reconnect_delay = 10",
+          "let g:denops#server#reconnect_interval = 30000",
+          "let g:denops#server#reconnect_threshold = 3",
           "silent! unlet g:__test_denops_ready_fired",
           "let g:__test_denops_server_connect_result = denops#server#connect()",
           "let g:__test_denops_server_status_when_connect_called = denops#server#status()",
@@ -536,14 +756,6 @@ testHost({
           assertEquals(actual, "stopped");
         });
 
-        await t.step("outputs warning message after delayed", async () => {
-          await delay(MESSAGE_DELAY);
-          assertMatch(
-            outputs.join(""),
-            /Failed to connect channel `127\.0\.0\.1:[0-9]+`:/,
-          );
-        });
-
         await t.step("does not fire DenopsReady", async () => {
           await assertRejects(
             () =>
@@ -553,6 +765,21 @@ testHost({
               ),
             Error,
             "Timeout",
+          );
+        });
+
+        await t.step(
+          "does not change `g:denops#disabled` from falsy",
+          async () => {
+            assertFalse(await host.call("eval", "g:denops#disabled"));
+          },
+        );
+
+        await t.step("outputs warning message after delayed", async () => {
+          await delay(MESSAGE_DELAY);
+          assertMatch(
+            outputs.join(""),
+            /Failed to connect channel `127\.0\.0\.1:[0-9]+`:/,
           );
         });
       });
@@ -700,6 +927,116 @@ testHost({
             ),
           Error,
           "Timeout",
+        );
+      });
+    });
+
+    await t.step("if the channel is closed unexpectedly", async (t) => {
+      await using stack = new AsyncDisposableStack();
+      const server = stack.use(await useSharedServer());
+      stack.defer(async () => {
+        await host.call("denops#server#close");
+        await wait(
+          () => host.call("eval", "denops#server#status() ==# 'stopped'"),
+        );
+      });
+
+      await host.call("execute", [
+        `let g:denops_server_addr = '${server.addr}'`,
+        "let g:denops#server#reconnect_delay = 1000",
+        "let g:denops#server#reconnect_interval = 1000",
+        "let g:denops#server#reconnect_threshold = 1",
+        "call denops#server#connect()",
+      ], "");
+      await wait(
+        () => host.call("eval", "denops#server#status() ==# 'running'"),
+      );
+      await host.call("execute", [
+        "silent! unlet g:__test_denops_closed_fired",
+      ], "");
+      outputs = [];
+
+      // Close the channel by stop the shared-server.
+      await server[Symbol.asyncDispose]();
+
+      await t.step("fires DenopsClosed", async () => {
+        await wait(() => host.call("exists", "g:__test_denops_closed_fired"));
+      });
+
+      await t.step("changes status to 'stopped' asynchronously", async () => {
+        assertEquals(await host.call("denops#server#status"), "stopped");
+      });
+
+      await t.step("reconnect to the server", async (t) => {
+        await host.call("execute", [
+          "silent! unlet g:__test_denops_ready_fired",
+        ], "");
+
+        // Start the shared-server with the same port number.
+        stack.use(await useSharedServer({ port: server.addr.port }));
+
+        await t.step("fires DenopsReady", async () => {
+          await wait(() => host.call("exists", "g:__test_denops_ready_fired"));
+        });
+
+        await t.step("changes status to 'running' asynchronously", async () => {
+          assertEquals(await host.call("denops#server#status"), "running");
+        });
+
+        await t.step("outputs warning message after delayed", async () => {
+          await delay(MESSAGE_DELAY);
+          assertMatch(
+            outputs.join(""),
+            /Channel closed\. Reconnecting\.\.\./,
+          );
+        });
+      });
+    });
+
+    await t.step("if reconnect count exceed", async (t) => {
+      await using stack = new AsyncDisposableStack();
+      const listener = stack.use(
+        Deno.listen({ hostname: "127.0.0.1", port: 0 }),
+      );
+      stack.defer(async () => {
+        await host.call("denops#server#close");
+        await wait(
+          () => host.call("eval", "denops#server#status() ==# 'stopped'"),
+        );
+        await host.call("execute", [
+          "let g:denops#disabled = 0",
+        ], "");
+      });
+
+      await host.call("execute", [
+        `let g:denops_server_addr = '127.0.0.1:${listener.addr.port}'`,
+        "let g:denops#server#reconnect_delay = 10",
+        "let g:denops#server#reconnect_interval = 30000",
+        "let g:denops#server#reconnect_threshold = 3",
+        "call denops#server#connect()",
+      ], "");
+      outputs = [];
+
+      // Close the channel from server side.
+      (async () => {
+        for await (const conn of listener) {
+          conn.close();
+        }
+      })();
+
+      await t.step("changes `g:denops#disabled` to truthy", async () => {
+        await wait(() => host.call("eval", "g:denops#disabled"));
+      });
+
+      await t.step("changes status to 'stopped'", async () => {
+        assertEquals(await host.call("denops#server#status"), "stopped");
+      });
+
+      await t.step("outputs warning message after delayed", async () => {
+        await delay(MESSAGE_DELAY);
+        assertMatch(
+          outputs.join(""),
+          /Channel closed 4 times within 30000 millisec/,
         );
       });
     });

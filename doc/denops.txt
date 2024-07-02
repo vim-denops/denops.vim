@@ -132,8 +132,8 @@ VARIABLE						*denops-variable*
 	Default: ['-q', '--no-lock', '-A']
 
 *g:denops#server#restart_delay*
-	Restart delay in milliseconds to avoid #136.
-	https://github.com/vim-denops/denops.vim/issues/136
+	The delay in milliseconds before restarting the server.
+	This avoid #136. https://github.com/vim-denops/denops.vim/issues/136
 	Default: 100
 
 *g:denops#server#restart_interval*
@@ -143,15 +143,23 @@ VARIABLE						*denops-variable*
 	Default: 10000
 
 *g:denops#server#restart_threshold*
-        The number of restart counts within |g:denops#server#restart_interval|.
+        The number of restart counts on unexpected process terminattion within
+	|g:denops#server#restart_interval|.
 	Default: 3
 
-*g:denops#server#reconnect_interval*
-	Interval in milliseconds before retrying connection to the server.
+*g:denops#server#reconnect_delay*
+	The delay in milliseconds before reconnecting to the server.
 	Default: 100
 
+*g:denops#server#reconnect_interval*
+	Interval in milliseconds to avoid infinite errors. Denops will reset
+	internal counter when the channel keeps connecting more than this
+	interval.
+	Default: 1000
+
 *g:denops#server#reconnect_threshold*
-	The number of reconnect counts on connection failure.
+	The number of reconnect counts on connection failure within
+	|g:denops#server#reconnect_interval|.
 	Default: 3
 
 *g:denops#server#close_timeout*

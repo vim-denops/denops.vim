@@ -4,6 +4,7 @@ import { Vim } from "../host/vim.ts";
 import { withNeovim, WithOptions, withVim } from "./with.ts";
 
 export type HostFn<T> = (helper: {
+  mode: "vim" | "nvim";
   host: Host;
   stdout: ReadableStream<string>;
   stderr: ReadableStream<string>;
@@ -23,7 +24,7 @@ export function withHost<T>(
     return withVim({
       fn: async ({ reader, writer, stdout, stderr }) => {
         await using host = new Vim(reader, writer);
-        return await fn({ host, stdout, stderr });
+        return await fn({ mode, host, stdout, stderr });
       },
       ...withOptions,
     });
@@ -32,7 +33,7 @@ export function withHost<T>(
     return withNeovim({
       fn: async ({ reader, writer, stdout, stderr }) => {
         await using host = new Neovim(reader, writer);
-        return await fn({ host, stdout, stderr });
+        return await fn({ mode, host, stdout, stderr });
       },
       ...withOptions,
     });
@@ -41,6 +42,7 @@ export function withHost<T>(
 }
 
 export type TestFn = (helper: {
+  mode: "vim" | "nvim";
   host: Host;
   t: Deno.TestContext;
   stdout: ReadableStream<string>;
@@ -74,7 +76,7 @@ export function testHost(
       fn: async (t) => {
         await withHost<void | Promise<void>>({
           mode,
-          fn: ({ host, stdout, stderr }) => fn({ host, t, stdout, stderr }),
+          fn: (helper) => fn({ ...helper, t }),
           ...hostOptions,
         });
       },

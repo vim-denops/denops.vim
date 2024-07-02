@@ -5,13 +5,16 @@ const s:STATUS_RUNNING = 'running'
 const s:STATUS_CLOSING = 'closing'
 const s:STATUS_CLOSED = 'closed'
 
+" Common variables
 let s:is_ready = v:false
 let s:ready_callbacks = []
 
+" Local server variables
 let s:stopping = v:false
 let s:restart_once = v:false
 let s:local_addr = ""
 
+" Shared server variables
 let s:is_closed = v:false
 let s:closing = v:false
 let s:reconnect_once = v:false
@@ -118,6 +121,22 @@ function! s:get_server_addr() abort
 endfunction
 
 " Common
+function! denops#server#connect_or_start() abort
+  if g:denops#disabled || denops#server#status() !=# s:STATUS_STOPPED
+    return
+  endif
+  let s:addr = s:get_server_addr()
+  if !empty(s:addr)
+    " Connect to a shared server or fallback to a local server.
+    call s:connect(s:addr, {
+          \ 'reconnect_on_close': v:true,
+          \ 'on_connect_failure': { -> denops#server#start() },
+          \})
+  else
+    call denops#server#start()
+  endif
+endfunction
+
 function! denops#server#status() abort
   if s:closing
     return s:STATUS_CLOSING
@@ -138,7 +157,7 @@ function! denops#server#wait(...) abort
         \ 'silent': 0,
         \}, a:0 ? a:1 : {},
         \)
-  if denops#server#status() ==# 'stopped'
+  if denops#server#status() ==# s:STATUS_STOPPED
     if !l:options.silent
       call denops#_internal#echo#error(
             \ 'Failed to wait `DenopsReady` autocmd. Denops server itself is not started.',
@@ -176,8 +195,6 @@ endfunction
 function! s:connect(addr, ...) abort
   let s:is_closed = v:false
   let l:options = extend({
-        \ 'retry_interval': g:denops#server#retry_interval,
-        \ 'retry_threshold': g:denops#server#retry_threshold,
         \ 'reconnect_delay': g:denops#server#reconnect_delay,
         \ 'reconnect_interval': g:denops#server#reconnect_interval,
         \ 'reconnect_threshold': g:denops#server#reconnect_threshold,
@@ -277,9 +294,6 @@ call denops#_internal#conf#define('denops#server#deno_args', [
       \ '--no-lock',
       \ '-A',
       \])
-
-call denops#_internal#conf#define('denops#server#retry_interval', 500)
-call denops#_internal#conf#define('denops#server#retry_threshold', 3)
 
 call denops#_internal#conf#define('denops#server#restart_delay', 100)
 call denops#_internal#conf#define('denops#server#restart_interval', 10000)
