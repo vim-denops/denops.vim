@@ -7,5 +7,5 @@
  *
  * @module
  */
-export * from "./cli.ts";
-export * from "./worker.ts";
+import "./cli.ts";
+import "./worker.ts";

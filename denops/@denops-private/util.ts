@@ -1,5 +1,5 @@
-import type { Meta } from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
-import { is, Predicate } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
+import type { Meta } from "jsr:@denops/core@6.0.6";
+import { is, type Predicate } from "jsr:@core/unknownutil@3.18.0";
 
 export const isMeta: Predicate<Meta> = is.ObjectOf({
   mode: is.LiteralOneOf(["release", "debug", "test"] as const),

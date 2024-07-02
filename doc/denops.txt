@@ -29,6 +29,23 @@ API Reference: https://deno.land/x/denops_std/mod.ts
 USAGE							*denops-usage*
 
 -----------------------------------------------------------------------------
+RECOMMENDED					*denops-recommended*
+
+Add the following recommended settings to your |vimrc| or |init.vim|:
+>
+	" Interrupt the process of plugins via <C-c>
+	noremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
+	inoremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
+	cnoremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
+
+	" Restart Denops server
+	command! DenopsRestart call denops#server#restart()
+
+	" Fix Deno module cache issue
+	command! DenopsFixCache call denops#cache#update(#{reload: v:true})
+<
+
+-----------------------------------------------------------------------------
 SHARED SERVER					*denops-shared-server*
 
 Typically, a Denops server starts for each Vim/Neovim instance, but there are
@@ -115,8 +132,8 @@ VARIABLE						*denops-variable*
 	Default: ['-q', '--no-lock', '-A']
 
 *g:denops#server#restart_delay*
-	Restart delay in milliseconds to avoid #136.
-	https://github.com/vim-denops/denops.vim/issues/136
+	The delay in milliseconds before restarting the server.
+	This avoid #136. https://github.com/vim-denops/denops.vim/issues/136
 	Default: 100
 
 *g:denops#server#restart_interval*
@@ -126,17 +143,29 @@ VARIABLE						*denops-variable*
 	Default: 10000
 
 *g:denops#server#restart_threshold*
-        The number of restart counts within
-        |g:denops#server#restart_interval|.
+        The number of restart counts on unexpected process terminattion within
+	|g:denops#server#restart_interval|.
 	Default: 3
 
-*g:denops#server#reconnect_interval*
-	Interval in milliseconds before retrying connection to the server.
+*g:denops#server#reconnect_delay*
+	The delay in milliseconds before reconnecting to the server.
 	Default: 100
 
+*g:denops#server#reconnect_interval*
+	Interval in milliseconds to avoid infinite errors. Denops will reset
+	internal counter when the channel keeps connecting more than this
+	interval.
+	Default: 1000
+
 *g:denops#server#reconnect_threshold*
-	The number of reconnect counts on connection failure.
+	The number of reconnect counts on connection failure within
+	|g:denops#server#reconnect_interval|.
 	Default: 3
+
+*g:denops#server#close_timeout*
+	Timeout in milliseconds to wait for the channel to close gracefully.
+	If the timeout expires, the channel will be forcibly closed.
+	Default: 5000
 
 *g:denops#server#wait_interval*
 	Interval in milliseconds for |denops#server#wait()|.
@@ -200,6 +229,26 @@ denops#request_async({name}, {method}, {params}, {success}, {failure})
 	      \ { e -> s:failure(e) },
 	      \)
 <
+						*denops#interrupt()*
+denops#interrupt([{reason}])
+	Interrupts the process of plugins. It is assumed to be used to
+	interrupt the process of plugins when the user presses a key or
+	issues a command.
+	{reason} is an optional string to describe the reason for the
+	interruption.
+	Note that the interruption is not guaranteed to be immediate.
+
+	Use the following mapping to interrupt the process of plugins:
+>
+	" For normal/visual/select mode
+	noremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
+
+	" For insert mode
+	inoremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
+
+	" For command mode
+	cnoremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
+<
 						*denops#cache#update()*
 denops#cache#update([{options}])
 	Update Deno module cache of denops itself and denops plugins in
@@ -213,7 +262,8 @@ denops#cache#update([{options}])
 						*denops#server#start()*
 denops#server#start()
 	Starts a denops server process and connects to the channel. It does
-	nothing when the server is already started.
+	nothing when the server is already started or the channel is already
+	established.
 
 	It is automatically called 1) on |VimEnter| autocmd when denops is
 	in 'runtimepath' during Vim startup, 2) immediately when denops is
@@ -251,7 +301,7 @@ denops#server#close()
 
 						*denops#server#reconnect()*
 denops#server#reconnect()
-	Reconnects to a denops shared server.
+	Closes the channel and reconnects to a |denops-shared-server|.
 
 						*denops#server#status()*
 denops#server#status()
@@ -262,6 +312,8 @@ denops#server#status()
 	"starting"	Server is starting.
 	"preparing"	Server is preparing (initializing).
 	"running"	Server is running (ready).
+	"closing"	Server is closing (disconnecting).
+	"closed"	Server is closed (disconnected but server is running).
 
 	Note that "starting" is never returned when a |denops-shared-server|
 	is used.

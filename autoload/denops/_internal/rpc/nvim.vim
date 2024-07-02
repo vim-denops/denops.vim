@@ -24,7 +24,7 @@ endfunction
 function! denops#_internal#rpc#nvim#close(chan) abort
   call timer_stop(a:chan._healthcheck_timer)
   call chanclose(a:chan._id)
-  call a:chan._on_close(a:chan)
+  call timer_start(0, { -> a:chan._on_close(a:chan) })
 endfunction
 
 function! denops#_internal#rpc#nvim#notify(chan, method, params) abort

@@ -1,35 +1,37 @@
-import type {
-  Denops,
-  Meta,
-} from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
-import { toFileUrl } from "https://deno.land/std@0.217.0/path/mod.ts";
-import { toErrorObject } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
-import { DenopsImpl, Host } from "./denops.ts";
-
-// We can use `PromiseWithResolvers<void>` but Deno 1.38 doesn't have `PromiseWithResolvers`
-type Waiter = {
-  promise: Promise<void>;
-  resolve: () => void;
-};
+import type { Denops, Meta } from "jsr:@denops/core@6.0.6";
+import { toFileUrl } from "jsr:@std/path@0.225.0/to-file-url";
+import { toErrorObject } from "jsr:@lambdalisue/errorutil@1.0.0";
+import { DenopsImpl, type Host } from "./denops.ts";
+import type { CallbackId, Service as HostService } from "./host.ts";
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
-export class Service implements Disposable {
-  #plugins: Map<string, Plugin> = new Map();
-  #waiters: Map<string, Waiter> = new Map();
+export class Service implements HostService, AsyncDisposable {
+  #interruptController = new AbortController();
+  #plugins = new Map<string, Plugin>();
+  #waiters = new Map<string, PromiseWithResolvers<void>>();
   #meta: Meta;
   #host?: Host;
+  #closed = false;
+  #closedWaiter = Promise.withResolvers<void>();
 
   constructor(meta: Meta) {
     this.#meta = meta;
   }
 
-  #getWaiter(name: string): Waiter {
-    if (!this.#waiters.has(name)) {
-      this.#waiters.set(name, Promise.withResolvers());
+  #getWaiter(name: string): PromiseWithResolvers<void> {
+    let waiter = this.#waiters.get(name);
+    if (!waiter) {
+      waiter = Promise.withResolvers();
+      waiter.promise.catch(() => {});
+      this.#waiters.set(name, waiter);
     }
-    return this.#waiters.get(name)!;
+    return waiter;
+  }
+
+  get interrupted(): AbortSignal {
+    return this.#interruptController.signal;
   }
 
   bind(host: Host): void {
@@ -41,18 +43,20 @@ export class Service implements Disposable {
     script: string,
     suffix = "",
   ): Promise<void> {
+    if (this.#closed) {
+      throw new Error("Service closed");
+    }
     if (!this.#host) {
       throw new Error("No host is bound to the service");
     }
-    let plugin = this.#plugins.get(name);
-    if (plugin) {
+    if (this.#plugins.has(name)) {
       if (this.#meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is already loaded. Skip`);
       }
       return;
     }
     const denops = new DenopsImpl(name, this.#meta, this.#host, this);
-    plugin = new Plugin(denops, name, script);
+    const plugin = new Plugin(denops, name, script);
     this.#plugins.set(name, plugin);
     await plugin.load(suffix);
     this.#getWaiter(name).resolve();
@@ -77,7 +81,15 @@ export class Service implements Disposable {
   }
 
   waitLoaded(name: string): Promise<void> {
+    if (this.#closed) {
+      return Promise.reject(new Error("Service closed"));
+    }
     return this.#getWaiter(name).promise;
+  }
+
+  interrupt(reason?: unknown): void {
+    this.#interruptController.abort(reason);
+    this.#interruptController = new AbortController();
   }
 
   async #dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -100,8 +112,8 @@ export class Service implements Disposable {
     name: string,
     fn: string,
     args: unknown[],
-    success: string, // Callback ID
-    failure: string, // Callback ID
+    success: CallbackId,
+    failure: CallbackId,
   ): Promise<void> {
     if (!this.#host) {
       throw new Error("No host is bound to the service");
@@ -125,8 +137,27 @@ export class Service implements Disposable {
     }
   }
 
-  [Symbol.dispose](): void {
-    this.#plugins.clear();
+  close(): Promise<void> {
+    if (!this.#closed) {
+      this.#closed = true;
+      const error = new Error("Service closed");
+      for (const { reject } of this.#waiters.values()) {
+        reject(error);
+      }
+      this.#waiters.clear();
+      this.#plugins.clear();
+      this.#host = undefined;
+      this.#closedWaiter.resolve();
+    }
+    return this.waitClosed();
+  }
+
+  waitClosed(): Promise<void> {
+    return this.#closedWaiter.promise;
+  }
+
+  [Symbol.asyncDispose](): Promise<void> {
+    return this.close();
   }
 }
 
