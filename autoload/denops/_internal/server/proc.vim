@@ -1,7 +1,6 @@
 const s:SCRIPT = denops#_internal#path#script(['@denops-private', 'cli.ts'])
 
 let s:job = v:null
-let s:options = v:null
 let s:stopped_on_purpose = 0
 let s:exiting = 0
 
@@ -60,7 +59,6 @@ function! s:start(options) abort
         \ 'on_stderr': { _job, data, _event -> s:on_stderr(data) },
         \ 'on_exit': { _job, status, _event -> s:on_exit(a:options, status) },
         \})
-  let s:options = a:options
   call denops#_internal#echo#debug(printf('Server started: %s', l:args))
   doautocmd <nomodeline> User DenopsSystemProcessStarted
 endfunction
@@ -103,7 +101,7 @@ function! s:on_exit(options, status) abort
         \))
   call timer_start(
         \ a:options.restart_delay,
-        \ { -> denops#_internal#server#proc#start(s:options) },
+        \ { -> denops#_internal#server#proc#start(a:options) },
         \)
 endfunction
 

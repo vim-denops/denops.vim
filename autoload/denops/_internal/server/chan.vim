@@ -6,7 +6,6 @@ const s:rpcrequest = function(printf('denops#_internal#rpc#%s#request', s:HOST))
 
 let s:chan = v:null
 let s:addr = v:null
-let s:options = v:null
 let s:closed_on_purpose = 0
 let s:exiting = 0
 
@@ -110,9 +109,8 @@ endfunction
 function! s:connect(addr, options) abort
   let s:closed_on_purpose = 0
   let s:addr = a:addr
-  let s:options = a:options
   let s:chan = s:rpcconnect(a:addr, {
-        \ 'on_close': { -> s:on_close() },
+        \ 'on_close': { -> s:on_close(a:options) },
         \})
   call denops#_internal#echo#debug(printf('Channel connected (%s)', a:addr))
   call s:rpcnotify(s:chan, 'void', [])
@@ -137,28 +135,28 @@ function! s:clear_force_close_delayer() abort
   endif
 endfunction
 
-function! s:on_close() abort
+function! s:on_close(options) abort
   let s:chan = v:null
   call s:clear_force_close_delayer()
   call denops#_internal#echo#debug(printf('Channel closed (%s)', s:addr))
   doautocmd <nomodeline> User DenopsSystemClosed
-  if s:chan isnot# v:null || !s:options.reconnect_on_close || s:closed_on_purpose || s:exiting
+  if s:chan isnot# v:null || !a:options.reconnect_on_close || s:closed_on_purpose || s:exiting
     return
   endif
   " Reconnect
-  if s:reconnect_guard()
+  if s:reconnect_guard(a:options)
     return
   endif
   call denops#_internal#echo#warn('Channel closed. Reconnecting...')
   call timer_start(
-        \ s:options.reconnect_delay,
-        \ { -> denops#_internal#server#chan#connect(s:addr, s:options) },
+        \ a:options.reconnect_delay,
+        \ { -> denops#_internal#server#chan#connect(s:addr, a:options) },
         \)
 endfunction
 
-function! s:reconnect_guard() abort
-  let l:reconnect_threshold = s:options.reconnect_threshold
-  let l:reconnect_interval = s:options.reconnect_interval
+function! s:reconnect_guard(options) abort
+  let l:reconnect_threshold = a:options.reconnect_threshold
+  let l:reconnect_interval = a:options.reconnect_interval
   let s:reconnect_count = get(s:, 'reconnect_count', 0) + 1
   if s:reconnect_count >= l:reconnect_threshold
     call denops#_internal#echo#warn(printf(
