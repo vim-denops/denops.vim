@@ -9,5 +9,10 @@
   },
   "exclude": [
     ".coverage/"
-  ]
+  ],
+  // NOTE: Import maps should only be used from test modules.
+  "imports": {
+    "/denops-private/": "./denops/@denops-private/",
+    "/denops-testutil/": "./tests/denops/testutil/"
+  }
 }

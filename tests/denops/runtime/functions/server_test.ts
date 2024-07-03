@@ -7,9 +7,9 @@ import {
 } from "jsr:@std/assert@0.225.2";
 import { delay } from "jsr:@std/async@^0.224.0/delay";
 import { AsyncDisposableStack } from "jsr:@nick/dispose@1.1.0/async-disposable-stack";
-import { testHost } from "../../denops/@denops-private/testutil/host.ts";
-import { useSharedServer } from "../../denops/@denops-private/testutil/shared_server.ts";
-import { wait } from "../../denops/@denops-private/testutil/wait.ts";
+import { testHost } from "/denops-testutil/host.ts";
+import { useSharedServer } from "/denops-testutil/shared_server.ts";
+import { wait } from "/denops-testutil/wait.ts";
 
 const MESSAGE_DELAY = 200;
 
