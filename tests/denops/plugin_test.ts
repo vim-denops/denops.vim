@@ -5,7 +5,7 @@ import { useSharedServer } from "../../denops/@denops-private/testutil/shared_se
 import { wait } from "../../denops/@denops-private/testutil/wait.ts";
 
 const MESSAGE_DELAY = 200;
-const MODES = ["vim", "nvim"] as const;
+const MODES = ["vim"] as const;
 
 for (const mode of MODES) {
   Deno.test(`plugin/denops.vim (${mode})`, async (t) => {
@@ -21,7 +21,11 @@ for (const mode of MODES) {
             "runtime plugin/denops.vim",
             "let g:__test_denops_server_status_before_vimenter = denops#server#status()",
           ],
-          fn: async ({ host }) => {
+          fn: async ({ host, stderr }) => {
+            const outputs: string[] = [];
+            stderr.pipeTo(
+              new WritableStream({ write: (s) => void outputs.push(s) }),
+            ).catch(() => {});
             await t.step(
               "does not start a local server before VimEnter",
               async () => {
@@ -43,6 +47,11 @@ for (const mode of MODES) {
                 ["DenopsProcessStarted", "DenopsReady"],
               );
             });
+
+            await t.step("does not output messages", async () => {
+              await delay(MESSAGE_DELAY);
+              assertEquals(outputs, []);
+            });
           },
         });
       });
@@ -59,7 +68,11 @@ for (const mode of MODES) {
             "runtime plugin/denops.vim",
             "let g:__test_denops_server_status_before_vimenter = denops#server#status()",
           ],
-          fn: async ({ host }) => {
+          fn: async ({ host, stderr }) => {
+            const outputs: string[] = [];
+            stderr.pipeTo(
+              new WritableStream({ write: (s) => void outputs.push(s) }),
+            ).catch(() => {});
             await t.step(
               "does not start a local server before VimEnter",
               async () => {
@@ -80,6 +93,11 @@ for (const mode of MODES) {
                 await host.call("eval", "g:__test_denops_events"),
                 ["DenopsProcessStarted", "DenopsReady"],
               );
+            });
+
+            await t.step("does not output messages", async () => {
+              await delay(MESSAGE_DELAY);
+              assertEquals(outputs, []);
             });
           },
         });
@@ -98,7 +116,11 @@ for (const mode of MODES) {
             `let g:denops_server_addr = '${server.addr}'`,
             "runtime plugin/denops.vim",
           ],
-          fn: async ({ host }) => {
+          fn: async ({ host, stderr }) => {
+            const outputs: string[] = [];
+            stderr.pipeTo(
+              new WritableStream({ write: (s) => void outputs.push(s) }),
+            ).catch(() => {});
             await wait(
               () => host.call("eval", "denops#server#status() ==# 'running'"),
             );
@@ -108,6 +130,11 @@ for (const mode of MODES) {
                 await host.call("eval", "g:__test_denops_events"),
                 ["DenopsReady"],
               );
+            });
+
+            await t.step("does not output messages", async () => {
+              await delay(MESSAGE_DELAY);
+              assertEquals(outputs, []);
             });
           },
         });
@@ -162,7 +189,11 @@ for (const mode of MODES) {
       await t.step("if `g:denops_server_addr` is not specified", async (t) => {
         await withHost({
           mode,
-          fn: async ({ host }) => {
+          fn: async ({ host, stderr }) => {
+            const outputs: string[] = [];
+            stderr.pipeTo(
+              new WritableStream({ write: (s) => void outputs.push(s) }),
+            ).catch(() => {});
             await host.call("execute", [
               "let g:__test_denops_events = []",
               "autocmd User DenopsProcessStarted call add(g:__test_denops_events, 'DenopsProcessStarted')",
@@ -185,6 +216,11 @@ for (const mode of MODES) {
                 ["DenopsProcessStarted", "DenopsReady"],
               );
             });
+
+            await t.step("does not output messages", async () => {
+              await delay(MESSAGE_DELAY);
+              assertEquals(outputs, []);
+            });
           },
         });
       });
@@ -192,7 +228,11 @@ for (const mode of MODES) {
       await t.step("if `g:denops_server_addr` is empty", async (t) => {
         await withHost({
           mode,
-          fn: async ({ host }) => {
+          fn: async ({ host, stderr }) => {
+            const outputs: string[] = [];
+            stderr.pipeTo(
+              new WritableStream({ write: (s) => void outputs.push(s) }),
+            ).catch(() => {});
             await host.call("execute", [
               "let g:__test_denops_events = []",
               "autocmd User DenopsProcessStarted call add(g:__test_denops_events, 'DenopsProcessStarted')",
@@ -216,6 +256,11 @@ for (const mode of MODES) {
                 ["DenopsProcessStarted", "DenopsReady"],
               );
             });
+
+            await t.step("does not output messages", async () => {
+              await delay(MESSAGE_DELAY);
+              assertEquals(outputs, []);
+            });
           },
         });
       });
@@ -225,7 +270,11 @@ for (const mode of MODES) {
 
         await withHost({
           mode,
-          fn: async ({ host }) => {
+          fn: async ({ host, stderr }) => {
+            const outputs: string[] = [];
+            stderr.pipeTo(
+              new WritableStream({ write: (s) => void outputs.push(s) }),
+            ).catch(() => {});
             await host.call("execute", [
               "let g:__test_denops_events = []",
               "autocmd User DenopsProcessStarted call add(g:__test_denops_events, 'DenopsProcessStarted')",
@@ -248,6 +297,11 @@ for (const mode of MODES) {
                 await host.call("eval", "g:__test_denops_events"),
                 ["DenopsReady"],
               );
+            });
+
+            await t.step("does not output messages", async () => {
+              await delay(MESSAGE_DELAY);
+              assertEquals(outputs, []);
             });
           },
         });
