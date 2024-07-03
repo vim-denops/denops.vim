@@ -5,7 +5,7 @@ import { useSharedServer } from "../../denops/@denops-private/testutil/shared_se
 import { wait } from "../../denops/@denops-private/testutil/wait.ts";
 
 const MESSAGE_DELAY = 200;
-const MODES = ["vim"] as const;
+const MODES = ["vim", "nvim"] as const;
 
 for (const mode of MODES) {
   Deno.test(`plugin/denops.vim (${mode})`, async (t) => {
