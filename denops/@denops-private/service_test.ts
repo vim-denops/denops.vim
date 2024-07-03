@@ -22,6 +22,7 @@ import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";
+import { toFileUrl } from "jsr:@std/path@0.225.0/to-file-url";
 
 const NOOP = () => {};
 
@@ -641,6 +642,87 @@ Deno.test("Service", async (t) => {
         assertSpyCalls(host_call, 0);
       });
     });
+
+    await t.step("if the plugin file is changed", async (t) => {
+      // Generate source script file.
+      await using tempFile = await useTempFile({
+        // NOTE: Temporary script files should be ignored from coverage.
+        prefix: "test-denops-service-",
+        suffix: "_test.ts",
+      });
+      const scriptRewrite = toFileUrl(tempFile.path).href;
+      const sourceOriginal = await Deno.readTextFile(new URL(scriptValid));
+      await Deno.writeTextFile(new URL(scriptRewrite), sourceOriginal);
+
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptRewrite);
+      }
+      using host_call = stub(host, "call");
+
+      // Change source script file.
+      const sourceRewrited = sourceOriginal.replaceAll(
+        "Hello, Denops!",
+        "Source Changed!",
+      );
+      await Deno.writeTextFile(new URL(scriptRewrite), sourceRewrited);
+
+      await t.step("resolves", async () => {
+        await service.reload("dummy");
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadPre", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadPost", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginPre", () => {
+        assertSpyCall(host_call, 2, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("calls the plugin entrypoint", () => {
+        assertSpyCall(host_call, 3, {
+          args: [
+            "denops#api#cmd",
+            "echo 'Source Changed!'",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginPost", () => {
+        assertSpyCall(host_call, 4, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
+            {},
+          ],
+        });
+      });
+    });
   });
 
   await t.step(".waitLoaded()", async (t) => {
@@ -1189,4 +1271,14 @@ Deno.test("Service", async (t) => {
 /** Resolve testdata script URL. */
 function resolve(path: string): string {
   return new URL(`../../tests/denops/testdata/${path}`, import.meta.url).href;
+}
+
+async function useTempFile(options?: Deno.MakeTempOptions) {
+  const path = await Deno.makeTempFile(options);
+  return {
+    path,
+    async [Symbol.asyncDispose]() {
+      await Deno.remove(path, { recursive: true });
+    },
+  };
 }
