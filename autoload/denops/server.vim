@@ -125,7 +125,7 @@ function! denops#server#connect_or_start() abort
   if g:denops#disabled || denops#server#status() !=# s:STATUS_STOPPED
     return
   endif
-  let s:addr = s:get_server_addr()
+  let s:addr = get(g:, 'denops_server_addr')
   if !empty(s:addr)
     " Connect to a shared server or fallback to a local server.
     call s:connect(s:addr, {
