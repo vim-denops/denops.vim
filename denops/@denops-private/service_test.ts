@@ -1,13 +1,18 @@
 import {
   assert,
   assertEquals,
+  assertFalse,
+  assertInstanceOf,
   assertMatch,
+  assertNotStrictEquals,
   assertRejects,
+  assertStrictEquals,
   assertThrows,
 } from "jsr:@std/assert@0.225.1";
 import {
   assertSpyCall,
   assertSpyCalls,
+  resolvesNext,
   stub,
 } from "jsr:@std/testing@0.224.0/mock";
 import type { Meta } from "jsr:@denops/core@6.0.6";
@@ -16,16 +21,16 @@ import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";
 
-const scriptValid =
-  new URL("./testdata/dummy_valid_plugin.ts", import.meta.url).href;
-const scriptInvalid =
-  new URL("./testdata/dummy_invalid_plugin.ts", import.meta.url).href;
-const scriptInvalidConstraint =
-  new URL("./testdata/dummy_invalid_constraint_plugin.ts", import.meta.url)
-    .href;
-const scriptInvalidConstraint2 =
-  new URL("./testdata/dummy_invalid_constraint_plugin2.ts", import.meta.url)
-    .href;
+const NOOP = () => {};
+
+const scriptValid = resolve("./testdata/dummy_valid_plugin.ts");
+const scriptInvalid = resolve("./testdata/dummy_invalid_plugin.ts");
+const scriptInvalidConstraint = resolve(
+  "./testdata/dummy_invalid_constraint_plugin.ts",
+);
+const scriptInvalidConstraint2 = resolve(
+  "./testdata/dummy_invalid_constraint_plugin2.ts",
+);
 
 Deno.test("Service", async (t) => {
   const meta: Meta = {
@@ -39,546 +44,847 @@ Deno.test("Service", async (t) => {
     call: () => unimplemented(),
     batch: () => unimplemented(),
   };
-  const service = new Service(meta);
 
-  await t.step("load() rejects an error when no host is bound", async () => {
-    await assertRejects(
-      () => service.load("dummy", scriptValid),
-      Error,
-      "No host is bound to the service",
-    );
-  });
+  await t.step("new Service()", async (t) => {
+    await t.step("creates an instance", () => {
+      const actual = new Service(meta);
 
-  await t.step(
-    "dispatchAsync() rejects when no host is bound",
-    async () => {
-      await assertRejects(
-        () =>
-          service.dispatchAsync(
-            "dummy",
-            "test",
-            ["foo"],
-            "success",
-            "failure",
-          ),
-        Error,
-        "No host is bound to the service",
-      );
-    },
-  );
-
-  service.bind(host);
-
-  const waitLoaded = service.waitLoaded("dummy");
-
-  await t.step(
-    "the result promise of waitLoaded() is 'pending' when the plugin is not loaded yet",
-    async () => {
-      assertEquals(await promiseState(waitLoaded), "pending");
-    },
-  );
-
-  await t.step("load() loads plugin and emits autocmd events", async () => {
-    using s = stub(host, "call");
-    await service.load("dummy", scriptValid);
-    assertSpyCalls(s, 3);
-    assertSpyCall(s, 0, {
-      args: [
-        "denops#api#cmd",
-        "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-        {},
-      ],
-    });
-    assertSpyCall(s, 1, {
-      args: [
-        "denops#api#cmd",
-        "echo 'Hello, Denops!'",
-        {},
-      ],
-    });
-    assertSpyCall(s, 2, {
-      args: [
-        "denops#api#cmd",
-        "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-        {},
-      ],
+      assertInstanceOf(actual, Service);
     });
   });
 
-  await t.step(
-    "the result promise of waitLoaded() become 'fulfilled' when the plugin is loaded",
-    async () => {
-      assertEquals(await promiseState(waitLoaded), "fulfilled");
-    },
-  );
+  await t.step(".bind()", async (t) => {
+    await t.step("binds the host", () => {
+      const service = new Service(meta);
 
-  await t.step(
-    "load() loads plugin and emits autocmd events (failure)",
-    async () => {
-      using c = stub(console, "error");
-      using s = stub(host, "call");
-      await service.load("dummyFail", scriptInvalid);
-      assertSpyCalls(c, 1);
-      assertSpyCall(c, 0, {
-        args: [
-          "Failed to load plugin 'dummyFail': Error: This is dummy error",
-        ],
-      });
-      assertSpyCalls(s, 2);
-      assertSpyCall(s, 0, {
-        args: [
-          "denops#api#cmd",
-          "doautocmd <nomodeline> User DenopsSystemPluginPre:dummyFail",
-          {},
-        ],
-      });
-      assertSpyCall(s, 1, {
-        args: [
-          "denops#api#cmd",
-          "doautocmd <nomodeline> User DenopsSystemPluginFail:dummyFail",
-          {},
-        ],
-      });
-    },
-  );
-
-  await t.step(
-    "load() loads plugin and emits autocmd events (could not find constraint)",
-    async () => {
-      using c = stub(console, "warn");
-      using s = stub(host, "call");
-      await service.load("dummyFailConstraint", scriptInvalidConstraint);
-      const expects = [
-        "********************************************************************************",
-        "Deno module cache issue is detected.",
-        "Execute 'call denops#cache#update(#{reload: v:true})' and restart Vim/Neovim.",
-        "See https://github.com/vim-denops/denops.vim/issues/358 for more detail.",
-        "********************************************************************************",
-      ];
-      assertSpyCalls(c, expects.length);
-      for (let i = 0; i < expects.length; i++) {
-        assertSpyCall(c, i, {
-          args: [expects[i]],
-        });
-      }
-      assertSpyCalls(s, 2);
-      assertSpyCall(s, 0, {
-        args: [
-          "denops#api#cmd",
-          "doautocmd <nomodeline> User DenopsSystemPluginPre:dummyFailConstraint",
-          {},
-        ],
-      });
-      assertSpyCall(s, 1, {
-        args: [
-          "denops#api#cmd",
-          "doautocmd <nomodeline> User DenopsSystemPluginFail:dummyFailConstraint",
-          {},
-        ],
-      });
-    },
-  );
-
-  await t.step(
-    "load() loads plugin and emits autocmd events (could not find version)",
-    async () => {
-      using c = stub(console, "warn");
-      using s = stub(host, "call");
-      await service.load("dummyFailConstraint2", scriptInvalidConstraint2);
-      const expects = [
-        "********************************************************************************",
-        "Deno module cache issue is detected.",
-        "Execute 'call denops#cache#update(#{reload: v:true})' and restart Vim/Neovim.",
-        "See https://github.com/vim-denops/denops.vim/issues/358 for more detail.",
-        "********************************************************************************",
-      ];
-      assertSpyCalls(c, expects.length);
-      for (let i = 0; i < expects.length; i++) {
-        assertSpyCall(c, i, {
-          args: [expects[i]],
-        });
-      }
-      assertSpyCalls(s, 2);
-      assertSpyCall(s, 0, {
-        args: [
-          "denops#api#cmd",
-          "doautocmd <nomodeline> User DenopsSystemPluginPre:dummyFailConstraint2",
-          {},
-        ],
-      });
-      assertSpyCall(s, 1, {
-        args: [
-          "denops#api#cmd",
-          "doautocmd <nomodeline> User DenopsSystemPluginFail:dummyFailConstraint2",
-          {},
-        ],
-      });
-    },
-  );
-
-  await t.step(
-    "load() does nothing when the plugin is already loaded",
-    async () => {
-      using s1 = stub(host, "call");
-      using s2 = stub(console, "log");
-      await service.load("dummy", scriptValid);
-      assertSpyCalls(s1, 0);
-      assertSpyCalls(s2, 1);
-      assertSpyCall(s2, 0, {
-        args: [
-          "A denops plugin 'dummy' is already loaded. Skip",
-        ],
-      });
-    },
-  );
-
-  await t.step(
-    "load() does nothing when the plugin is already loaded",
-    async () => {
-      using s1 = stub(host, "call");
-      using s2 = stub(console, "log");
-      await service.load("dummy", scriptValid);
-      assertSpyCalls(s1, 0);
-      assertSpyCalls(s2, 1);
-      assertSpyCall(s2, 0, {
-        args: [
-          "A denops plugin 'dummy' is already loaded. Skip",
-        ],
-      });
-    },
-  );
-
-  await t.step("reload() reloads plugin and emits autocmd events", async () => {
-    using s = stub(host, "call");
-    await service.reload("dummy");
-    assertSpyCalls(s, 3);
-    assertSpyCall(s, 0, {
-      args: [
-        "denops#api#cmd",
-        "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-        {},
-      ],
-    });
-    assertSpyCall(s, 1, {
-      args: [
-        "denops#api#cmd",
-        "echo 'Hello, Denops!'",
-        {},
-      ],
-    });
-    assertSpyCall(s, 2, {
-      args: [
-        "denops#api#cmd",
-        "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-        {},
-      ],
+      service.bind(host);
     });
   });
 
-  await t.step(
-    "reload() does nothing when the plugin is not loaded yet",
-    async () => {
-      using s1 = stub(host, "call");
-      using s2 = stub(console, "log");
-      await service.reload("pluginthatisnotloaded");
-      assertSpyCalls(s1, 0);
-      assertSpyCalls(s2, 1);
-      assertSpyCall(s2, 0, {
-        args: [
-          "A denops plugin 'pluginthatisnotloaded' is not loaded yet. Skip",
-        ],
-      });
-    },
-  );
+  await t.step(".load()", async (t) => {
+    await t.step("if no host is bound", async (t) => {
+      const service = new Service(meta);
 
-  await t.step("dispatch() call API of a plugin", async () => {
-    using s = stub(host, "call");
-    await service.dispatch("dummy", "test", ["foo"]);
-    assertSpyCalls(s, 1);
-    assertSpyCall(s, 0, {
-      args: [
-        "denops#api#cmd",
-        "echo 'This is test call: [\"foo\"]'",
-        {},
-      ],
+      await t.step("rejects", async () => {
+        await assertRejects(
+          () => service.load("dummy", scriptValid),
+          Error,
+          "No host is bound to the service",
+        );
+      });
     });
-  });
 
-  await t.step(
-    "dispatch() rejects when the plugin is not loaded yet",
-    async () => {
-      const err = await assertRejects(
-        () => service.dispatch("pluginthatisnotloaded", "test", ["foo"]),
-      );
-      assert(typeof err === "string");
-      assertMatch(err, /No plugin 'pluginthatisnotloaded' is loaded/);
-    },
-  );
-
-  await t.step(
-    "dispatch() rejects when failed to call plugin API",
-    async () => {
-      using s = stub(
-        host,
-        "call",
-        () => Promise.reject(new Error("invalid call")),
-      );
-      const err = await assertRejects(
-        () => service.dispatch("dummy", "test", ["foo"]),
-      );
-      assertSpyCalls(s, 1);
-      assertSpyCall(s, 0, {
-        args: [
-          "denops#api#cmd",
-          "echo 'This is test call: [\"foo\"]'",
-          {},
-        ],
-      });
-      assert(typeof err === "string");
-      assertMatch(err, /invalid call/);
-    },
-  );
-
-  await t.step(
-    "dispatchAsync() call success callback when API call is succeeded",
-    async () => {
-      using s = stub(host, "call");
-      await service.dispatchAsync(
-        "dummy",
-        "test",
-        ["foo"],
-        "success",
-        "failure",
-      );
-      assertSpyCalls(s, 2);
-      assertSpyCall(s, 0, {
-        args: [
-          "denops#api#cmd",
-          "echo 'This is test call: [\"foo\"]'",
-          {},
-        ],
-      });
-      assertSpyCall(s, 1, {
-        args: [
-          "denops#callback#call",
-          "success",
-          undefined,
-        ],
-      });
-    },
-  );
-
-  await t.step(
-    "dispatchAsync() call failure callback when API call is failed",
-    async () => {
-      using s = stub(
-        host,
-        "call",
-        (method) =>
-          method === "denops#api#cmd"
-            ? Promise.reject(new Error("invalid call"))
-            : Promise.resolve(),
-      );
-      await service.dispatchAsync(
-        "dummy",
-        "test",
-        ["foo"],
-        "success",
-        "failure",
-      );
-      assertSpyCalls(s, 2);
-      assertSpyCall(s, 0, {
-        args: [
-          "denops#api#cmd",
-          "echo 'This is test call: [\"foo\"]'",
-          {},
-        ],
-      });
-      assertSpyCall(s, 1, {
-        args: [
-          "denops#callback#call",
-          "failure",
-          s.calls[1].args[2],
-        ],
-      });
-    },
-  );
-
-  await t.step(
-    "dispatchAsync() call success callback when API call is succeeded (but fail)",
-    async () => {
-      using s1 = stub(
-        host,
-        "call",
-        (method) =>
-          method !== "denops#api#cmd"
-            ? Promise.reject(new Error("invalid call"))
-            : Promise.resolve(),
-      );
-      using s2 = stub(console, "error");
-      await service.dispatchAsync(
-        "dummy",
-        "test",
-        ["foo"],
-        "success",
-        "failure",
-      );
-      assertSpyCalls(s1, 2);
-      assertSpyCall(s1, 0, {
-        args: [
-          "denops#api#cmd",
-          "echo 'This is test call: [\"foo\"]'",
-          {},
-        ],
-      });
-      assertSpyCall(s1, 1, {
-        args: [
-          "denops#callback#call",
-          "success",
-          undefined,
-        ],
-      });
-      assertSpyCalls(s2, 1);
-      assertSpyCall(s2, 0, {
-        args: [
-          "Failed to call success callback 'success': Error: invalid call",
-        ],
-      });
-    },
-  );
-
-  await t.step(
-    "dispatchAsync() call failure callback when API call is failed (but fail)",
-    async () => {
-      using s1 = stub(
-        host,
-        "call",
-        () => Promise.reject(new Error("invalid call")),
-      );
-      using s2 = stub(console, "error");
-      await service.dispatchAsync(
-        "dummy",
-        "test",
-        ["foo"],
-        "success",
-        "failure",
-      );
-      assertSpyCalls(s1, 2);
-      assertSpyCall(s1, 0, {
-        args: [
-          "denops#api#cmd",
-          "echo 'This is test call: [\"foo\"]'",
-          {},
-        ],
-      });
-      assertSpyCall(s1, 1, {
-        args: [
-          "denops#callback#call",
-          "failure",
-          s1.calls[1].args[2],
-        ],
-      });
-      assertSpyCalls(s2, 1);
-      assertSpyCall(s2, 0, {
-        args: [
-          "Failed to call failure callback 'failure': Error: invalid call",
-        ],
-      });
-    },
-  );
-
-  await t.step(
-    "interrupt() sends interrupt signal to `interrupted` attribute",
-    () => {
-      const signal = service.interrupted;
-      signal.throwIfAborted(); // Should not throw
-      service.interrupt();
-      assertThrows(() => signal.throwIfAborted());
-    },
-  );
-
-  await t.step(
-    "interrupt() sends interrupt signal to `interrupted` attribute with reason",
-    () => {
-      const signal = service.interrupted;
-      signal.throwIfAborted(); // Should not throw
-      service.interrupt("test");
-      assertThrows(() => signal.throwIfAborted(), "test");
-    },
-  );
-
-  const waitClosed = service.waitClosed();
-
-  const waitLoadedCalledBeforeClose = service.waitLoaded(
-    "whenclosedtestplugin",
-  );
-
-  await t.step(
-    "the result promise of waitClosed() become 'pending' when the service is not closed",
-    async () => {
-      assert(await promiseState(waitClosed), "pending");
-    },
-  );
-
-  await t.step(
-    "close() closes the service",
-    async () => {
+    await t.step("if the service is already closed", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
       await service.close();
-    },
-  );
+      using host_call = stub(host, "call");
 
-  await t.step(
-    "the result promise of waitClosed() become 'fulfilled' when the service is closed",
-    async () => {
-      assert(await promiseState(waitClosed), "fulfilled");
-    },
-  );
+      await t.step("rejects", async () => {
+        await assertRejects(
+          () => service.load("dummy", scriptValid),
+          Error,
+          "Service closed",
+        );
+      });
 
-  await t.step(
-    "the result promise of waitLoaded() become 'rejected' when the service is closed",
-    async () => {
-      assertEquals(await promiseState(waitLoadedCalledBeforeClose), "rejected");
+      await t.step("does not calls the host", () => {
+        assertSpyCalls(host_call, 0);
+      });
+    });
+
+    await t.step("if the plugin is valid", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.load("dummy", scriptValid);
+      });
+
+      await t.step("emits DenopsSystemPluginPre", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("calls the plugin entrypoint", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#api#cmd",
+            "echo 'Hello, Denops!'",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginPost", () => {
+        assertSpyCall(host_call, 2, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
+            {},
+          ],
+        });
+      });
+    });
+
+    await t.step("if the plugin entrypoint throws", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using console_error = stub(console, "error");
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.load("dummy", scriptInvalid);
+      });
+
+      await t.step("outputs an error message", () => {
+        assertSpyCall(console_error, 0, {
+          args: [
+            "Failed to load plugin 'dummy': Error: This is dummy error",
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginPre", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginFail", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginFail:dummy",
+            {},
+          ],
+        });
+      });
+    });
+
+    await t.step("if the plugin constraints could not find", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using console_error = stub(console, "error");
+      using console_warn = stub(console, "warn");
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.load("dummy", scriptInvalidConstraint);
+      });
+
+      await t.step("outputs an error message", () => {
+        assertMatch(
+          console_error.calls[0].args[0],
+          /^Failed to load plugin 'dummy': TypeError: Could not find constraint in the list of versions:/,
+        );
+      });
+
+      await t.step("outputs warning messages", () => {
+        assertEquals(
+          console_warn.calls.flatMap((c) => c.args),
+          [
+            "********************************************************************************",
+            "Deno module cache issue is detected.",
+            "Execute 'call denops#cache#update(#{reload: v:true})' and restart Vim/Neovim.",
+            "See https://github.com/vim-denops/denops.vim/issues/358 for more detail.",
+            "********************************************************************************",
+          ],
+        );
+      });
+
+      await t.step("emits DenopsSystemPluginPre", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginFail", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginFail:dummy",
+            {},
+          ],
+        });
+      });
+    });
+
+    await t.step(
+      "if the plugin constraint versions could not find",
+      async (t) => {
+        const service = new Service(meta);
+        service.bind(host);
+        using console_error = stub(console, "error");
+        using console_warn = stub(console, "warn");
+        using host_call = stub(host, "call");
+
+        await t.step("resolves", async () => {
+          await service.load("dummy", scriptInvalidConstraint2);
+        });
+
+        await t.step("outputs an error message", () => {
+          assertMatch(
+            console_error.calls[0].args[0],
+            /^Failed to load plugin 'dummy': TypeError: Could not find version of /,
+          );
+        });
+
+        await t.step("outputs warning messages", () => {
+          assertEquals(
+            console_warn.calls.flatMap((c) => c.args),
+            [
+              "********************************************************************************",
+              "Deno module cache issue is detected.",
+              "Execute 'call denops#cache#update(#{reload: v:true})' and restart Vim/Neovim.",
+              "See https://github.com/vim-denops/denops.vim/issues/358 for more detail.",
+              "********************************************************************************",
+            ],
+          );
+        });
+
+        await t.step("emits DenopsSystemPluginPre", () => {
+          assertSpyCall(host_call, 0, {
+            args: [
+              "denops#api#cmd",
+              "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+              {},
+            ],
+          });
+        });
+
+        await t.step("emits DenopsSystemPluginFail", () => {
+          assertSpyCall(host_call, 1, {
+            args: [
+              "denops#api#cmd",
+              "doautocmd <nomodeline> User DenopsSystemPluginFail:dummy",
+              {},
+            ],
+          });
+        });
+      },
+    );
+
+    await t.step("if the plugin is already loaded", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using console_log = stub(console, "log");
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.load("dummy", scriptValid);
+      });
+
+      await t.step("outputs a log message", () => {
+        assertSpyCall(console_log, 0, {
+          args: [
+            "A denops plugin 'dummy' is already loaded. Skip",
+          ],
+        });
+      });
+
+      await t.step("does not calls the host", () => {
+        assertSpyCalls(host_call, 0);
+      });
+    });
+  });
+
+  await t.step(".reload()", async (t) => {
+    await t.step("if the plugin is already loaded", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.reload("dummy");
+      });
+
+      await t.step("emits DenopsSystemPluginPre", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("calls the plugin entrypoint", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#api#cmd",
+            "echo 'Hello, Denops!'",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginPost", () => {
+        assertSpyCall(host_call, 2, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
+            {},
+          ],
+        });
+      });
+    });
+
+    await t.step("if the plugin is not yet loaded", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using console_log = stub(console, "log");
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.reload("dummy");
+      });
+
+      await t.step("outputs a log message", () => {
+        assertSpyCall(console_log, 0, {
+          args: [
+            "A denops plugin 'dummy' is not loaded yet. Skip",
+          ],
+        });
+      });
+
+      await t.step("does not calls the host", () => {
+        assertSpyCalls(host_call, 0);
+      });
+    });
+  });
+
+  await t.step(".waitLoaded()", async (t) => {
+    await t.step("pendings if the plugin is not yet loaded", async () => {
+      const service = new Service(meta);
+      service.bind(host);
+      using _host_call = stub(host, "call");
+
+      const actual = service.waitLoaded("dummy");
+
+      assertEquals(await promiseState(actual), "pending");
+    });
+
+    await t.step("resolves if the plugin is already loaded", async () => {
+      const service = new Service(meta);
+      service.bind(host);
+      using _host_call = stub(host, "call");
+      await service.load("dummy", scriptValid);
+
+      const actual = service.waitLoaded("dummy");
+
+      assertEquals(await promiseState(actual), "fulfilled");
+    });
+
+    await t.step("resolves when the plugin is loaded", async () => {
+      const service = new Service(meta);
+      service.bind(host);
+      using _host_call = stub(host, "call");
+
+      const actual = service.waitLoaded("dummy");
+      await service.load("dummy", scriptValid);
+
+      assertEquals(await promiseState(actual), "fulfilled");
+    });
+
+    await t.step("rejects if the service is already closed", async () => {
+      const service = new Service(meta);
+      service.bind(host);
+      using _host_call = stub(host, "call");
+      await service.close();
+
+      const actual = service.waitLoaded("dummy");
+      actual.catch(NOOP);
+
+      assertEquals(await promiseState(actual), "rejected");
       await assertRejects(
-        () => waitLoadedCalledBeforeClose,
+        () => actual,
         Error,
         "Service closed",
       );
-    },
-  );
+    });
 
-  await t.step(
-    "waitClosed() returns 'fulfilled' promise if the service is already closed",
-    async () => {
+    await t.step("rejects when the service is closed", async () => {
+      const service = new Service(meta);
+      service.bind(host);
+      using _host_call = stub(host, "call");
+
+      const actual = service.waitLoaded("dummy");
+      await service.close();
+
+      assertEquals(await promiseState(actual), "rejected");
+      await assertRejects(
+        () => actual,
+        Error,
+        "Service closed",
+      );
+    });
+  });
+
+  await t.step(".interrupt()", async (t) => {
+    await t.step("sends signal to `interrupted` attribute", () => {
+      const service = new Service(meta);
+      const signal = service.interrupted;
+
+      service.interrupt();
+
+      assertThrows(() => signal.throwIfAborted());
+    });
+
+    await t.step("sends signal to `interrupted` attribute with reason", () => {
+      const service = new Service(meta);
+      const signal = service.interrupted;
+
+      service.interrupt("test");
+
+      assertThrows(() => signal.throwIfAborted(), "test");
+    });
+  });
+
+  await t.step(".interrupted property", async (t) => {
+    await t.step("does not aborted before .interrupt() is called", () => {
+      const service = new Service(meta);
+
+      assertFalse(service.interrupted.aborted);
+    });
+
+    await t.step("does not aborted after .interrupt() is called", () => {
+      const service = new Service(meta);
+      service.interrupt();
+
+      assertFalse(service.interrupted.aborted);
+    });
+
+    await t.step("aborts when .interrupt() is called", () => {
+      const service = new Service(meta);
+      const signal = service.interrupted;
+
+      service.interrupt();
+
+      assert(signal.aborted);
+    });
+
+    await t.step("returns same instance if .interrupt() is not called", () => {
+      const service = new Service(meta);
+
+      const a = service.interrupted;
+      const b = service.interrupted;
+
+      assertStrictEquals(a, b);
+    });
+
+    await t.step("returns new instance after .interrupt() is called", () => {
+      const service = new Service(meta);
+
+      const a = service.interrupted;
+      service.interrupt();
+      const b = service.interrupted;
+
+      assertNotStrictEquals(a, b);
+    });
+  });
+
+  await t.step(".dispatch()", async (t) => {
+    await t.step("if the plugin is already loaded", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.dispatch("dummy", "test", ["foo"]);
+      });
+
+      await t.step("calls the plugin API", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            `echo 'This is test call: ["foo"]'`,
+            {},
+          ],
+        });
+      });
+    });
+
+    await t.step("if the plugin is not yet loaded", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using host_call = stub(host, "call");
+
+      await t.step("rejects with string", async () => {
+        const err = await assertRejects(
+          () => service.dispatch("dummy", "test", ["foo"]),
+        );
+        assert(typeof err === "string");
+        assertMatch(err, /No plugin 'dummy' is loaded/);
+      });
+
+      await t.step("does not calls the host", () => {
+        assertSpyCalls(host_call, 0);
+      });
+    });
+
+    await t.step("if the plugin API call fails", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using host_call = stub(
+        host,
+        "call",
+        resolvesNext([
+          // The plugin API call
+          new Error("invalid call"),
+        ]),
+      );
+
+      await t.step("rejects with string", async () => {
+        const err = await assertRejects(
+          () => service.dispatch("dummy", "test", ["foo"]),
+        );
+        assert(typeof err === "string");
+        assertMatch(err, /invalid call/);
+      });
+
+      await t.step("calls the plugin API", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            `echo 'This is test call: ["foo"]'`,
+            {},
+          ],
+        });
+      });
+    });
+  });
+
+  await t.step(".dispatchAsync()", async (t) => {
+    await t.step("if no host is bound", async (t) => {
+      const service = new Service(meta);
+
+      await t.step("rejects", async () => {
+        await assertRejects(
+          () =>
+            service.dispatchAsync(
+              "dummy",
+              "test",
+              ["foo"],
+              "success",
+              "failure",
+            ),
+          Error,
+          "No host is bound to the service",
+        );
+      });
+    });
+
+    await t.step("if the plugin API calls succeeded", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.dispatchAsync(
+          "dummy",
+          "test",
+          ["foo"],
+          "success",
+          "failure",
+        );
+      });
+
+      await t.step("calls the plugin API", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            `echo 'This is test call: ["foo"]'`,
+            {},
+          ],
+        });
+      });
+
+      await t.step("calls 'success' callback", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#callback#call",
+            "success",
+            undefined,
+          ],
+        });
+      });
+    });
+
+    await t.step("if the plugin API calls failed", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using host_call = stub(
+        host,
+        "call",
+        resolvesNext([
+          // The plugin API call
+          new Error("invalid call"),
+          // 'success' callback call
+          undefined,
+        ]),
+      );
+
+      await t.step("resolves", async () => {
+        await service.dispatchAsync(
+          "dummy",
+          "test",
+          ["foo"],
+          "success",
+          "failure",
+        );
+      });
+
+      await t.step("calls the plugin API", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            `echo 'This is test call: ["foo"]'`,
+            {},
+          ],
+        });
+      });
+
+      await t.step("calls 'failure' callback", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#callback#call",
+            "failure",
+            host_call.calls[1].args[2],
+          ],
+        });
+      });
+    });
+
+    await t.step("if 'success' callback calls failed", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using console_error = stub(console, "error");
+      using host_call = stub(
+        host,
+        "call",
+        resolvesNext([
+          // The plugin API call
+          undefined,
+          // 'success' callback call
+          new Error("invalid call"),
+        ]),
+      );
+
+      await t.step("resolves", async () => {
+        await service.dispatchAsync(
+          "dummy",
+          "test",
+          ["foo"],
+          "success",
+          "failure",
+        );
+      });
+
+      await t.step("calls the plugin API", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            `echo 'This is test call: ["foo"]'`,
+            {},
+          ],
+        });
+      });
+
+      await t.step("calls 'success' callback", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#callback#call",
+            "success",
+            undefined,
+          ],
+        });
+      });
+
+      await t.step("outputs an error message", () => {
+        assertSpyCall(console_error, 0, {
+          args: [
+            "Failed to call success callback 'success': Error: invalid call",
+          ],
+        });
+      });
+    });
+
+    await t.step("if 'failure' callback calls failed", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using console_error = stub(console, "error");
+      using host_call = stub(
+        host,
+        "call",
+        resolvesNext([
+          // The plugin API call
+          new Error("invalid call"),
+          // 'failure' callback call
+          new Error("invalid call"),
+        ]),
+      );
+
+      await t.step("resolves", async () => {
+        await service.dispatchAsync(
+          "dummy",
+          "test",
+          ["foo"],
+          "success",
+          "failure",
+        );
+      });
+
+      await t.step("calls the plugin API", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            `echo 'This is test call: ["foo"]'`,
+            {},
+          ],
+        });
+      });
+
+      await t.step("calls 'failure' callback", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#callback#call",
+            "failure",
+            host_call.calls[1].args[2],
+          ],
+        });
+      });
+
+      await t.step("outputs an error message", () => {
+        assertSpyCall(console_error, 0, {
+          args: [
+            "Failed to call failure callback 'failure': Error: invalid call",
+          ],
+        });
+      });
+    });
+  });
+
+  await t.step(".close()", async (t) => {
+    await t.step("if the service is not yet closed", async (t) => {
+      const service = new Service(meta);
+      using _host_call = stub(host, "call");
+      service.bind(host);
+
+      await t.step("resolves", async () => {
+        await service.close();
+      });
+    });
+
+    await t.step("if the service is already closed", async (t) => {
+      const service = new Service(meta);
+      using _host_call = stub(host, "call");
+      service.bind(host);
+      await service.close();
+
+      await t.step("resolves", async () => {
+        await service.close();
+      });
+    });
+  });
+
+  await t.step(".waitClosed()", async (t) => {
+    await t.step("pendings if the service is not yet closed", async () => {
+      using _host_call = stub(host, "call");
+      const service = new Service(meta);
+      service.bind(host);
+
       const actual = service.waitClosed();
-      assert(await promiseState(actual), "fulfilled");
-    },
-  );
 
-  await t.step(
-    "waitLoaded() returns 'rejected' promise if the service is already closed",
-    async () => {
-      await assertRejects(
-        () => service.waitLoaded("after-closed-test-plugin"),
-        Error,
-        "Service closed",
-      );
-    },
-  );
+      assertEquals(await promiseState(actual), "pending");
+    });
 
-  await t.step(
-    "load() rejects an error when the service is already closed",
-    async () => {
-      await assertRejects(
-        () => service.load("dummyValid", scriptValid),
-        Error,
-        "Service closed",
-      );
-    },
-  );
+    await t.step("resolves if the service is already closed", async () => {
+      using _host_call = stub(host, "call");
+      const service = new Service(meta);
+      service.bind(host);
+      service.close();
 
-  await t.step("[@@asyncDispose]() calls close()", async () => {
+      const actual = service.waitClosed();
+
+      assertEquals(await promiseState(actual), "fulfilled");
+    });
+
+    await t.step("resolves when the service is closed", async () => {
+      using _host_call = stub(host, "call");
+      const service = new Service(meta);
+      service.bind(host);
+
+      const actual = service.waitClosed();
+      service.close();
+
+      assertEquals(await promiseState(actual), "fulfilled");
+    });
+  });
+
+  await t.step("[@@asyncDispose]()", async (t) => {
+    const service = new Service(meta);
+    using _host_call = stub(host, "call");
+    service.bind(host);
     using service_close = stub(service, "close");
-    await service[Symbol.asyncDispose]();
-    assertSpyCalls(service_close, 1);
+
+    await t.step("resolves", async () => {
+      await service[Symbol.asyncDispose]();
+    });
+
+    await t.step("calls .close()", () => {
+      assertSpyCalls(service_close, 1);
+    });
   });
 });
+
+/** Resolve related script URL. */
+function resolve(path: string): string {
+  return new URL(path, import.meta.url).href;
+}
