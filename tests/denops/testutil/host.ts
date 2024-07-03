@@ -1,6 +1,6 @@
-import { Host } from "../host.ts";
-import { Neovim } from "../host/nvim.ts";
-import { Vim } from "../host/vim.ts";
+import { Host } from "/denops-private/host.ts";
+import { Neovim } from "/denops-private/host/nvim.ts";
+import { Vim } from "/denops-private/host/vim.ts";
 import { withNeovim, WithOptions, withVim } from "./with.ts";
 
 export type HostFn<T> = (helper: {

@@ -12,7 +12,7 @@ import {
 import { delay } from "jsr:@std/async@0.224.0/delay";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
-import { withNeovim } from "../testutil/with.ts";
+import { withNeovim } from "/denops-testutil/with.ts";
 import type { Service } from "../host.ts";
 import { Neovim } from "./nvim.ts";
 

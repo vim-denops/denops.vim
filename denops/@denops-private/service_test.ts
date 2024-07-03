@@ -23,14 +23,10 @@ import { Service } from "./service.ts";
 
 const NOOP = () => {};
 
-const scriptValid = resolve("./testdata/dummy_valid_plugin.ts");
-const scriptInvalid = resolve("./testdata/dummy_invalid_plugin.ts");
-const scriptInvalidConstraint = resolve(
-  "./testdata/dummy_invalid_constraint_plugin.ts",
-);
-const scriptInvalidConstraint2 = resolve(
-  "./testdata/dummy_invalid_constraint_plugin2.ts",
-);
+const scriptValid = resolve("dummy_valid_plugin.ts");
+const scriptInvalid = resolve("dummy_invalid_plugin.ts");
+const scriptInvalidConstraint = resolve("dummy_invalid_constraint_plugin.ts");
+const scriptInvalidConstraint2 = resolve("dummy_invalid_constraint_plugin2.ts");
 
 Deno.test("Service", async (t) => {
   const meta: Meta = {
@@ -884,7 +880,7 @@ Deno.test("Service", async (t) => {
   });
 });
 
-/** Resolve related script URL. */
+/** Resolve testdata script URL. */
 function resolve(path: string): string {
-  return new URL(path, import.meta.url).href;
+  return new URL(`../../tests/denops/testdata/${path}`, import.meta.url).href;
 }
