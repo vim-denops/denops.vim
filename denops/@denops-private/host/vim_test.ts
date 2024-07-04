@@ -7,7 +7,7 @@ import { assertSpyCall, stub } from "jsr:@std/testing@0.224.0/mock";
 import { delay } from "jsr:@std/async@0.224.0/delay";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
-import { withVim } from "../testutil/with.ts";
+import { withVim } from "/denops-testutil/with.ts";
 import type { Service } from "../host.ts";
 import { Vim } from "./vim.ts";
 

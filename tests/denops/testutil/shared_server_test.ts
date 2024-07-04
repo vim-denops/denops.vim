@@ -44,7 +44,7 @@ Deno.test("useSharedServer()", async (t) => {
           "--allow-env",
           "--allow-read",
           "--allow-run",
-          join(import.meta.dirname!, "shared_server_test_no_verbose.ts"),
+          resolve("shared_server_test_no_verbose.ts"),
         ],
         stdout: "piped",
       }).spawn();
@@ -88,7 +88,7 @@ Deno.test("useSharedServer()", async (t) => {
           "--allow-env",
           "--allow-read",
           "--allow-run",
-          join(import.meta.dirname!, "shared_server_test_verbose_true.ts"),
+          resolve("shared_server_test_verbose_true.ts"),
         ],
         stdout: "piped",
       }).spawn();
@@ -108,3 +108,8 @@ Deno.test("useSharedServer()", async (t) => {
     );
   });
 });
+
+/** Resolve testdata script path. */
+function resolve(path: string): string {
+  return join(import.meta.dirname!, `../testdata/${path}`);
+}

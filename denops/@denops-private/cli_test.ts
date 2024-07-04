@@ -25,7 +25,7 @@ import {
   createFakeTcpListener,
   createFakeWorker,
   pendingPromise,
-} from "./testutil/mock.ts";
+} from "/denops-testutil/mock.ts";
 import { main } from "./cli.ts";
 
 const stubDenoListen = (
