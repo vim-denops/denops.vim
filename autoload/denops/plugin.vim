@@ -72,11 +72,13 @@ function! denops#plugin#discover() abort
 endfunction
 
 function! denops#plugin#check_type(...) abort
-  let l:plugins = a:0
-        \ ? [denops#_internal#plugin#get(a:1)]
-        \ : denops#_internal#plugin#list()
-  let l:args = [g:denops#deno, 'check']
-  let l:args = extend(l:args, map(l:plugins, { _, v -> v.script }))
+  if a:0
+    let l:scripts = [denops#_internal#plugin#get(a:1).script]
+  else
+    let l:scripts = denops#_internal#plugin#list()
+          \->copy()->map({ _, v -> v.script })->filter({ _, v -> v !=# '' })
+  endif
+  let l:args = [g:denops#deno, 'check'] + l:scripts
   let l:job = denops#_internal#job#start(l:args, {
         \ 'env': {
         \   'NO_COLOR': 1,
