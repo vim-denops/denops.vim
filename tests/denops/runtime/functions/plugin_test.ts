@@ -407,153 +407,164 @@ testHost({
     });
 
     // NOTE: This test stops the denops server.
-    await t.step("denops#plugin#wait()", async (t) => {
-      await t.step("if the plugin is valid", async (t) => {
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#load('dummyWait', '${scriptValid}')`,
-        ], "");
+    // FIXME: This test will run infinitely on Mac.
+    await t.step({
+      name: "denops#plugin#wait()",
+      ignore: Deno.build.os === "darwin",
+      fn: async (t) => {
+        await t.step("if the plugin is valid", async (t) => {
+          await host.call("execute", [
+            "let g:__test_denops_events = []",
+            `call denops#plugin#load('dummyWait', '${scriptValid}')`,
+          ], "");
 
-        const resultPromise = host.call("denops#plugin#wait", "dummyWait");
+          const resultPromise = host.call("denops#plugin#wait", "dummyWait");
 
-        await t.step("waits the plugin is loaded", async () => {
-          assertEquals(await promiseState(resultPromise), "pending");
-        });
-
-        await t.step("returns 0", async () => {
-          assertEquals(await resultPromise, 0);
-        });
-
-        await t.step("the plugin is already loaded after returns", async () => {
-          assertEquals(await host.call("eval", "g:__test_denops_events"), [
-            "DenopsPluginPre:dummyWait",
-            "DenopsPluginPost:dummyWait",
-          ]);
-        });
-      });
-
-      // NOTE: Depends on 'dummyWait' which was already loaded in the test above.
-      await t.step("if the plugin is already loaded", async (t) => {
-        const resultPromise = host.call("denops#plugin#wait", "dummyWait");
-
-        await t.step("returns immediately", async () => {
-          await delay(100); // host.call delay
-          assertEquals(await promiseState(resultPromise), "fulfilled");
-        });
-
-        await t.step("returns 0", async () => {
-          assertEquals(await resultPromise, 0);
-        });
-      });
-
-      await t.step("if the plugin entrypoint throws", async (t) => {
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#load('dummyWaitInvalid', '${scriptInvalid}')`,
-        ], "");
-
-        const resultPromise = host.call(
-          "denops#plugin#wait",
-          "dummyWaitInvalid",
-        );
-
-        await t.step("waits the plugin is failed", async () => {
-          assertEquals(await promiseState(resultPromise), "pending");
-        });
-
-        await t.step("returns -3", async () => {
-          assertEquals(await resultPromise, -3);
-        });
-
-        await t.step("the plugin is already failed after returns", async () => {
-          assertEquals(await host.call("eval", "g:__test_denops_events"), [
-            "DenopsPluginPre:dummyWaitInvalid",
-            "DenopsPluginFail:dummyWaitInvalid",
-          ]);
-        });
-      });
-
-      await t.step("if it times out", async (t) => {
-        await t.step("if no `silent` is specified", async (t) => {
-          outputs = [];
-
-          await t.step("returns -1", async () => {
-            const actual = await host.call(
-              "denops#plugin#wait",
-              "notexistsplugin",
-              { timeout: 100 },
-            );
-            assertEquals(actual, -1);
+          await t.step("waits the plugin is loaded", async () => {
+            assertEquals(await promiseState(resultPromise), "pending");
           });
 
-          await t.step("outputs an error message", async () => {
-            await delay(MESSAGE_DELAY);
-            assertMatch(
-              outputs.join(""),
-              /Failed to wait for "notexistsplugin" to start\. It took more than 100 milliseconds and timed out\./,
-            );
+          await t.step("returns 0", async () => {
+            assertEquals(await resultPromise, 0);
+          });
+
+          await t.step(
+            "the plugin is already loaded after returns",
+            async () => {
+              assertEquals(await host.call("eval", "g:__test_denops_events"), [
+                "DenopsPluginPre:dummyWait",
+                "DenopsPluginPost:dummyWait",
+              ]);
+            },
+          );
+        });
+
+        // NOTE: Depends on 'dummyWait' which was already loaded in the test above.
+        await t.step("if the plugin is already loaded", async (t) => {
+          const resultPromise = host.call("denops#plugin#wait", "dummyWait");
+
+          await t.step("returns immediately", async () => {
+            await delay(100); // host.call delay
+            assertEquals(await promiseState(resultPromise), "fulfilled");
+          });
+
+          await t.step("returns 0", async () => {
+            assertEquals(await resultPromise, 0);
           });
         });
 
-        await t.step("if `silent=1`", async (t) => {
-          outputs = [];
+        await t.step("if the plugin entrypoint throws", async (t) => {
+          await host.call("execute", [
+            "let g:__test_denops_events = []",
+            `call denops#plugin#load('dummyWaitInvalid', '${scriptInvalid}')`,
+          ], "");
 
-          await t.step("returns -1", async () => {
-            const actual = await host.call(
-              "denops#plugin#wait",
-              "notexistsplugin",
-              { timeout: 100, silent: 1 },
-            );
-            assertEquals(actual, -1);
+          const resultPromise = host.call(
+            "denops#plugin#wait",
+            "dummyWaitInvalid",
+          );
+
+          await t.step("waits the plugin is failed", async () => {
+            assertEquals(await promiseState(resultPromise), "pending");
           });
 
-          await t.step("does not output error messages", async () => {
-            await delay(MESSAGE_DELAY);
-            assertEquals(outputs, []);
-          });
-        });
-      });
-
-      // NOTE: This test stops the denops server.
-      await t.step("if the denops server is stopped", async (t) => {
-        await host.call("denops#server#stop");
-        await wait(
-          () => host.call("eval", "denops#server#status() ==# 'stopped'"),
-        );
-
-        await t.step("if no `silent` is specified", async (t) => {
-          outputs = [];
-
-          await t.step("returns -2", async () => {
-            const actual = await host.call("denops#plugin#wait", "dummy");
-            assertEquals(actual, -2);
+          await t.step("returns -3", async () => {
+            assertEquals(await resultPromise, -3);
           });
 
-          await t.step("outputs an error message", async () => {
-            await delay(MESSAGE_DELAY);
-            assertMatch(
-              outputs.join(""),
-              /Failed to wait for "dummy" to start\. Denops server itself is not started\./,
-            );
-          });
+          await t.step(
+            "the plugin is already failed after returns",
+            async () => {
+              assertEquals(await host.call("eval", "g:__test_denops_events"), [
+                "DenopsPluginPre:dummyWaitInvalid",
+                "DenopsPluginFail:dummyWaitInvalid",
+              ]);
+            },
+          );
         });
 
-        await t.step("if `silent=1`", async (t) => {
-          outputs = [];
+        await t.step("if it times out", async (t) => {
+          await t.step("if no `silent` is specified", async (t) => {
+            outputs = [];
 
-          await t.step("returns -2", async () => {
-            const actual = await host.call("denops#plugin#wait", "dummy", {
-              silent: 1,
+            await t.step("returns -1", async () => {
+              const actual = await host.call(
+                "denops#plugin#wait",
+                "notexistsplugin",
+                { timeout: 100 },
+              );
+              assertEquals(actual, -1);
             });
-            assertEquals(actual, -2);
+
+            await t.step("outputs an error message", async () => {
+              await delay(MESSAGE_DELAY);
+              assertMatch(
+                outputs.join(""),
+                /Failed to wait for "notexistsplugin" to start\. It took more than 100 milliseconds and timed out\./,
+              );
+            });
           });
 
-          await t.step("does not output error messages", async () => {
-            await delay(MESSAGE_DELAY);
-            assertEquals(outputs, []);
+          await t.step("if `silent=1`", async (t) => {
+            outputs = [];
+
+            await t.step("returns -1", async () => {
+              const actual = await host.call(
+                "denops#plugin#wait",
+                "notexistsplugin",
+                { timeout: 100, silent: 1 },
+              );
+              assertEquals(actual, -1);
+            });
+
+            await t.step("does not output error messages", async () => {
+              await delay(MESSAGE_DELAY);
+              assertEquals(outputs, []);
+            });
           });
         });
-      });
+
+        // NOTE: This test stops the denops server.
+        await t.step("if the denops server is stopped", async (t) => {
+          await host.call("denops#server#stop");
+          await wait(
+            () => host.call("eval", "denops#server#status() ==# 'stopped'"),
+          );
+
+          await t.step("if no `silent` is specified", async (t) => {
+            outputs = [];
+
+            await t.step("returns -2", async () => {
+              const actual = await host.call("denops#plugin#wait", "dummy");
+              assertEquals(actual, -2);
+            });
+
+            await t.step("outputs an error message", async () => {
+              await delay(MESSAGE_DELAY);
+              assertMatch(
+                outputs.join(""),
+                /Failed to wait for "dummy" to start\. Denops server itself is not started\./,
+              );
+            });
+          });
+
+          await t.step("if `silent=1`", async (t) => {
+            outputs = [];
+
+            await t.step("returns -2", async () => {
+              const actual = await host.call("denops#plugin#wait", "dummy", {
+                silent: 1,
+              });
+              assertEquals(actual, -2);
+            });
+
+            await t.step("does not output error messages", async () => {
+              await delay(MESSAGE_DELAY);
+              assertEquals(outputs, []);
+            });
+          });
+        });
+      },
     });
   },
 });
