@@ -268,7 +268,6 @@ testHost({
 
     // NOTE: Depends on 'dummy' which was already loaded in the test above.
     await t.step("denops#plugin#check_type()", async (t) => {
-      /*
       await t.step("if no arguments is specified", async (t) => {
         outputs = [];
         await host.call("execute", [
@@ -287,7 +286,6 @@ testHost({
           assertMatch(outputs.join(""), /Type check succeeded/);
         });
       });
-      */
 
       await t.step("if the script name is specified", async (t) => {
         outputs = [];
