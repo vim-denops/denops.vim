@@ -73,6 +73,9 @@ export class Service implements HostService, AsyncDisposable {
       }
       return;
     }
+    this.#waiters.get(name)?.promise.finally(() => {
+      this.#waiters.delete(name);
+    });
     this.#plugins.delete(name);
     await plugin.unload();
     return plugin;

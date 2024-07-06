@@ -846,6 +846,18 @@ Deno.test("Service", async (t) => {
       assertEquals(await promiseState(actual), "pending");
     });
 
+    await t.step("pendings if the plugin is already unloaded", async () => {
+      const service = new Service(meta);
+      service.bind(host);
+      using _host_call = stub(host, "call");
+      await service.load("dummy", scriptValid);
+      await service.unload("dummy");
+
+      const actual = service.waitLoaded("dummy");
+
+      assertEquals(await promiseState(actual), "pending");
+    });
+
     await t.step("resolves if the plugin is already loaded", async () => {
       const service = new Service(meta);
       service.bind(host);
@@ -867,6 +879,22 @@ Deno.test("Service", async (t) => {
 
       assertEquals(await promiseState(actual), "fulfilled");
     });
+
+    await t.step(
+      "resolves if it is called between `load()` and `unload()`",
+      async () => {
+        const service = new Service(meta);
+        service.bind(host);
+        using _host_call = stub(host, "call");
+
+        const loadPromise = service.load("dummy", scriptValid);
+        const actual = service.waitLoaded("dummy");
+        const unloadPromise = service.unload("dummy");
+        await Promise.all([loadPromise, unloadPromise]);
+
+        assertEquals(await promiseState(actual), "fulfilled");
+      },
+    );
 
     await t.step("rejects if the service is already closed", async () => {
       const service = new Service(meta);
