@@ -525,6 +525,116 @@ Deno.test("Service", async (t) => {
         assertSpyCalls(host_call, 0);
       });
     });
+
+    await t.step("if called before `load()` resolves", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using host_call = stub(host, "call");
+
+      const loadPromise = service.load("dummy", scriptValid);
+      const unloadPromise = service.unload("dummy");
+
+      await t.step("resolves", async () => {
+        await unloadPromise;
+      });
+
+      await t.step("`load()` was resolved", async () => {
+        assertEquals(await promiseState(loadPromise), "fulfilled");
+      });
+
+      await t.step("emits events in the correct order", () => {
+        const events = host_call.calls
+          .map((c) => c.args)
+          .filter((args) => (args[1] as string)?.startsWith("doautocmd"));
+        assertEquals(events, [
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
+            {},
+          ],
+        ]);
+      });
+    });
+
+    await t.step("if called before `load()` resolves with error", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using host_call = stub(host, "call");
+
+      const loadPromise = service.load("dummy", scriptInvalid);
+      const unloadPromise = service.unload("dummy");
+
+      await t.step("resolves", async () => {
+        await unloadPromise;
+      });
+
+      await t.step("`load()` was resolved", async () => {
+        assertEquals(await promiseState(loadPromise), "fulfilled");
+      });
+
+      await t.step("emits events in the correct order", () => {
+        const events = host_call.calls
+          .map((c) => c.args)
+          .filter((args) => (args[1] as string)?.startsWith("doautocmd"));
+        assertEquals(events, [
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginFail:dummy",
+            {},
+          ],
+        ]);
+      });
+    });
+
+    await t.step("if `host.call()` rejects (channel closed)", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using console_error = stub(console, "error");
+      using _host_call = stub(
+        host,
+        "call",
+        () => Promise.reject(new Error("channel closed")),
+      );
+
+      await t.step("resolves", async () => {
+        await service.unload("dummy");
+      });
+
+      await t.step("outputs error messages", () => {
+        assertEquals(console_error.calls.map((c) => c.args), [
+          [
+            "Failed to emit DenopsSystemPluginUnloadPre:dummy: Error: channel closed",
+          ],
+          [
+            "Failed to emit DenopsSystemPluginUnloadPost:dummy: Error: channel closed",
+          ],
+        ]);
+      });
+    });
   });
 
   await t.step(".reload()", async (t) => {
