@@ -34,6 +34,21 @@ Deno.test("invoke", async (t) => {
     });
   });
 
+  await t.step("calls 'unload'", async (t) => {
+    await t.step("ok", async () => {
+      using s = stub(service, "unload");
+      await invoke(service, "unload", ["dummy"]);
+      assertSpyCalls(s, 1);
+      assertSpyCall(s, 0, { args: ["dummy"] });
+    });
+
+    await t.step("invalid args", () => {
+      using s = stub(service, "unload");
+      assertThrows(() => invoke(service, "unload", []), AssertError);
+      assertSpyCalls(s, 0);
+    });
+  });
+
   await t.step("calls 'reload'", async (t) => {
     await t.step("ok", async () => {
       using s = stub(service, "reload");
