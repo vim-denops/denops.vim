@@ -1,5 +1,4 @@
-import type { Entrypoint } from "jsr:@denops/core@7.0.0-pre0";
-import type { Denops, Meta } from "jsr:@denops/core@7.0.0-pre0";
+import type { Denops, Entrypoint, Meta } from "jsr:@denops/core@7.0.0-pre0";
 import { toFileUrl } from "jsr:@std/path@0.225.0/to-file-url";
 import { toErrorObject } from "jsr:@lambdalisue/errorutil@1.0.0";
 import { DenopsImpl, type Host } from "./denops.ts";
