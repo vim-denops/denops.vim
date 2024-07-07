@@ -22,7 +22,7 @@ Visit the Denops Document or Wiki for guidance on creating denops plugins.
 
 Denops Document: https://vim-denops.github.io/denops-documentation/
 Wiki: https://github.com/vim-denops/denops.vim/wiki
-API Reference: https://deno.land/x/denops_std/mod.ts
+API Reference: https://jsr.io/@denops/std
 
 
 =============================================================================
