@@ -1,6 +1,4 @@
-// TODO: #349 Import `Entrypoint` from denops-core.
-// import type { Entrypoint } from "jsr:@denops/core@7.0.0";
-import type { Entrypoint } from "/denops-private/plugin.ts";
+import type { Entrypoint } from "jsr:@denops/core@7.0.0-pre0";
 
 export const main: Entrypoint = (denops) => {
   return {
