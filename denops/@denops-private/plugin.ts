@@ -1,5 +1,5 @@
 // TODO: #349 Update `Entrypoint` in denops-core, remove this module from `$.test.exclude` in `deno.jsonc`, and remove this module.
-import type { Denops } from "jsr:@denops/core@6.1.0";
+import type { Denops } from "jsr:@denops/core@7.0.0-pre0";
 
 /**
  * Denops's entrypoint definition.

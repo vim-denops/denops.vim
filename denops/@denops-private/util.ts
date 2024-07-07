@@ -1,4 +1,4 @@
-import type { Meta } from "jsr:@denops/core@6.0.6";
+import type { Meta } from "jsr:@denops/core@7.0.0-pre0";
 import { is, type Predicate } from "jsr:@core/unknownutil@3.18.0";
 
 export const isMeta: Predicate<Meta> = is.ObjectOf({
