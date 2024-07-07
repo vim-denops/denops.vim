@@ -1,6 +1,7 @@
 const s:STATE_RESERVED = 'reserved'
 const s:STATE_LOADING = 'loading'
 const s:STATE_LOADED = 'loaded'
+const s:STATE_UNLOADING = 'unloading'
 const s:STATE_FAILED = 'failed'
 
 let s:plugins = {}
@@ -25,6 +26,14 @@ function! denops#_internal#plugin#load(name, script) abort
   let s:plugins[a:name] = l:plugin
   call denops#_internal#echo#debug(printf('load plugin: %s', l:args))
   call denops#_internal#server#chan#notify('invoke', ['load', l:args])
+endfunction
+
+function! denops#_internal#plugin#unload(name) abort
+  let l:args = [a:name]
+  let l:plugin = denops#_internal#plugin#get(a:name)
+  let l:plugin.state = s:STATE_UNLOADING
+  call denops#_internal#echo#debug(printf('unload plugin: %s', l:args))
+  call denops#_internal#server#chan#notify('invoke', ['unload', l:args])
 endfunction
 
 function! denops#_internal#plugin#reload(name) abort
@@ -60,10 +69,36 @@ function! s:DenopsSystemPluginFail() abort
   execute printf('doautocmd <nomodeline> User DenopsPluginFail:%s', l:name)
 endfunction
 
+function! s:DenopsSystemPluginUnloadPre() abort
+  const l:name = matchstr(expand('<amatch>'), 'DenopsSystemPluginUnloadPre:\zs.*')
+  let l:plugin = denops#_internal#plugin#get(l:name)
+  let l:plugin.state = s:STATE_UNLOADING
+  execute printf('doautocmd <nomodeline> User DenopsPluginUnloadPre:%s', l:name)
+endfunction
+
+function! s:DenopsSystemPluginUnloadPost() abort
+  const l:name = matchstr(expand('<amatch>'), 'DenopsSystemPluginUnloadPost:\zs.*')
+  let l:plugin = denops#_internal#plugin#get(l:name)
+  let l:plugin.state = s:STATE_RESERVED
+  let l:plugin.callbacks = []
+  execute printf('doautocmd <nomodeline> User DenopsPluginUnloadPost:%s', l:name)
+endfunction
+
+function! s:DenopsSystemPluginUnloadFail() abort
+  const l:name = matchstr(expand('<amatch>'), 'DenopsSystemPluginUnloadFail:\zs.*')
+  let l:plugin = denops#_internal#plugin#get(l:name)
+  let l:plugin.state = s:STATE_FAILED
+  let l:plugin.callbacks = []
+  execute printf('doautocmd <nomodeline> User DenopsPluginUnloadFail:%s', l:name)
+endfunction
+
 augroup denops_autoload_plugin_internal
   autocmd!
   autocmd User DenopsSystemPluginPre:* ++nested call s:DenopsSystemPluginPre()
   autocmd User DenopsSystemPluginPost:* ++nested call s:DenopsSystemPluginPost()
   autocmd User DenopsSystemPluginFail:* ++nested call s:DenopsSystemPluginFail()
+  autocmd User DenopsSystemPluginUnloadPre:* ++nested call s:DenopsSystemPluginUnloadPre()
+  autocmd User DenopsSystemPluginUnloadPost:* ++nested call s:DenopsSystemPluginUnloadPost()
+  autocmd User DenopsSystemPluginUnloadFail:* ++nested call s:DenopsSystemPluginUnloadFail()
   autocmd User DenopsClosed let s:plugins = {}
 augroup END

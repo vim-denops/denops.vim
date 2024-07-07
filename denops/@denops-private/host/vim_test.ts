@@ -18,6 +18,7 @@ Deno.test("Vim", async (t) => {
       const service: Service = {
         bind: () => unimplemented(),
         load: () => unimplemented(),
+        unload: () => unimplemented(),
         reload: () => unimplemented(),
         interrupt: () => unimplemented(),
         dispatch: () => unimplemented(),

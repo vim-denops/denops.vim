@@ -49,6 +49,7 @@ export type CallbackId = string;
 export type Service = {
   bind(host: Host): void;
   load(name: string, script: string): Promise<void>;
+  unload(name: string): Promise<void>;
   reload(name: string): Promise<void>;
   interrupt(reason?: unknown): void;
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown>;
@@ -72,6 +73,8 @@ export function invoke(
   switch (name) {
     case "load":
       return service.load(...ensure(args, serviceMethodArgs.load));
+    case "unload":
+      return service.unload(...ensure(args, serviceMethodArgs.unload));
     case "reload":
       return service.reload(...ensure(args, serviceMethodArgs.reload));
     case "interrupt":
@@ -92,6 +95,7 @@ export function invoke(
 
 const serviceMethodArgs = {
   load: is.ParametersOf([is.String, is.String] as const),
+  unload: is.ParametersOf([is.String] as const),
   reload: is.ParametersOf([is.String] as const),
   interrupt: is.ParametersOf([is.OptionalOf(is.Unknown)] as const),
   dispatch: is.ParametersOf([is.String, is.String, is.Array] as const),

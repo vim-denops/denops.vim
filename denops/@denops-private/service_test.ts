@@ -1,5 +1,6 @@
 import {
   assert,
+  assertArrayIncludes,
   assertEquals,
   assertFalse,
   assertInstanceOf,
@@ -13,6 +14,7 @@ import {
   assertSpyCall,
   assertSpyCalls,
   resolvesNext,
+  spy,
   stub,
 } from "jsr:@std/testing@0.224.0/mock";
 import type { Meta } from "jsr:@denops/core@6.0.6";
@@ -20,11 +22,14 @@ import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";
+import { toFileUrl } from "jsr:@std/path@0.225.0/to-file-url";
 
 const NOOP = () => {};
 
 const scriptValid = resolve("dummy_valid_plugin.ts");
 const scriptInvalid = resolve("dummy_invalid_plugin.ts");
+const scriptValidDispose = resolve("dummy_valid_dispose_plugin.ts");
+const scriptInvalidDispose = resolve("dummy_invalid_dispose_plugin.ts");
 const scriptInvalidConstraint = resolve("dummy_invalid_constraint_plugin.ts");
 const scriptInvalidConstraint2 = resolve("dummy_invalid_constraint_plugin2.ts");
 
@@ -301,20 +306,19 @@ Deno.test("Service", async (t) => {
         assertSpyCalls(host_call, 0);
       });
     });
-  });
 
-  await t.step(".reload()", async (t) => {
-    await t.step("if the plugin is already loaded", async (t) => {
+    await t.step("if the plugin is already unloaded", async (t) => {
       const service = new Service(meta);
       service.bind(host);
       {
         using _host_call = stub(host, "call");
         await service.load("dummy", scriptValid);
+        await service.unload("dummy");
       }
       using host_call = stub(host, "call");
 
       await t.step("resolves", async () => {
-        await service.reload("dummy");
+        await service.load("dummy", scriptValid);
       });
 
       await t.step("emits DenopsSystemPluginPre", () => {
@@ -347,6 +351,356 @@ Deno.test("Service", async (t) => {
         });
       });
     });
+  });
+
+  await t.step(".unload()", async (t) => {
+    await t.step("if the plugin returns void", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.unload("dummy");
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadPre", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadPost", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
+            {},
+          ],
+        });
+      });
+    });
+
+    await t.step("if the plugin returns AsyncDisposable", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValidDispose);
+      }
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.unload("dummy");
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadPre", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("calls the plugin dispose method", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#api#cmd",
+            "echo 'Goodbye, Denops!'",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadPost", () => {
+        assertSpyCall(host_call, 2, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
+            {},
+          ],
+        });
+      });
+    });
+
+    await t.step("if the plugin dispose method throws", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptInvalidDispose);
+      }
+      using console_error = stub(console, "error");
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.unload("dummy");
+      });
+
+      await t.step("outputs an error message", () => {
+        assertSpyCall(console_error, 0, {
+          args: [
+            "Failed to unload plugin 'dummy': Error: This is dummy error in async dispose",
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadPre", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadFail", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadFail:dummy",
+            {},
+          ],
+        });
+      });
+    });
+
+    await t.step("if the plugin is not yet loaded", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using console_log = stub(console, "log");
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.unload("dummy");
+      });
+
+      await t.step("outputs a log message", () => {
+        assertSpyCall(console_log, 0, {
+          args: [
+            "A denops plugin 'dummy' is not loaded yet. Skip",
+          ],
+        });
+      });
+
+      await t.step("does not calls the host", () => {
+        assertSpyCalls(host_call, 0);
+      });
+    });
+
+    await t.step("if the plugin is already unloaded", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+        await service.unload("dummy");
+      }
+      using console_log = stub(console, "log");
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.unload("dummy");
+      });
+
+      await t.step("outputs a log message", () => {
+        assertSpyCall(console_log, 0, {
+          args: [
+            "A denops plugin 'dummy' is not loaded yet. Skip",
+          ],
+        });
+      });
+
+      await t.step("does not calls the host", () => {
+        assertSpyCalls(host_call, 0);
+      });
+    });
+
+    await t.step("if called before `load()` resolves", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using host_call = stub(host, "call");
+
+      const loadPromise = service.load("dummy", scriptValid);
+      const unloadPromise = service.unload("dummy");
+
+      await t.step("resolves", async () => {
+        await unloadPromise;
+      });
+
+      await t.step("`load()` was resolved", async () => {
+        assertEquals(await promiseState(loadPromise), "fulfilled");
+      });
+
+      await t.step("emits events in the correct order", () => {
+        const events = host_call.calls
+          .map((c) => c.args)
+          .filter((args) => (args[1] as string)?.startsWith("doautocmd"));
+        assertEquals(events, [
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
+            {},
+          ],
+        ]);
+      });
+    });
+
+    await t.step("if called before `load()` resolves with error", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using host_call = stub(host, "call");
+
+      const loadPromise = service.load("dummy", scriptInvalid);
+      const unloadPromise = service.unload("dummy");
+
+      await t.step("resolves", async () => {
+        await unloadPromise;
+      });
+
+      await t.step("`load()` was resolved", async () => {
+        assertEquals(await promiseState(loadPromise), "fulfilled");
+      });
+
+      await t.step("emits events in the correct order", () => {
+        const events = host_call.calls
+          .map((c) => c.args)
+          .filter((args) => (args[1] as string)?.startsWith("doautocmd"));
+        assertEquals(events, [
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginFail:dummy",
+            {},
+          ],
+        ]);
+      });
+    });
+
+    await t.step("if `host.call()` rejects (channel closed)", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using console_error = stub(console, "error");
+      using _host_call = stub(
+        host,
+        "call",
+        () => Promise.reject(new Error("channel closed")),
+      );
+
+      await t.step("resolves", async () => {
+        await service.unload("dummy");
+      });
+
+      await t.step("outputs error messages", () => {
+        assertEquals(console_error.calls.map((c) => c.args), [
+          [
+            "Failed to emit DenopsSystemPluginUnloadPre:dummy: Error: channel closed",
+          ],
+          [
+            "Failed to emit DenopsSystemPluginUnloadPost:dummy: Error: channel closed",
+          ],
+        ]);
+      });
+    });
+  });
+
+  await t.step(".reload()", async (t) => {
+    await t.step("if the plugin is already loaded", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.reload("dummy");
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadPre", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadPost", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginPre", () => {
+        assertSpyCall(host_call, 2, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("calls the plugin entrypoint", () => {
+        assertSpyCall(host_call, 3, {
+          args: [
+            "denops#api#cmd",
+            "echo 'Hello, Denops!'",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginPost", () => {
+        assertSpyCall(host_call, 4, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
+            {},
+          ],
+        });
+      });
+    });
 
     await t.step("if the plugin is not yet loaded", async (t) => {
       const service = new Service(meta);
@@ -370,6 +724,115 @@ Deno.test("Service", async (t) => {
         assertSpyCalls(host_call, 0);
       });
     });
+
+    await t.step("if the plugin is already unloaded", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+        await service.unload("dummy");
+      }
+      using console_log = stub(console, "log");
+      using host_call = stub(host, "call");
+
+      await t.step("resolves", async () => {
+        await service.reload("dummy");
+      });
+
+      await t.step("outputs a log message", () => {
+        assertSpyCall(console_log, 0, {
+          args: [
+            "A denops plugin 'dummy' is not loaded yet. Skip",
+          ],
+        });
+      });
+
+      await t.step("does not calls the host", () => {
+        assertSpyCalls(host_call, 0);
+      });
+    });
+
+    await t.step("if the plugin file is changed", async (t) => {
+      // Generate source script file.
+      await using tempFile = await useTempFile({
+        // NOTE: Temporary script files should be ignored from coverage.
+        prefix: "test-denops-service-",
+        suffix: "_test.ts",
+      });
+      const scriptRewrite = toFileUrl(tempFile.path).href;
+      const sourceOriginal = await Deno.readTextFile(new URL(scriptValid));
+      await Deno.writeTextFile(new URL(scriptRewrite), sourceOriginal);
+
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptRewrite);
+      }
+      using host_call = stub(host, "call");
+
+      // Change source script file.
+      const sourceRewrited = sourceOriginal.replaceAll(
+        "Hello, Denops!",
+        "Source Changed!",
+      );
+      await Deno.writeTextFile(new URL(scriptRewrite), sourceRewrited);
+
+      await t.step("resolves", async () => {
+        await service.reload("dummy");
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadPre", () => {
+        assertSpyCall(host_call, 0, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginUnloadPost", () => {
+        assertSpyCall(host_call, 1, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginPre", () => {
+        assertSpyCall(host_call, 2, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+        });
+      });
+
+      await t.step("calls the plugin entrypoint", () => {
+        assertSpyCall(host_call, 3, {
+          args: [
+            "denops#api#cmd",
+            "echo 'Source Changed!'",
+            {},
+          ],
+        });
+      });
+
+      await t.step("emits DenopsSystemPluginPost", () => {
+        assertSpyCall(host_call, 4, {
+          args: [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
+            {},
+          ],
+        });
+      });
+    });
   });
 
   await t.step(".waitLoaded()", async (t) => {
@@ -377,6 +840,18 @@ Deno.test("Service", async (t) => {
       const service = new Service(meta);
       service.bind(host);
       using _host_call = stub(host, "call");
+
+      const actual = service.waitLoaded("dummy");
+
+      assertEquals(await promiseState(actual), "pending");
+    });
+
+    await t.step("pendings if the plugin is already unloaded", async () => {
+      const service = new Service(meta);
+      service.bind(host);
+      using _host_call = stub(host, "call");
+      await service.load("dummy", scriptValid);
+      await service.unload("dummy");
 
       const actual = service.waitLoaded("dummy");
 
@@ -404,6 +879,22 @@ Deno.test("Service", async (t) => {
 
       assertEquals(await promiseState(actual), "fulfilled");
     });
+
+    await t.step(
+      "resolves if it is called between `load()` and `unload()`",
+      async () => {
+        const service = new Service(meta);
+        service.bind(host);
+        using _host_call = stub(host, "call");
+
+        const loadPromise = service.load("dummy", scriptValid);
+        const actual = service.waitLoaded("dummy");
+        const unloadPromise = service.unload("dummy");
+        await Promise.all([loadPromise, unloadPromise]);
+
+        assertEquals(await promiseState(actual), "fulfilled");
+      },
+    );
 
     await t.step("rejects if the service is already closed", async () => {
       const service = new Service(meta);
@@ -810,11 +1301,46 @@ Deno.test("Service", async (t) => {
   await t.step(".close()", async (t) => {
     await t.step("if the service is not yet closed", async (t) => {
       const service = new Service(meta);
-      using _host_call = stub(host, "call");
       service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+        await service.load("dummyDispose", scriptValidDispose);
+      }
+      using host_call = stub(host, "call");
 
       await t.step("resolves", async () => {
         await service.close();
+      });
+
+      await t.step("unloads loaded plugins", () => {
+        assertArrayIncludes(host_call.calls.map((c) => c.args), [
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummyDispose",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "echo 'Goodbye, Denops!'",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummyDispose",
+            {},
+          ],
+        ]);
       });
     });
 
@@ -868,7 +1394,7 @@ Deno.test("Service", async (t) => {
     const service = new Service(meta);
     using _host_call = stub(host, "call");
     service.bind(host);
-    using service_close = stub(service, "close");
+    using service_close = spy(service, "close");
 
     await t.step("resolves", async () => {
       await service[Symbol.asyncDispose]();
@@ -883,4 +1409,14 @@ Deno.test("Service", async (t) => {
 /** Resolve testdata script URL. */
 function resolve(path: string): string {
   return new URL(`../../tests/denops/testdata/${path}`, import.meta.url).href;
+}
+
+async function useTempFile(options?: Deno.MakeTempOptions) {
+  const path = await Deno.makeTempFile(options);
+  return {
+    path,
+    async [Symbol.asyncDispose]() {
+      await Deno.remove(path, { recursive: true });
+    },
+  };
 }

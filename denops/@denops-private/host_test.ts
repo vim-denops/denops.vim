@@ -11,6 +11,7 @@ import { invoke, type Service } from "./host.ts";
 Deno.test("invoke", async (t) => {
   const service: Omit<Service, "bind"> = {
     load: () => unimplemented(),
+    unload: () => unimplemented(),
     reload: () => unimplemented(),
     interrupt: () => unimplemented(),
     dispatch: () => unimplemented(),

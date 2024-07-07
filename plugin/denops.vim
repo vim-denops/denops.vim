@@ -22,6 +22,9 @@ augroup denops_plugin_internal
   autocmd User DenopsPluginPre:* :
   autocmd User DenopsPluginPost:* :
   autocmd User DenopsPluginFail:* :
+  autocmd User DenopsPluginUnloadPre:* :
+  autocmd User DenopsPluginUnloadPost:* :
+  autocmd User DenopsPluginUnloadFail:* :
   autocmd User DenopsReady call denops#plugin#discover()
 augroup END
 
