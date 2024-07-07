@@ -183,7 +183,7 @@ type PluginModule = {
 class Plugin {
   #denops: Denops;
   #loadedWaiter: Promise<void>;
-  #disposable: Partial<AsyncDisposable> = {};
+  #disposable: AsyncDisposable = voidAsyncDisposable;
 
   readonly name: string;
   readonly script: string;
@@ -204,7 +204,7 @@ class Plugin {
     try {
       await emit(this.#denops, `DenopsSystemPluginPre:${this.name}`);
       const mod: PluginModule = await import(`${this.script}${suffix}`);
-      this.#disposable = await mod.main(this.#denops) ?? {};
+      this.#disposable = await mod.main(this.#denops) ?? voidAsyncDisposable;
       await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
     } catch (e) {
       // Show a warning message when Deno module cache issue is detected
@@ -236,13 +236,13 @@ class Plugin {
     }
     try {
       await emit(this.#denops, `DenopsSystemPluginUnloadPre:${this.name}`);
-      await this.#disposable[Symbol.asyncDispose]?.();
+      await this.#disposable[Symbol.asyncDispose]();
       await emit(this.#denops, `DenopsSystemPluginUnloadPost:${this.name}`);
     } catch (e) {
       console.error(`Failed to unload plugin '${this.name}': ${e}`);
       await emit(this.#denops, `DenopsSystemPluginUnloadFail:${this.name}`);
     } finally {
-      this.#disposable = {};
+      this.#disposable = voidAsyncDisposable;
     }
   }
 
@@ -257,6 +257,10 @@ class Plugin {
     }
   }
 }
+
+const voidAsyncDisposable = {
+  [Symbol.asyncDispose]: () => Promise.resolve(),
+} as const satisfies AsyncDisposable;
 
 const loadedScripts = new Set<string>();
 
