@@ -1628,7 +1628,51 @@ testHost({
         });
       });
 
-      // FIXME: "if the plugin is reloading"
+      await t.step("if the plugin is reloading", async (t) => {
+        // Load plugin and wait.
+        await host.call("execute", [
+          "let g:__test_denops_events = []",
+          `call denops#plugin#load('dummyWaitAsyncReloading', '${scriptValidWait}')`,
+        ], "");
+        await wait(async () =>
+          (await host.call("eval", "g:__test_denops_events") as string[])
+            .includes("DenopsPluginPost:dummyWaitAsyncReloading")
+        );
+
+        await host.call("execute", [
+          "let g:__test_denops_events = []",
+          `call denops#plugin#reload('dummyWaitAsyncReloading')`,
+          "let g:__test_denops_wait_start = reltime()",
+          "call denops#plugin#wait_async('dummyWaitAsyncReloading', { -> add(g:__test_denops_events, 'WaitAsyncCallbackCalled:dummyWaitAsyncReloading') })",
+          "let g:__test_denops_wait_elapsed = g:__test_denops_wait_start->reltime()->reltimefloat()",
+        ], "");
+
+        await t.step("returns immediately", async () => {
+          const elapsed_sec = await host.call(
+            "eval",
+            "g:__test_denops_wait_elapsed",
+          ) as number;
+          assertLess(elapsed_sec, 0.1);
+        });
+
+        await t.step("does not call `callback` immediately", async () => {
+          const actual =
+            (await host.call("eval", "g:__test_denops_events") as string[])
+              .filter((ev) => ev.startsWith("WaitAsyncCallbackCalled:"));
+          assertEquals(actual, []);
+        });
+
+        await t.step("calls `callback` when the plugin is loaded", async () => {
+          await wait(async () =>
+            (await host.call("eval", "g:__test_denops_events") as string[])
+              .includes("DenopsPluginPost:dummyWaitAsyncReloading")
+          );
+          assertArrayIncludes(
+            await host.call("eval", "g:__test_denops_events") as string[],
+            ["WaitAsyncCallbackCalled:dummyWaitAsyncReloading"],
+          );
+        });
+      });
 
       await t.step("if the plugin is reloaded", async (t) => {
         // Load plugin and wait.
