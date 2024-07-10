@@ -89,7 +89,6 @@ function! s:DenopsSystemPluginUnloadPost() abort
   const l:name = matchstr(expand('<amatch>'), 'DenopsSystemPluginUnloadPost:\zs.*')
   let l:plugin = denops#_internal#plugin#get(l:name)
   let l:plugin.state = s:STATE_RESERVED
-  let l:plugin.callbacks = []
   execute printf('doautocmd <nomodeline> User DenopsPluginUnloadPost:%s', l:name)
 endfunction
 
