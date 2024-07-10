@@ -73,8 +73,8 @@ export class Service implements HostService, AsyncDisposable {
     this.#waiters.get(name)?.promise.finally(() => {
       this.#waiters.delete(name);
     });
-    this.#plugins.delete(name);
     await plugin.unload();
+    this.#plugins.delete(name);
     return plugin;
   }
 
@@ -180,6 +180,7 @@ type PluginModule = {
 class Plugin {
   #denops: Denops;
   #loadedWaiter: Promise<void>;
+  #unloadedWaiter?: Promise<void>;
   #disposable: AsyncDisposable = voidAsyncDisposable;
 
   readonly name: string;
@@ -223,7 +224,14 @@ class Plugin {
     await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
   }
 
-  async unload(): Promise<void> {
+  unload(): Promise<void> {
+    if (!this.#unloadedWaiter) {
+      this.#unloadedWaiter = this.#unload();
+    }
+    return this.#unloadedWaiter;
+  }
+
+  async #unload(): Promise<void> {
     try {
       // Wait for the load to complete to make the events atomically.
       await this.#loadedWaiter;
