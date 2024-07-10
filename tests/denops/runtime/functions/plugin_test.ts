@@ -1056,7 +1056,36 @@ testHost({
         await delay(MESSAGE_DELAY); // Wait outputs of denops#plugin#load()
       });
 
-      // FIXME: Implement "if the plugin dispose method throws"
+      await t.step("if the plugin dispose method throws", async (t) => {
+        // Load plugin and wait.
+        await host.call("execute", [
+          "let g:__test_denops_events = []",
+          `call denops#plugin#load('dummyIsLoadedInvalidDispose', '${scriptInvalidDispose}')`,
+        ], "");
+        await wait(async () =>
+          (await host.call("eval", "g:__test_denops_events") as string[])
+            .includes("DenopsPluginPost:dummyIsLoadedInvalidDispose")
+        );
+        // Unload plugin and wait failure.
+        await host.call("execute", [
+          "let g:__test_denops_events = []",
+          `call denops#plugin#unload('dummyIsLoadedInvalidDispose')`,
+        ], "");
+        await wait(async () =>
+          (await host.call("eval", "g:__test_denops_events") as string[])
+            .includes("DenopsPluginUnloadFail:dummyIsLoadedInvalidDispose")
+        );
+
+        await t.step("returns 0", async () => {
+          const actual = await host.call(
+            "denops#plugin#is_loaded",
+            "dummyIsLoadedInvalidDispose",
+          );
+          assertEquals(actual, 0);
+        });
+
+        await delay(MESSAGE_DELAY); // Wait outputs of denops#plugin#unload()
+      });
 
       await t.step("if the plugin is loading", async (t) => {
         await host.call("execute", [
@@ -1311,7 +1340,13 @@ testHost({
           assertEquals(actual, 0);
         });
 
-        // FIXME: Implement "returns 0 when DenopsPluginUnloadFail"
+        await t.step("returns 0 when DenopsPluginUnloadFail", async () => {
+          const actual = await host.call(
+            "eval",
+            "g:__test_denops_is_loaded['DenopsPluginUnloadFail:dummyIsLoadedEventInvalidDispose']",
+          );
+          assertEquals(actual, 0);
+        });
       });
     });
 
