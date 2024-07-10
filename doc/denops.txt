@@ -345,17 +345,23 @@ denops#server#wait_async({callback})
 
 						*denops#plugin#is_loaded()*
 denops#plugin#is_loaded({name})
-	Returns 1 if a {name} plugin is already loaded. Otherwise, returns
-	0.
+	Returns 1 if a {name} plugin is already loaded or failed to load.
+	Returns 0 otherwise, even if |denops#plugin#unload()| or
+	|denops#plugin#reload()| are called.
 
 						*denops#plugin#wait()*
 denops#plugin#wait({name}[, {options}])
-	Waits synchronously until a {name} plugin is loaded. It returns
-	immediately when the {name} plugin is already loaded.
-	It returns -1 if it times out, -2 if the server is not yet ready or
-	interrupted, or -3 if the plugin initialization failed.
-	Developers need to consider this return value to decide whether to
-	continue with the subsequent process.
+	Waits synchronously until a {name} plugin is loaded or failed to load.
+	It returns immediately when the {name} plugin is already loaded.
+
+	Developers need to consider the following return value to decide
+	whether to continue with the subsequent process:
+
+	 0	The {name} plugin is loaded successfully.
+	-1	"timeout" expired.
+	-2	The server is not yet ready or interrupted.
+	-3	The {name} plugin failed to load.
+
 	The following attributes are available on {options}.
 
         "interval"	Interval in milliseconds for |:sleep| in internal
@@ -408,26 +414,28 @@ denops#plugin#discover()
 						*denops#plugin#load()*
 denops#plugin#load({name}, {script})
 	Loads a denops plugin. Use this function to load denops plugins that
-	are not discovered by |denops#plugin#discover()|.
+	are not discovered by |denops#plugin#discover()|. If the {name} plugin
+	is already loaded, it does nothing.
 
 	Loading a plugin involves the following event steps:
 
-	 - |User| |DenopsPluginPre|:{plugin} is fired.
+	 - |User| |DenopsPluginPre|:{name} is fired.
 	 - The plugin is loaded and the "main" function is executed.
-	 - If it succeeds, |User| |DenopsPluginPost|:{plugin} is fired.
-	 - If it fails, |User| |DenopsPluginFail|:{plugin} is fired.
+	 - If it succeeds, |User| |DenopsPluginPost|:{name} is fired.
+	 - If it fails, |User| |DenopsPluginFail|:{name} is fired.
 
 						*denops#plugin#unload()*
 denops#plugin#unload({name})
-	Unloads a denops plugin. It does nothing when the plugin is not loaded
-	yet.
+	Unloads a denops plugin. If the {name} plugin is currently loading, it
+	will be unloaded after it has been successfully loaded. If the {name}
+	plugin does not exist or fails to load, it does nothing.
 
 	Unloading a plugin involves the following event steps:
 
-	 - |User| |DenopsPluginUnloadPre|:{plugin} is fired.
+	 - |User| |DenopsPluginUnloadPre|:{name} is fired.
 	 - The plugin's dispose callback is executed, if it exists.
-	 - If it succeeds, |User| |DenopsPluginUnloadPost|:{plugin} is fired.
-	 - If it fails, |User| |DenopsPluginUnloadFail|:{plugin} is fired.
+	 - If it succeeds, |User| |DenopsPluginUnloadPost|:{name} is fired.
+	 - If it fails, |User| |DenopsPluginUnloadFail|:{name} is fired.
 
 	The above events may not be fired if the connection is forcibly
 	closed or the denops server is forcibly terminated due to timeout
@@ -435,8 +443,8 @@ denops#plugin#unload({name})
 
 						*denops#plugin#reload()*
 denops#plugin#reload({plugin}[, {options}])
-	Reloads a denops plugin. It does nothing when the plugin is not loaded
-	yet.
+	Reloads a denops plugin. If the {name} plugin does not exist or fails
+	to load, it does nothing.
 
 	It invokes |User| autocommand events. See |denops#plugin#load()| and
 	|denops#plugin#unload()| for details.
