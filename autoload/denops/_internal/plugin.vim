@@ -64,7 +64,7 @@ function! s:DenopsSystemPluginPre() abort
   const l:name = matchstr(expand('<amatch>'), 'DenopsSystemPluginPre:\zs.*')
   let l:plugin = denops#_internal#plugin#get(l:name)
   let l:plugin.state = s:STATE_LOADING
-  execute printf('doautocmd <nomodeline> User DenopsPluginPre:%s', l:name)
+  call denops#_internal#event#emit(printf('DenopsPluginPre:%s', l:name))
 endfunction
 
 function! s:DenopsSystemPluginPost() abort
@@ -76,7 +76,7 @@ function! s:DenopsSystemPluginPost() abort
   for l:Callback in l:callbacks
     call l:Callback()
   endfor
-  execute printf('doautocmd <nomodeline> User DenopsPluginPost:%s', l:name)
+  call denops#_internal#event#emit(printf('DenopsPluginPost:%s', l:name))
 endfunction
 
 function! s:DenopsSystemPluginFail() abort
@@ -84,21 +84,21 @@ function! s:DenopsSystemPluginFail() abort
   let l:plugin = denops#_internal#plugin#get(l:name)
   let l:plugin.state = s:STATE_FAILED
   let l:plugin.callbacks = []
-  execute printf('doautocmd <nomodeline> User DenopsPluginFail:%s', l:name)
+  call denops#_internal#event#emit(printf('DenopsPluginFail:%s', l:name))
 endfunction
 
 function! s:DenopsSystemPluginUnloadPre() abort
   const l:name = matchstr(expand('<amatch>'), 'DenopsSystemPluginUnloadPre:\zs.*')
   let l:plugin = denops#_internal#plugin#get(l:name)
   let l:plugin.state = s:STATE_UNLOADING
-  execute printf('doautocmd <nomodeline> User DenopsPluginUnloadPre:%s', l:name)
+  call denops#_internal#event#emit(printf('DenopsPluginUnloadPre:%s', l:name))
 endfunction
 
 function! s:DenopsSystemPluginUnloadPost() abort
   const l:name = matchstr(expand('<amatch>'), 'DenopsSystemPluginUnloadPost:\zs.*')
   let l:plugin = denops#_internal#plugin#get(l:name)
   let l:plugin.state = s:STATE_RESERVED
-  execute printf('doautocmd <nomodeline> User DenopsPluginUnloadPost:%s', l:name)
+  call denops#_internal#event#emit(printf('DenopsPluginUnloadPost:%s', l:name))
 endfunction
 
 function! s:DenopsSystemPluginUnloadFail() abort
@@ -106,7 +106,7 @@ function! s:DenopsSystemPluginUnloadFail() abort
   let l:plugin = denops#_internal#plugin#get(l:name)
   let l:plugin.state = s:STATE_RESERVED
   let l:plugin.callbacks = []
-  execute printf('doautocmd <nomodeline> User DenopsPluginUnloadFail:%s', l:name)
+  call denops#_internal#event#emit(printf('DenopsPluginUnloadFail:%s', l:name))
 endfunction
 
 augroup denops_autoload_plugin_internal

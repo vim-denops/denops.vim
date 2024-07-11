@@ -106,9 +106,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginPre", () => {
         assertSpyCall(host_call, 0, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
         });
       });
@@ -126,9 +125,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginPost", () => {
         assertSpyCall(host_call, 2, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPost:dummy",
           ],
         });
       });
@@ -155,9 +153,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginPre", () => {
         assertSpyCall(host_call, 0, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
         });
       });
@@ -165,9 +162,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginFail", () => {
         assertSpyCall(host_call, 1, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginFail:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginFail:dummy",
           ],
         });
       });
@@ -207,9 +203,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginPre", () => {
         assertSpyCall(host_call, 0, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
         });
       });
@@ -217,9 +212,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginFail", () => {
         assertSpyCall(host_call, 1, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginFail:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginFail:dummy",
           ],
         });
       });
@@ -261,9 +255,8 @@ Deno.test("Service", async (t) => {
         await t.step("emits DenopsSystemPluginPre", () => {
           assertSpyCall(host_call, 0, {
             args: [
-              "denops#api#cmd",
-              "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-              {},
+              "denops#_internal#event#emit",
+              "DenopsSystemPluginPre:dummy",
             ],
           });
         });
@@ -271,9 +264,8 @@ Deno.test("Service", async (t) => {
         await t.step("emits DenopsSystemPluginFail", () => {
           assertSpyCall(host_call, 1, {
             args: [
-              "denops#api#cmd",
-              "doautocmd <nomodeline> User DenopsSystemPluginFail:dummy",
-              {},
+              "denops#_internal#event#emit",
+              "DenopsSystemPluginFail:dummy",
             ],
           });
         });
@@ -324,9 +316,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginPre", () => {
         assertSpyCall(host_call, 0, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
         });
       });
@@ -344,9 +335,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginPost", () => {
         assertSpyCall(host_call, 2, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPost:dummy",
           ],
         });
       });
@@ -382,9 +372,8 @@ Deno.test("Service", async (t) => {
         assertEquals(events, [
           // Previous `load()` events.
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
           [
             "denops#api#cmd",
@@ -392,9 +381,8 @@ Deno.test("Service", async (t) => {
             {},
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPost:dummy",
           ],
         ]);
       });
@@ -434,14 +422,12 @@ Deno.test("Service", async (t) => {
         assertEquals(events, [
           // Previous `unload()` events.
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummy",
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPost:dummy",
           ],
         ]);
       });
@@ -465,9 +451,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginUnloadPre", () => {
         assertSpyCall(host_call, 0, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummy",
           ],
         });
       });
@@ -475,9 +460,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginUnloadPost", () => {
         assertSpyCall(host_call, 1, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPost:dummy",
           ],
         });
       });
@@ -499,9 +483,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginUnloadPre", () => {
         assertSpyCall(host_call, 0, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummy",
           ],
         });
       });
@@ -519,9 +502,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginUnloadPost", () => {
         assertSpyCall(host_call, 2, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPost:dummy",
           ],
         });
       });
@@ -552,9 +534,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginUnloadPre", () => {
         assertSpyCall(host_call, 0, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummy",
           ],
         });
       });
@@ -562,9 +543,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginUnloadFail", () => {
         assertSpyCall(host_call, 1, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadFail:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadFail:dummy",
           ],
         });
       });
@@ -642,9 +622,8 @@ Deno.test("Service", async (t) => {
         assertEquals(events, [
           // Previous `load()` events.
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
           [
             "denops#api#cmd",
@@ -652,20 +631,17 @@ Deno.test("Service", async (t) => {
             {},
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPost:dummy",
           ],
           // This `unload()` events.
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummy",
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPost:dummy",
           ],
         ]);
       });
@@ -701,14 +677,12 @@ Deno.test("Service", async (t) => {
         assertEquals(events, [
           // Previous `load()` events.
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginFail:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginFail:dummy",
           ],
         ]);
       });
@@ -739,14 +713,12 @@ Deno.test("Service", async (t) => {
         assertEquals(events, [
           // Previous `unload()` events.
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummy",
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPost:dummy",
           ],
         ]);
       });
@@ -800,9 +772,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginUnloadPre", () => {
         assertSpyCall(host_call, 0, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummy",
           ],
         });
       });
@@ -810,9 +781,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginUnloadPost", () => {
         assertSpyCall(host_call, 1, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPost:dummy",
           ],
         });
       });
@@ -820,9 +790,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginPre", () => {
         assertSpyCall(host_call, 2, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
         });
       });
@@ -840,9 +809,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginPost", () => {
         assertSpyCall(host_call, 4, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPost:dummy",
           ],
         });
       });
@@ -920,9 +888,8 @@ Deno.test("Service", async (t) => {
         assertEquals(events, [
           // Previous `load()` events.
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
           [
             "denops#api#cmd",
@@ -930,25 +897,21 @@ Deno.test("Service", async (t) => {
             {},
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPost:dummy",
           ],
           // This `reload()` events.
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummy",
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPost:dummy",
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
           [
             "denops#api#cmd",
@@ -956,9 +919,8 @@ Deno.test("Service", async (t) => {
             {},
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPost:dummy",
           ],
         ]);
       });
@@ -989,20 +951,17 @@ Deno.test("Service", async (t) => {
         assertEquals(events, [
           // Previous `unload()` events.
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummy",
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPost:dummy",
           ],
           // This `reload()` events.
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
           [
             "denops#api#cmd",
@@ -1010,9 +969,8 @@ Deno.test("Service", async (t) => {
             {},
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPost:dummy",
           ],
         ]);
       });
@@ -1051,9 +1009,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginUnloadPre", () => {
         assertSpyCall(host_call, 0, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummy",
           ],
         });
       });
@@ -1061,9 +1018,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginUnloadPost", () => {
         assertSpyCall(host_call, 1, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPost:dummy",
           ],
         });
       });
@@ -1071,9 +1027,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginPre", () => {
         assertSpyCall(host_call, 2, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPre:dummy",
           ],
         });
       });
@@ -1091,9 +1046,8 @@ Deno.test("Service", async (t) => {
       await t.step("emits DenopsSystemPluginPost", () => {
         assertSpyCall(host_call, 4, {
           args: [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginPost:dummy",
           ],
         });
       });
@@ -1581,14 +1535,12 @@ Deno.test("Service", async (t) => {
       await t.step("unloads loaded plugins", () => {
         assertArrayIncludes(host_call.calls.map((c) => c.args), [
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummy",
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummyDispose",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPre:dummyDispose",
           ],
           [
             "denops#api#cmd",
@@ -1596,14 +1548,12 @@ Deno.test("Service", async (t) => {
             {},
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPost:dummy",
           ],
           [
-            "denops#api#cmd",
-            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummyDispose",
-            {},
+            "denops#_internal#event#emit",
+            "DenopsSystemPluginUnloadPost:dummyDispose",
           ],
         ]);
       });

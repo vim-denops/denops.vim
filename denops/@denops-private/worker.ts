@@ -79,11 +79,7 @@ async function connectHost(): Promise<void> {
   using sigintTrap = asyncSignal("SIGINT");
   await using service = new Service(meta);
   await host.init(service);
-  await host.call(
-    "execute",
-    "doautocmd <nomodeline> User DenopsSystemReady",
-    "",
-  );
+  await host.call("denops#_internal#event#emit", "DenopsSystemReady");
   await Promise.race([
     service.waitClosed(),
     host.waitClosed(),

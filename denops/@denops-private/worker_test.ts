@@ -206,7 +206,7 @@ for (const { host, mode } of matrix) {
         });
       }
 
-      await t.step("doautocmd `User DenopsSystemReady`", async () => {
+      await t.step("emits `DenopsSystemReady`", async () => {
         using _ = usePostMessageHistory();
         await delay(0);
         assertEquals(messageStub.postMessage.callCount, 1);
@@ -216,10 +216,7 @@ for (const { host, mode } of matrix) {
             [
               "call",
               "denops#api#vim#call",
-              ["execute", [
-                "doautocmd <nomodeline> User DenopsSystemReady",
-                "",
-              ]],
+              ["denops#_internal#event#emit", ["DenopsSystemReady"]],
               -2,
             ],
           );
@@ -231,10 +228,7 @@ for (const { host, mode } of matrix) {
               0,
               2,
               "nvim_call_function",
-              ["execute", [
-                "doautocmd <nomodeline> User DenopsSystemReady",
-                "",
-              ]],
+              ["denops#_internal#event#emit", ["DenopsSystemReady"]],
             ],
           );
           messageStub.fakeHostMessage(nvimCodec.encode([1, 2, null, ""]));
@@ -455,7 +449,7 @@ for (const { host, mode } of matrix) {
         // requests Meta data
         messageStub.fakeHostMessage(vimCodec.encode([-1, [fakeMeta, ""]]));
         await delay(0);
-        // doautocmd `User DenopsSystemReady`
+        // emits `DenopsSystemReady`
         messageStub.fakeHostMessage(vimCodec.encode([-2, ["", ""]]));
         await delay(0);
       } else {
@@ -468,7 +462,7 @@ for (const { host, mode } of matrix) {
         // sets client info
         messageStub.fakeHostMessage(nvimCodec.encode([1, 1, null, 0]));
         await delay(0);
-        // doautocmd `User DenopsSystemReady`
+        // emits `DenopsSystemReady`
         messageStub.fakeHostMessage(nvimCodec.encode([1, 2, null, ""]));
         await delay(0);
       }
@@ -533,7 +527,7 @@ for (const { host, mode } of matrix) {
         // requests Meta data
         messageStub.fakeHostMessage(vimCodec.encode([-1, [fakeMeta, ""]]));
         await delay(0);
-        // doautocmd `User DenopsSystemReady`
+        // emits `DenopsSystemReady`
         messageStub.fakeHostMessage(vimCodec.encode([-2, ["", ""]]));
         await delay(0);
       } else {
@@ -546,7 +540,7 @@ for (const { host, mode } of matrix) {
         // sets client info
         messageStub.fakeHostMessage(nvimCodec.encode([1, 1, null, 0]));
         await delay(0);
-        // doautocmd `User DenopsSystemReady`
+        // emits `DenopsSystemReady`
         messageStub.fakeHostMessage(nvimCodec.encode([1, 2, null, ""]));
         await delay(0);
       }

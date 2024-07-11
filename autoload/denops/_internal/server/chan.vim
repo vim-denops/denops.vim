@@ -137,7 +137,7 @@ function! s:on_close(options) abort
   let s:chan = v:null
   call s:clear_force_close_delayer()
   call denops#_internal#echo#debug(printf('Channel closed (%s)', s:addr))
-  doautocmd <nomodeline> User DenopsSystemClosed
+  call denops#_internal#event#emit('DenopsSystemClosed')
   if s:chan isnot# v:null || !a:options.reconnect_on_close || s:closed_on_purpose || s:exiting
     return
   endif
