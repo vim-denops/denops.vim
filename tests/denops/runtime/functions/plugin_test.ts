@@ -1024,6 +1024,22 @@ testHost({
     });
 
     await t.step("denops#plugin#is_loaded()", async (t) => {
+      await using stack = new AsyncDisposableStack();
+      stack.defer(async () => {
+        await host.call("execute", [
+          "augroup __test_denops_is_loaded",
+          "  autocmd!",
+          "augroup END",
+        ], "");
+      });
+      await host.call("execute", [
+        "let g:__test_denops_is_loaded = {}",
+        "augroup __test_denops_is_loaded",
+        "  autocmd!",
+        "  autocmd User DenopsPlugin* let g:__test_denops_is_loaded[expand('<amatch>')] = denops#plugin#is_loaded(expand('<amatch>')->matchstr(':\\zs.*'))",
+        "augroup END",
+      ], "");
+
       await t.step("if the plugin is not yet loaded", async (t) => {
         await t.step("returns 0", async () => {
           const actual = await host.call(
@@ -1038,6 +1054,7 @@ testHost({
         // Load plugin and wait failure.
         await host.call("execute", [
           "let g:__test_denops_events = []",
+          "let g:__test_denops_is_loaded = {}",
           `call denops#plugin#load('dummyIsLoadedInvalid', '${scriptInvalid}')`,
         ], "");
         await wait(async () =>
@@ -1045,7 +1062,23 @@ testHost({
             .includes("DenopsPluginFail:dummyIsLoadedInvalid")
         );
 
-        await t.step("returns 1", async () => {
+        await t.step("returns 0 when DenopsPluginPre", async () => {
+          const actual = await host.call(
+            "eval",
+            "g:__test_denops_is_loaded['DenopsPluginPre:dummyIsLoadedInvalid']",
+          );
+          assertEquals(actual, 0);
+        });
+
+        await t.step("returns 1 when DenopsPluginFail", async () => {
+          const actual = await host.call(
+            "eval",
+            "g:__test_denops_is_loaded['DenopsPluginFail:dummyIsLoadedInvalid']",
+          );
+          assertEquals(actual, 1);
+        });
+
+        await t.step("returns 1 after DenopsPluginFail", async () => {
           const actual = await host.call(
             "denops#plugin#is_loaded",
             "dummyIsLoadedInvalid",
@@ -1069,6 +1102,7 @@ testHost({
         // Unload plugin and wait failure.
         await host.call("execute", [
           "let g:__test_denops_events = []",
+          "let g:__test_denops_is_loaded = {}",
           `call denops#plugin#unload('dummyIsLoadedInvalidDispose')`,
         ], "");
         await wait(async () =>
@@ -1076,7 +1110,23 @@ testHost({
             .includes("DenopsPluginUnloadFail:dummyIsLoadedInvalidDispose")
         );
 
-        await t.step("returns 0", async () => {
+        await t.step("returns 0 when DenopsPluginUnloadPre", async () => {
+          const actual = await host.call(
+            "eval",
+            "g:__test_denops_is_loaded['DenopsPluginUnloadPre:dummyIsLoadedInvalidDispose']",
+          );
+          assertEquals(actual, 0);
+        });
+
+        await t.step("returns 0 when DenopsPluginUnloadFail", async () => {
+          const actual = await host.call(
+            "eval",
+            "g:__test_denops_is_loaded['DenopsPluginUnloadFail:dummyIsLoadedInvalidDispose']",
+          );
+          assertEquals(actual, 0);
+        });
+
+        await t.step("returns 0 after DenopsPluginUnloadFail", async () => {
           const actual = await host.call(
             "denops#plugin#is_loaded",
             "dummyIsLoadedInvalidDispose",
@@ -1088,36 +1138,46 @@ testHost({
       });
 
       await t.step("if the plugin is loading", async (t) => {
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#load('dummyIsLoadedLoading', '${scriptValid}')`,
-          "let g:__test_denops_plugin_is_loaded = denops#plugin#is_loaded('dummyIsLoadedLoading')",
-        ], "");
-
-        await t.step("returns 1", async () => {
-          const actual = await host.call(
-            "eval",
-            "g:__test_denops_plugin_is_loaded",
-          );
-          assertEquals(actual, 0);
-        });
-      });
-
-      await t.step("if the plugin is loaded", async (t) => {
         // Load plugin and wait.
         await host.call("execute", [
           "let g:__test_denops_events = []",
-          `call denops#plugin#load('dummyIsLoadedLoaded', '${scriptValid}')`,
+          "let g:__test_denops_is_loaded = {}",
+          `call denops#plugin#load('dummyIsLoadedLoading', '${scriptValid}')`,
+          "let g:__test_denops_plugin_is_loaded_after_load = denops#plugin#is_loaded('dummyIsLoadedLoading')",
         ], "");
         await wait(async () =>
           (await host.call("eval", "g:__test_denops_events") as string[])
-            .includes("DenopsPluginPost:dummyIsLoadedLoaded")
+            .includes("DenopsPluginPost:dummyIsLoadedLoading")
         );
 
-        await t.step("returns 1", async () => {
+        await t.step("returns 0 immediately after `load()`", async () => {
+          const actual = await host.call(
+            "eval",
+            "g:__test_denops_plugin_is_loaded_after_load",
+          );
+          assertEquals(actual, 0);
+        });
+
+        await t.step("returns 0 when DenopsPluginPre", async () => {
+          const actual = await host.call(
+            "eval",
+            "g:__test_denops_is_loaded['DenopsPluginPre:dummyIsLoadedLoading']",
+          );
+          assertEquals(actual, 0);
+        });
+
+        await t.step("returns 1 when DenopsPluginPost", async () => {
+          const actual = await host.call(
+            "eval",
+            "g:__test_denops_is_loaded['DenopsPluginPost:dummyIsLoadedLoading']",
+          );
+          assertEquals(actual, 1);
+        });
+
+        await t.step("returns 1 after DenopsPluginPost", async () => {
           const actual = await host.call(
             "denops#plugin#is_loaded",
-            "dummyIsLoadedLoaded",
+            "dummyIsLoadedLoading",
           );
           assertEquals(actual, 1);
         });
@@ -1133,46 +1193,46 @@ testHost({
           (await host.call("eval", "g:__test_denops_events") as string[])
             .includes("DenopsPluginPost:dummyIsLoadedUnloading")
         );
-
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#unload('dummyIsLoadedUnloading')`,
-          "let g:__test_denops_plugin_is_loaded = denops#plugin#is_loaded('dummyIsLoadedUnloading')",
-        ], "");
-
-        await t.step("returns 0", async () => {
-          const actual = await host.call(
-            "eval",
-            "g:__test_denops_plugin_is_loaded",
-          );
-          assertEquals(actual, 0);
-        });
-      });
-
-      await t.step("if the plugin is unloaded", async (t) => {
-        // Load plugin and wait.
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#load('dummyIsLoadedUnloaded', '${scriptValid}')`,
-        ], "");
-        await wait(async () =>
-          (await host.call("eval", "g:__test_denops_events") as string[])
-            .includes("DenopsPluginPost:dummyIsLoadedUnloaded")
-        );
         // Unload plugin and wait.
         await host.call("execute", [
           "let g:__test_denops_events = []",
-          `call denops#plugin#unload('dummyIsLoadedUnloaded')`,
+          "let g:__test_denops_is_loaded = {}",
+          `call denops#plugin#unload('dummyIsLoadedUnloading')`,
+          "let g:__test_denops_plugin_is_loaded_after_unload = denops#plugin#is_loaded('dummyIsLoadedUnloading')",
         ], "");
         await wait(async () =>
           (await host.call("eval", "g:__test_denops_events") as string[])
-            .includes("DenopsPluginUnloadPost:dummyIsLoadedUnloaded")
+            .includes("DenopsPluginUnloadPost:dummyIsLoadedUnloading")
         );
 
-        await t.step("returns 0", async () => {
+        await t.step("returns 0 immediately after `unload()`", async () => {
           const actual = await host.call(
             "eval",
-            "g:__test_denops_plugin_is_loaded",
+            "g:__test_denops_plugin_is_loaded_after_unload",
+          );
+          assertEquals(actual, 0);
+        });
+
+        await t.step("returns 0 when DenopsPluginUnloadPre", async () => {
+          const actual = await host.call(
+            "eval",
+            "g:__test_denops_is_loaded['DenopsPluginUnloadPre:dummyIsLoadedUnloading']",
+          );
+          assertEquals(actual, 0);
+        });
+
+        await t.step("returns 0 when DenopsPluginUnloadPost", async () => {
+          const actual = await host.call(
+            "eval",
+            "g:__test_denops_is_loaded['DenopsPluginUnloadPost:dummyIsLoadedUnloading']",
+          );
+          assertEquals(actual, 0);
+        });
+
+        await t.step("returns 0 after DenopsPluginUnloadPost", async () => {
+          const actual = await host.call(
+            "denops#plugin#is_loaded",
+            "dummyIsLoadedUnloading",
           );
           assertEquals(actual, 0);
         });
@@ -1188,146 +1248,30 @@ testHost({
           (await host.call("eval", "g:__test_denops_events") as string[])
             .includes("DenopsPluginPost:dummyIsLoadedReloading")
         );
-
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#reload('dummyIsLoadedReloading')`,
-          "let g:__test_denops_plugin_is_loaded = denops#plugin#is_loaded('dummyIsLoadedReloading')",
-        ], "");
-
-        await t.step("returns 0", async () => {
-          const actual = await host.call(
-            "eval",
-            "g:__test_denops_plugin_is_loaded",
-          );
-          assertEquals(actual, 0);
-        });
-      });
-
-      await t.step("if the plugin is reloaded", async (t) => {
-        // Load plugin and wait.
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#load('dummyIsLoadedReloaded', '${scriptValid}')`,
-        ], "");
-        await wait(async () =>
-          (await host.call("eval", "g:__test_denops_events") as string[])
-            .includes("DenopsPluginPost:dummyIsLoadedReloaded")
-        );
         // Reload plugin and wait.
         await host.call("execute", [
           "let g:__test_denops_events = []",
-          `call denops#plugin#reload('dummyIsLoadedReloaded')`,
-        ], "");
-        await wait(async () =>
-          (await host.call("eval", "g:__test_denops_events") as string[])
-            .includes("DenopsPluginPost:dummyIsLoadedReloaded")
-        );
-
-        await t.step("returns 1", async () => {
-          const actual = await host.call(
-            "denops#plugin#is_loaded",
-            "dummyIsLoadedLoaded",
-          );
-          assertEquals(actual, 1);
-        });
-      });
-
-      await t.step("called in autocmd event", async (t) => {
-        await using stack = new AsyncDisposableStack();
-        stack.defer(async () => {
-          await host.call("execute", [
-            "augroup __test_denops_is_loaded",
-            "  autocmd!",
-            "augroup END",
-          ], "");
-        });
-        await host.call("execute", [
           "let g:__test_denops_is_loaded = {}",
-          "augroup __test_denops_is_loaded",
-          "  autocmd!",
-          "  autocmd User DenopsPlugin* let g:__test_denops_is_loaded[expand('<amatch>')] = denops#plugin#is_loaded(expand('<amatch>')->matchstr(':\\zs.*'))",
-          "augroup END",
-        ], "");
-
-        // Load plugin and wait.
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#load('dummyIsLoadedEventValid', '${scriptValid}')`,
+          `call denops#plugin#reload('dummyIsLoadedReloading')`,
+          "let g:__test_denops_plugin_is_loaded_after_reload = denops#plugin#is_loaded('dummyIsLoadedReloading')",
         ], "");
         await wait(async () =>
           (await host.call("eval", "g:__test_denops_events") as string[])
-            .includes("DenopsPluginPost:dummyIsLoadedEventValid")
-        );
-        // Unload plugin and wait.
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#unload('dummyIsLoadedEventValid')`,
-        ], "");
-        await wait(async () =>
-          (await host.call("eval", "g:__test_denops_events") as string[])
-            .includes("DenopsPluginUnloadPost:dummyIsLoadedEventValid")
+            .includes("DenopsPluginPost:dummyIsLoadedReloading")
         );
 
-        // Load plugin and wait failure.
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#load('dummyIsLoadedEventInvalid', '${scriptInvalid}')`,
-        ], "");
-        await wait(async () =>
-          (await host.call("eval", "g:__test_denops_events") as string[])
-            .includes("DenopsPluginFail:dummyIsLoadedEventInvalid")
-        );
-
-        // Load plugin and wait.
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#load('dummyIsLoadedEventInvalidDispose', '${scriptInvalidDispose}')`,
-        ], "");
-        await wait(async () =>
-          (await host.call("eval", "g:__test_denops_events") as string[])
-            .includes("DenopsPluginPost:dummyIsLoadedEventInvalidDispose")
-        );
-        // Unload plugin and wait failure.
-        await host.call("execute", [
-          "let g:__test_denops_events = []",
-          `call denops#plugin#unload('dummyIsLoadedEventInvalidDispose')`,
-        ], "");
-        await wait(async () =>
-          (await host.call("eval", "g:__test_denops_events") as string[])
-            .includes("DenopsPluginUnloadFail:dummyIsLoadedEventInvalidDispose")
-        );
-
-        await delay(MESSAGE_DELAY); // Wait outputs of denops#plugin#unload()
-
-        await t.step("returns 0 when DenopsPluginPre", async () => {
+        await t.step("returns 0 immediately after `reaload()`", async () => {
           const actual = await host.call(
             "eval",
-            "g:__test_denops_is_loaded['DenopsPluginPre:dummyIsLoadedEventValid']",
+            "g:__test_denops_plugin_is_loaded_after_reload",
           );
           assertEquals(actual, 0);
-        });
-
-        await t.step("returns 1 when DenopsPluginPost", async () => {
-          const actual = await host.call(
-            "eval",
-            "g:__test_denops_is_loaded['DenopsPluginPost:dummyIsLoadedEventValid']",
-          );
-          assertEquals(actual, 1);
-        });
-
-        await t.step("returns 1 when DenopsPluginFail", async () => {
-          const actual = await host.call(
-            "eval",
-            "g:__test_denops_is_loaded['DenopsPluginFail:dummyIsLoadedEventInvalid']",
-          );
-          assertEquals(actual, 1);
         });
 
         await t.step("returns 0 when DenopsPluginUnloadPre", async () => {
           const actual = await host.call(
             "eval",
-            "g:__test_denops_is_loaded['DenopsPluginUnloadPre:dummyIsLoadedEventValid']",
+            "g:__test_denops_is_loaded['DenopsPluginUnloadPre:dummyIsLoadedReloading']",
           );
           assertEquals(actual, 0);
         });
@@ -1335,17 +1279,33 @@ testHost({
         await t.step("returns 0 when DenopsPluginUnloadPost", async () => {
           const actual = await host.call(
             "eval",
-            "g:__test_denops_is_loaded['DenopsPluginUnloadPost:dummyIsLoadedEventValid']",
+            "g:__test_denops_is_loaded['DenopsPluginUnloadPost:dummyIsLoadedReloading']",
           );
           assertEquals(actual, 0);
         });
 
-        await t.step("returns 0 when DenopsPluginUnloadFail", async () => {
+        await t.step("returns 0 when DenopsPluginPre", async () => {
           const actual = await host.call(
             "eval",
-            "g:__test_denops_is_loaded['DenopsPluginUnloadFail:dummyIsLoadedEventInvalidDispose']",
+            "g:__test_denops_is_loaded['DenopsPluginPre:dummyIsLoadedReloading']",
           );
           assertEquals(actual, 0);
+        });
+
+        await t.step("returns 1 when DenopsPluginPost", async () => {
+          const actual = await host.call(
+            "eval",
+            "g:__test_denops_is_loaded['DenopsPluginPost:dummyIsLoadedReloading']",
+          );
+          assertEquals(actual, 1);
+        });
+
+        await t.step("returns 1 after DenopsPluginPost", async () => {
+          const actual = await host.call(
+            "denops#plugin#is_loaded",
+            "dummyIsLoadedReloading",
+          );
+          assertEquals(actual, 1);
         });
       });
     });
