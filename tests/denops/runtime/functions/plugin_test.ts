@@ -1363,9 +1363,14 @@ testHost({
       ], "");
 
       await t.step("loads denops plugins", async () => {
+        const loaded_events = [
+          "DenopsPluginPost:",
+          "DenopsPluginFail:",
+        ];
         await wait(async () =>
           (await host.call("eval", "g:__test_denops_events") as string[])
-            .filter((ev) => /^DenopsPlugin(?:Post|Fail):/.test(ev)).length >= 2
+            .filter((ev) => loaded_events.some((name) => ev.startsWith(name)))
+            .length >= 2
         );
       });
 
@@ -1381,10 +1386,14 @@ testHost({
         );
       });
 
-      await t.step("does not load plugins name start with '@'", async () => {
+      await t.step("does not load invaid name plugins", async () => {
+        const valid_names = [
+          ":dummy_valid",
+          ":dummy_invalid",
+        ] as const;
         const actual =
           (await host.call("eval", "g:__test_denops_events") as string[])
-            .filter((ev) => ev.includes("@dummy_namespace"));
+            .filter((ev) => !valid_names.some((name) => ev.endsWith(name)));
         assertEquals(actual, []);
       });
 

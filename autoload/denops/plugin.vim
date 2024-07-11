@@ -66,7 +66,7 @@ function! denops#plugin#discover() abort
   let l:counter = 0 
   for l:script in globpath(&runtimepath, l:pattern, 1, 1, 1)
     let l:name = fnamemodify(l:script, ':h:t')
-    if l:name[:0] ==# '@' || !filereadable(l:script)
+    if !denops#_internal#plugin#is_valid_name(l:name) || !filereadable(l:script)
       continue
     endif
     call denops#plugin#load(l:name, l:script)

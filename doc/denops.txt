@@ -412,8 +412,8 @@ denops#plugin#register({name}[, {script}[, {options}]])
 						*denops#plugin#discover()*
 denops#plugin#discover()
 	Discovers denops plugins from 'runtimepath' and loads them.
-	It gathers "main.ts" under "denops/*" directories under 'runtimepath'
-	if the middle directory does not start with "@".
+	It gathers "main.ts" in directories that match the |denops-plugin-name|
+	from "denops/*" under 'runtimepath'.
         This is automatically called on |User| |DenopsReady| autocmd invoked
         by |denops#server#start()|.
 
