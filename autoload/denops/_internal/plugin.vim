@@ -4,10 +4,19 @@ const s:STATE_LOADED = 'loaded'
 const s:STATE_UNLOADING = 'unloading'
 const s:STATE_FAILED = 'failed'
 
+const s:VALID_NAME_PATTERN = '^[-_0-9a-zA-Z]\+$'
+
 let s:plugins = {}
+
+function! denops#_internal#plugin#is_valid_name(name) abort
+  return a:name =~# s:VALID_NAME_PATTERN
+endfunction
 
 function! denops#_internal#plugin#get(name) abort
   if !has_key(s:plugins, a:name)
+    if !denops#_internal#plugin#is_valid_name(a:name)
+      throw printf('[denops] Invalid plugin name: %s', a:name)
+    endif
     let s:plugins[a:name] = #{name: a:name, script: '', state: s:STATE_RESERVED, callbacks: []}
   endif
   return s:plugins[a:name]

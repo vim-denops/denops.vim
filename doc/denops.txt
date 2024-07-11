@@ -347,12 +347,17 @@ denops#server#wait_async({callback})
 denops#plugin#is_loaded({name})
 	Returns 1 if a {name} plugin is already loaded or failed to load.
 	Returns 0 otherwise, even if |denops#plugin#unload()| or
-	|denops#plugin#reload()| are called.
+	|denops#plugin#reload()| are called. It throws an error when {name} does
+	not match the |denops-plugin-name|.
+
+	The *denops-plugin-name* only allows ASCII characters '0'-'9', 'a'-'z',
+	'A'-'Z', '_' and '-', and may not be empty.
 
 						*denops#plugin#wait()*
 denops#plugin#wait({name}[, {options}])
 	Waits synchronously until a {name} plugin is loaded or failed to load.
-	It returns immediately when the {name} plugin is already loaded.
+	It returns immediately when the {name} plugin is already loaded. It
+	throws an error when {name} does not match the |denops-plugin-name|.
 
 	Developers need to consider the following return value to decide
 	whether to continue with the subsequent process:
@@ -378,7 +383,8 @@ denops#plugin#wait_async({name}, {callback})
 	{callback}. It invokes the {callback} immediately when the {name}
 	plugin is already loaded. If this function is called multiple times
 	for the same {name} plugin, callbacks registered for the plugin are
-	called in order of registration.
+	called in order of registration. It throws an error when {name} does
+	not match the |denops-plugin-name|.
 
 						*denops#plugin#register()*
 denops#plugin#register({name}[, {script}[, {options}]])
@@ -415,7 +421,8 @@ denops#plugin#discover()
 denops#plugin#load({name}, {script})
 	Loads a denops plugin. Use this function to load denops plugins that
 	are not discovered by |denops#plugin#discover()|. If the {name} plugin
-	is already loaded, it does nothing.
+	is already loaded, it does nothing. It throws an error when {name}
+	does not match the |denops-plugin-name|.
 
 	Loading a plugin involves the following event steps:
 
@@ -428,7 +435,8 @@ denops#plugin#load({name}, {script})
 denops#plugin#unload({name})
 	Unloads a denops plugin. If the {name} plugin is currently loading, it
 	will be unloaded after it has been successfully loaded. If the {name}
-	plugin does not exist or fails to load, it does nothing.
+	plugin does not exist or fails to load, it does nothing. It throws an
+	error when {name} does not match the |denops-plugin-name|.
 
 	Unloading a plugin involves the following event steps:
 
@@ -444,7 +452,8 @@ denops#plugin#unload({name})
 						*denops#plugin#reload()*
 denops#plugin#reload({plugin}[, {options}])
 	Reloads a denops plugin. If the {name} plugin does not exist or fails
-	to load, it does nothing.
+	to load, it does nothing. It throws an error when {name} does not
+	match the |denops-plugin-name|.
 
 	It invokes |User| autocommand events. See |denops#plugin#load()| and
 	|denops#plugin#unload()| for details.
@@ -452,7 +461,8 @@ denops#plugin#reload({plugin}[, {options}])
 						*denops#plugin#check_type()*
 denops#plugin#check_type([{name}])
 	Runs Deno's type check feature for {name} or all registered plugins.
-	The result of the check will be displayed in |message-history|.
+	The result of the check will be displayed in |message-history|. It
+	throws an error when {name} does not match the |denops-plugin-name|.
 
 						*denops#callback#register()*
 denops#callback#register({callback}[, {options}])
