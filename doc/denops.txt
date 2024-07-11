@@ -386,29 +386,6 @@ denops#plugin#wait_async({name}, {callback})
 	called in order of registration. It throws an error when {name} does
 	not match the |denops-plugin-name|.
 
-						*denops#plugin#register()*
-denops#plugin#register({name}[, {script}[, {options}]])
-	DEPRECATED: Use |denops#plugin#load()| instead.
-
-	Developers who would like to support previous denops versions should
-	fallback to this function like
->
-	try
-	  call denops#plugin#load(
-	        \ "denops-hello",
-	        \ "/path/to/denops-hello/main.ts",
-	        \)
-	catch /^Vim\%((\a\+)\)\=:E117:/
-	  " Fallback to `register` for backward compatibility
-	  call denops#plugin#register(
-	        \ "denops-hello",
-	        \ "/path/to/denops-hello/main.ts",
-	        \ {"mode": "skip"},
-	        \)
-	endtry
-<
-	Note that the {options} are ignored and always treated as skip mode.
-
 						*denops#plugin#discover()*
 denops#plugin#discover()
 	Discovers denops plugins from 'runtimepath' and loads them.
