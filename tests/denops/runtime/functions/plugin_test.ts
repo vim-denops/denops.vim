@@ -40,6 +40,17 @@ testHost({
     ], "");
 
     await t.step("denops#plugin#load()", async (t) => {
+      await t.step("if the plugin name is invalid", async (t) => {
+        await t.step("throws an error", async () => {
+          // NOTE: '.' is not allowed in plugin name.
+          await assertRejects(
+            () => host.call("denops#plugin#load", "dummy.invalid", scriptValid),
+            Error,
+            "Invalid plugin name: dummy.invalid",
+          );
+        });
+      });
+
       await t.step("if the plugin is not yet loaded", async (t) => {
         outputs = [];
         await host.call("execute", [
@@ -386,6 +397,17 @@ testHost({
     });
 
     await t.step("denops#plugin#unload()", async (t) => {
+      await t.step("if the plugin name is invalid", async (t) => {
+        await t.step("throws an error", async () => {
+          // NOTE: '.' is not allowed in plugin name.
+          await assertRejects(
+            () => host.call("denops#plugin#unload", "dummy.invalid"),
+            Error,
+            "Invalid plugin name: dummy.invalid",
+          );
+        });
+      });
+
       await t.step("if the plugin is not yet loaded", async (t) => {
         outputs = [];
         await host.call("execute", [
@@ -704,6 +726,17 @@ testHost({
     });
 
     await t.step("denops#plugin#reload()", async (t) => {
+      await t.step("if the plugin name is invalid", async (t) => {
+        await t.step("throws an error", async () => {
+          // NOTE: '.' is not allowed in plugin name.
+          await assertRejects(
+            () => host.call("denops#plugin#reload", "dummy.invalid"),
+            Error,
+            "Invalid plugin name: dummy.invalid",
+          );
+        });
+      });
+
       await t.step("if the plugin is not yet loaded", async (t) => {
         outputs = [];
         await host.call("execute", [
@@ -1039,6 +1072,17 @@ testHost({
         "  autocmd User DenopsPlugin* let g:__test_denops_is_loaded[expand('<amatch>')] = denops#plugin#is_loaded(expand('<amatch>')->matchstr(':\\zs.*'))",
         "augroup END",
       ], "");
+
+      await t.step("if the plugin name is invalid", async (t) => {
+        await t.step("throws an error", async () => {
+          // NOTE: '.' is not allowed in plugin name.
+          await assertRejects(
+            () => host.call("denops#plugin#is_loaded", "dummy.invalid"),
+            Error,
+            "Invalid plugin name: dummy.invalid",
+          );
+        });
+      });
 
       await t.step("if the plugin is not yet loaded", async (t) => {
         await t.step("returns 0", async () => {
@@ -1377,6 +1421,17 @@ testHost({
         });
       });
 
+      await t.step("if the plugin name is invalid", async (t) => {
+        await t.step("throws an error", async () => {
+          // NOTE: '.' is not allowed in plugin name.
+          await assertRejects(
+            () => host.call("denops#plugin#check_type", "dummy.invalid"),
+            Error,
+            "Invalid plugin name: dummy.invalid",
+          );
+        });
+      });
+
       await t.step("if the plugin is not yet loaded", async (t) => {
         outputs = [];
         await host.call("execute", [
@@ -1479,6 +1534,20 @@ testHost({
     });
 
     await t.step("denops#plugin#wait_async()", async (t) => {
+      await t.step("if the plugin name is invalid", async (t) => {
+        await t.step("throws an error", async () => {
+          // NOTE: '.' is not allowed in plugin name.
+          await assertRejects(
+            () =>
+              host.call("execute", [
+                "call denops#plugin#wait_async('dummy.invalid', { -> 0 })",
+              ], ""),
+            Error,
+            "Invalid plugin name: dummy.invalid",
+          );
+        });
+      });
+
       await t.step("if the plugin is load asynchronously", async (t) => {
         // Load plugin asynchronously.
         await host.call("execute", [
@@ -1746,6 +1815,17 @@ testHost({
 
     // NOTE: This test stops the denops server.
     await t.step("denops#plugin#wait()", async (t) => {
+      await t.step("if the plugin name is invalid", async (t) => {
+        await t.step("throws an error", async () => {
+          // NOTE: '.' is not allowed in plugin name.
+          await assertRejects(
+            () => host.call("denops#plugin#wait", "dummy.invalid"),
+            Error,
+            "Invalid plugin name: dummy.invalid",
+          );
+        });
+      });
+
       await t.step("if the plugin is loading", async (t) => {
         await host.call("execute", [
           "let g:__test_denops_events = []",
