@@ -68,7 +68,7 @@ function! s:start(options) abort
         \ 'on_exit': { _job, status, _event -> s:on_exit(a:options, status) },
         \})
   call denops#_internal#echo#debug(printf('Server started: %s', l:args))
-  doautocmd <nomodeline> User DenopsSystemProcessStarted
+  call denops#_internal#event#emit('DenopsSystemProcessStarted')
 endfunction
 
 function! s:on_stdout(store, data) abort
@@ -81,7 +81,7 @@ function! s:on_stdout(store, data) abort
   let a:store.prepared = 1
   let l:addr = substitute(a:data, '\r\?\n$', '', 'g')
   call denops#_internal#echo#debug(printf('Server listen: %s', l:addr))
-  execute printf('doautocmd <nomodeline> User DenopsSystemProcessListen:%s', l:addr)
+  call denops#_internal#event#emit(printf('DenopsSystemProcessListen:%s', l:addr))
 endfunction
 
 function! s:on_stderr(data) abort
@@ -95,7 +95,7 @@ endfunction
 function! s:on_exit(options, status) abort
   let s:job = v:null
   call denops#_internal#echo#debug(printf('Server stopped: %s', a:status))
-  execute printf('doautocmd <nomodeline> User DenopsSystemProcessStopped:%s', a:status)
+  call denops#_internal#event#emit(printf('DenopsSystemProcessStopped:%s', a:status))
   if s:job isnot# v:null || !a:options.restart_on_exit || s:stopped_on_purpose || s:exiting
     return
   endif

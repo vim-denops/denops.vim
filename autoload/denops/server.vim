@@ -211,7 +211,7 @@ function! s:disconnect(...) abort
 endfunction
 
 function! s:DenopsSystemProcessStarted() abort
-  doautocmd <nomodeline> User DenopsProcessStarted
+  call denops#_internal#event#emit('DenopsProcessStarted')
 endfunction
 
 function! s:DenopsSystemProcessListen(expr) abort
@@ -229,7 +229,7 @@ function! s:DenopsSystemReady() abort
       call l:Callback()
     endfor
   finally
-    doautocmd <nomodeline> User DenopsReady
+    call denops#_internal#event#emit('DenopsReady')
   endtry
 endfunction
 
@@ -253,7 +253,7 @@ function! s:DenopsSystemClosed() abort
     endif
     let s:local_addr = ""
   finally
-    doautocmd <nomodeline> User DenopsClosed
+    call denops#_internal#event#emit('DenopsClosed')
   endtry
 endfunction
 
@@ -268,10 +268,7 @@ function! s:DenopsSystemProcessStopped(expr) abort
       call denops#server#start()
     endif
   finally
-    execute printf(
-          \ 'doautocmd <nomodeline> User DenopsProcessStopped:%s',
-          \ l:status,
-          \)
+    call denops#_internal#event#emit(printf('DenopsProcessStopped:%s', l:status))
   endtry
 endfunction
 

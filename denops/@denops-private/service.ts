@@ -281,7 +281,7 @@ function createScriptSuffix(script: string): string {
 /** NOTE: `emit()` is never throws or rejects. */
 async function emit(denops: Denops, name: string): Promise<void> {
   try {
-    await denops.cmd(`doautocmd <nomodeline> User ${name}`);
+    await denops.call("denops#_internal#event#emit", name);
   } catch (e) {
     console.error(`Failed to emit ${name}: ${e}`);
   }
