@@ -21,17 +21,22 @@ function! denops#_internal#plugin#load(name, script) abort
   const l:script = denops#_internal#path#norm(a:script)
   const l:args = [a:name, l:script]
   let l:plugin = denops#_internal#plugin#get(a:name)
+  if l:plugin.state !=# s:STATE_RESERVED && l:plugin.state !=# s:STATE_FAILED
+    call denops#_internal#echo#debug(printf('already loaded. skip: %s', l:args))
+    return
+  endif
   let l:plugin.state = s:STATE_LOADING
   let l:plugin.script = l:script
-  let s:plugins[a:name] = l:plugin
   call denops#_internal#echo#debug(printf('load plugin: %s', l:args))
   call denops#_internal#server#chan#notify('invoke', ['load', l:args])
 endfunction
 
 function! denops#_internal#plugin#unload(name) abort
-  let l:args = [a:name]
+  const l:args = [a:name]
   let l:plugin = denops#_internal#plugin#get(a:name)
-  let l:plugin.state = s:STATE_UNLOADING
+  if l:plugin.state ==# s:STATE_LOADED
+    let l:plugin.state = s:STATE_UNLOADING
+  endif
   call denops#_internal#echo#debug(printf('unload plugin: %s', l:args))
   call denops#_internal#server#chan#notify('invoke', ['unload', l:args])
 endfunction
@@ -39,13 +44,17 @@ endfunction
 function! denops#_internal#plugin#reload(name) abort
   const l:args = [a:name]
   let l:plugin = denops#_internal#plugin#get(a:name)
-  let l:plugin.state = s:STATE_LOADING
+  if l:plugin.state ==# s:STATE_LOADED
+    let l:plugin.state = s:STATE_UNLOADING
+  endif
   call denops#_internal#echo#debug(printf('reload plugin: %s', l:args))
   call denops#_internal#server#chan#notify('invoke', ['reload', l:args])
 endfunction
 
 function! s:DenopsSystemPluginPre() abort
   const l:name = matchstr(expand('<amatch>'), 'DenopsSystemPluginPre:\zs.*')
+  let l:plugin = denops#_internal#plugin#get(l:name)
+  let l:plugin.state = s:STATE_LOADING
   execute printf('doautocmd <nomodeline> User DenopsPluginPre:%s', l:name)
 endfunction
 
@@ -80,14 +89,13 @@ function! s:DenopsSystemPluginUnloadPost() abort
   const l:name = matchstr(expand('<amatch>'), 'DenopsSystemPluginUnloadPost:\zs.*')
   let l:plugin = denops#_internal#plugin#get(l:name)
   let l:plugin.state = s:STATE_RESERVED
-  let l:plugin.callbacks = []
   execute printf('doautocmd <nomodeline> User DenopsPluginUnloadPost:%s', l:name)
 endfunction
 
 function! s:DenopsSystemPluginUnloadFail() abort
   const l:name = matchstr(expand('<amatch>'), 'DenopsSystemPluginUnloadFail:\zs.*')
   let l:plugin = denops#_internal#plugin#get(l:name)
-  let l:plugin.state = s:STATE_FAILED
+  let l:plugin.state = s:STATE_RESERVED
   let l:plugin.callbacks = []
   execute printf('doautocmd <nomodeline> User DenopsPluginUnloadFail:%s', l:name)
 endfunction

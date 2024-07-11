@@ -351,6 +351,101 @@ Deno.test("Service", async (t) => {
         });
       });
     });
+
+    await t.step("if the plugin is loading", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using console_log = stub(console, "log");
+      using host_call = stub(host, "call");
+
+      const prevLoadPromise = service.load("dummy", scriptValid);
+      const loadPromise = service.load("dummy", scriptInvalid);
+
+      await t.step("resolves", async () => {
+        await loadPromise;
+      });
+
+      await t.step("outputs a log message", () => {
+        assertSpyCall(console_log, 0, {
+          args: [
+            "A denops plugin 'dummy' is already loaded. Skip",
+          ],
+        });
+      });
+
+      await t.step("previous `load()` resolves", async () => {
+        await prevLoadPromise;
+      });
+
+      await t.step("emits `load()` events", () => {
+        const events = host_call.calls.map((c) => c.args);
+        assertEquals(events, [
+          // Previous `load()` events.
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "echo 'Hello, Denops!'",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
+            {},
+          ],
+        ]);
+      });
+    });
+
+    await t.step("if the plugin is unloading", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using console_log = stub(console, "log");
+      using host_call = stub(host, "call");
+
+      const prevUnloadPromise = service.unload("dummy");
+      const loadPromise = service.load("dummy", scriptInvalid);
+
+      await t.step("resolves", async () => {
+        await loadPromise;
+      });
+
+      await t.step("outputs a log message", () => {
+        assertSpyCall(console_log, 0, {
+          args: [
+            "A denops plugin 'dummy' is already loaded. Skip",
+          ],
+        });
+      });
+
+      await t.step("previous `unload()` resolves", async () => {
+        await prevUnloadPromise;
+      });
+
+      await t.step("emits `unload()` events", () => {
+        const events = host_call.calls.map((c) => c.args);
+        assertEquals(events, [
+          // Previous `unload()` events.
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
+            {},
+          ],
+        ]);
+      });
+    });
   });
 
   await t.step(".unload()", async (t) => {
@@ -526,27 +621,26 @@ Deno.test("Service", async (t) => {
       });
     });
 
-    await t.step("if called before `load()` resolves", async (t) => {
+    await t.step("if the plugin is loading", async (t) => {
       const service = new Service(meta);
       service.bind(host);
       using host_call = stub(host, "call");
 
-      const loadPromise = service.load("dummy", scriptValid);
+      const prevLoadPromise = service.load("dummy", scriptValid);
       const unloadPromise = service.unload("dummy");
 
       await t.step("resolves", async () => {
         await unloadPromise;
       });
 
-      await t.step("`load()` was resolved", async () => {
-        assertEquals(await promiseState(loadPromise), "fulfilled");
+      await t.step("previous `load()` was resolved", async () => {
+        assertEquals(await promiseState(prevLoadPromise), "fulfilled");
       });
 
-      await t.step("emits events in the correct order", () => {
-        const events = host_call.calls
-          .map((c) => c.args)
-          .filter((args) => (args[1] as string)?.startsWith("doautocmd"));
+      await t.step("emits `load()` and `unload()` events", () => {
+        const events = host_call.calls.map((c) => c.args);
         assertEquals(events, [
+          // Previous `load()` events.
           [
             "denops#api#cmd",
             "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
@@ -554,9 +648,15 @@ Deno.test("Service", async (t) => {
           ],
           [
             "denops#api#cmd",
+            "echo 'Hello, Denops!'",
+            {},
+          ],
+          [
+            "denops#api#cmd",
             "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
             {},
           ],
+          // This `unload()` events.
           [
             "denops#api#cmd",
             "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
@@ -571,27 +671,35 @@ Deno.test("Service", async (t) => {
       });
     });
 
-    await t.step("if called before `load()` resolves with error", async (t) => {
+    await t.step("if the plugin is loading and failur", async (t) => {
       const service = new Service(meta);
       service.bind(host);
+      using console_error = stub(console, "error");
       using host_call = stub(host, "call");
 
-      const loadPromise = service.load("dummy", scriptInvalid);
+      const prevLoadPromise = service.load("dummy", scriptInvalid);
       const unloadPromise = service.unload("dummy");
 
       await t.step("resolves", async () => {
         await unloadPromise;
       });
 
-      await t.step("`load()` was resolved", async () => {
-        assertEquals(await promiseState(loadPromise), "fulfilled");
+      await t.step("previous `load()` was resolved", async () => {
+        assertEquals(await promiseState(prevLoadPromise), "fulfilled");
       });
 
-      await t.step("emits events in the correct order", () => {
-        const events = host_call.calls
-          .map((c) => c.args)
-          .filter((args) => (args[1] as string)?.startsWith("doautocmd"));
+      await t.step("outputs an error message", () => {
+        assertSpyCall(console_error, 0, {
+          args: [
+            "Failed to load plugin 'dummy': Error: This is dummy error",
+          ],
+        });
+      });
+
+      await t.step("emits `load()` events", () => {
+        const events = host_call.calls.map((c) => c.args);
         assertEquals(events, [
+          // Previous `load()` events.
           [
             "denops#api#cmd",
             "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
@@ -600,6 +708,44 @@ Deno.test("Service", async (t) => {
           [
             "denops#api#cmd",
             "doautocmd <nomodeline> User DenopsSystemPluginFail:dummy",
+            {},
+          ],
+        ]);
+      });
+    });
+
+    await t.step("if the plugin is unloading", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using host_call = stub(host, "call");
+
+      const prevUnloadPromise = service.unload("dummy");
+      const unloadPromise = service.unload("dummy");
+
+      await t.step("resolves", async () => {
+        await unloadPromise;
+      });
+
+      await t.step("previous `unload()` was resolved", async () => {
+        assertEquals(await promiseState(prevUnloadPromise), "fulfilled");
+      });
+
+      await t.step("emits `unload()` events", () => {
+        const events = host_call.calls.map((c) => c.args);
+        assertEquals(events, [
+          // Previous `unload()` events.
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
             {},
           ],
         ]);
@@ -750,6 +896,125 @@ Deno.test("Service", async (t) => {
 
       await t.step("does not calls the host", () => {
         assertSpyCalls(host_call, 0);
+      });
+    });
+
+    await t.step("if the plugin is loading", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      using host_call = stub(host, "call");
+
+      const prevLoadPromise = service.load("dummy", scriptValid);
+      const reloadPromise = service.reload("dummy");
+
+      await t.step("resolves", async () => {
+        await reloadPromise;
+      });
+
+      await t.step("previous `load()` was resolved", async () => {
+        assertEquals(await promiseState(prevLoadPromise), "fulfilled");
+      });
+
+      await t.step("emits `load()` and `reload()` events", () => {
+        const events = host_call.calls.map((c) => c.args);
+        assertEquals(events, [
+          // Previous `load()` events.
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "echo 'Hello, Denops!'",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
+            {},
+          ],
+          // This `reload()` events.
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "echo 'Hello, Denops!'",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
+            {},
+          ],
+        ]);
+      });
+    });
+
+    await t.step("if the plugin is unloading", async (t) => {
+      const service = new Service(meta);
+      service.bind(host);
+      {
+        using _host_call = stub(host, "call");
+        await service.load("dummy", scriptValid);
+      }
+      using host_call = stub(host, "call");
+
+      const prevUnloadPromise = service.unload("dummy");
+      const reloadPromise = service.reload("dummy");
+
+      await t.step("resolves", async () => {
+        await reloadPromise;
+      });
+
+      await t.step("previous `unload()` was resolved", async () => {
+        assertEquals(await promiseState(prevUnloadPromise), "fulfilled");
+      });
+
+      await t.step("emits `reload()` events", () => {
+        const events = host_call.calls.map((c) => c.args);
+        assertEquals(events, [
+          // Previous `unload()` events.
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginUnloadPost:dummy",
+            {},
+          ],
+          // This `reload()` events.
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPre:dummy",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "echo 'Hello, Denops!'",
+            {},
+          ],
+          [
+            "denops#api#cmd",
+            "doautocmd <nomodeline> User DenopsSystemPluginPost:dummy",
+            {},
+          ],
+        ]);
       });
     });
 

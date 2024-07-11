@@ -41,7 +41,10 @@ jobs:
         run: deno task check
 
   test:
+    needs: check
+
     strategy:
+      fail-fast: false
       matrix:
         runner:
           - windows-latest

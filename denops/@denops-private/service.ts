@@ -73,8 +73,8 @@ export class Service implements HostService, AsyncDisposable {
     this.#waiters.get(name)?.promise.finally(() => {
       this.#waiters.delete(name);
     });
-    this.#plugins.delete(name);
     await plugin.unload();
+    this.#plugins.delete(name);
     return plugin;
   }
 
@@ -180,6 +180,7 @@ type PluginModule = {
 class Plugin {
   #denops: Denops;
   #loadedWaiter: Promise<void>;
+  #unloadedWaiter?: Promise<void>;
   #disposable: AsyncDisposable = voidAsyncDisposable;
 
   readonly name: string;
@@ -198,11 +199,10 @@ class Plugin {
 
   async #load(): Promise<void> {
     const suffix = createScriptSuffix(this.script);
+    await emit(this.#denops, `DenopsSystemPluginPre:${this.name}`);
     try {
-      await emit(this.#denops, `DenopsSystemPluginPre:${this.name}`);
       const mod: PluginModule = await import(`${this.script}${suffix}`);
       this.#disposable = await mod.main(this.#denops) ?? voidAsyncDisposable;
-      await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
     } catch (e) {
       // Show a warning message when Deno module cache issue is detected
       // https://github.com/vim-denops/denops.vim/issues/358
@@ -221,9 +221,17 @@ class Plugin {
       await emit(this.#denops, `DenopsSystemPluginFail:${this.name}`);
       throw e;
     }
+    await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
   }
 
-  async unload(): Promise<void> {
+  unload(): Promise<void> {
+    if (!this.#unloadedWaiter) {
+      this.#unloadedWaiter = this.#unload();
+    }
+    return this.#unloadedWaiter;
+  }
+
+  async #unload(): Promise<void> {
     try {
       // Wait for the load to complete to make the events atomically.
       await this.#loadedWaiter;
@@ -231,16 +239,17 @@ class Plugin {
       // Load failed, do nothing
       return;
     }
+    const disposable = this.#disposable;
+    this.#disposable = voidAsyncDisposable;
+    await emit(this.#denops, `DenopsSystemPluginUnloadPre:${this.name}`);
     try {
-      await emit(this.#denops, `DenopsSystemPluginUnloadPre:${this.name}`);
-      await this.#disposable[Symbol.asyncDispose]();
-      await emit(this.#denops, `DenopsSystemPluginUnloadPost:${this.name}`);
+      await disposable[Symbol.asyncDispose]();
     } catch (e) {
       console.error(`Failed to unload plugin '${this.name}': ${e}`);
       await emit(this.#denops, `DenopsSystemPluginUnloadFail:${this.name}`);
-    } finally {
-      this.#disposable = voidAsyncDisposable;
+      return;
     }
+    await emit(this.#denops, `DenopsSystemPluginUnloadPost:${this.name}`);
   }
 
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
@@ -269,6 +278,7 @@ function createScriptSuffix(script: string): string {
   return suffix;
 }
 
+/** NOTE: `emit()` is never throws or rejects. */
 async function emit(denops: Denops, name: string): Promise<void> {
   try {
     await denops.cmd(`doautocmd <nomodeline> User ${name}`);
