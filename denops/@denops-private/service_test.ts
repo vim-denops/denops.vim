@@ -22,7 +22,7 @@ import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@1.1.0";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";
-import { toFileUrl } from "jsr:@std/path@0.225.0/to-file-url";
+import { toFileUrl } from "jsr:@std/path@1.0.2/to-file-url";
 
 const NOOP = () => {};
 

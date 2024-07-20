@@ -6,7 +6,7 @@ import {
   assertRejects,
 } from "jsr:@std/assert@1.0.1";
 import { delay } from "jsr:@std/async@1.0.1/delay";
-import { join } from "jsr:@std/path@0.225.0/join";
+import { join } from "jsr:@std/path@1.0.2/join";
 import { useSharedServer } from "./shared_server.ts";
 
 Deno.test("useSharedServer()", async (t) => {

@@ -1,5 +1,5 @@
-import { dirname } from "jsr:@std/path@0.225.0/dirname";
-import { fromFileUrl } from "jsr:@std/path@0.225.0/from-file-url";
+import { dirname } from "jsr:@std/path@1.0.2/dirname";
+import { fromFileUrl } from "jsr:@std/path@1.0.2/from-file-url";
 import type { SemVer } from "jsr:@std/semver@0.224.0/types";
 import { parse } from "jsr:@std/semver@0.224.0/parse";
 
