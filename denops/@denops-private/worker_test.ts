@@ -12,7 +12,7 @@ import {
   spy,
   stub,
 } from "jsr:@std/testing@0.224.0/mock";
-import { delay } from "jsr:@std/async@0.224.0/delay";
+import { delay } from "jsr:@std/async@1.0.1/delay";
 import { DisposableStack } from "jsr:@nick/dispose@1.1.0/disposable-stack";
 import * as nvimCodec from "jsr:@lambdalisue/messagepack@^1.0.1";
 import { createFakeMeta } from "/denops-testutil/mock.ts";

@@ -1,5 +1,5 @@
 import { assert } from "jsr:@std/assert@1.0.1";
-import { deadline } from "jsr:@std/async@0.224.0/deadline";
+import { deadline } from "jsr:@std/async@1.0.1/deadline";
 import { resolve } from "jsr:@std/path@0.224.0/resolve";
 import { channel, pop } from "jsr:@lambdalisue/streamtools@1.0.0";
 import { tap } from "jsr:@milly/streams@^1.0.0/transform/tap";

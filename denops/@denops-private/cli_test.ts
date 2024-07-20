@@ -18,7 +18,7 @@ import {
   stub,
 } from "jsr:@std/testing@0.224.0/mock";
 import { FakeTime } from "jsr:@std/testing@0.224.0/time";
-import { delay } from "jsr:@std/async@0.224.0/delay";
+import { delay } from "jsr:@std/async@1.0.1/delay";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import {
   createFakeTcpConn,

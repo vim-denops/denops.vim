@@ -10,7 +10,7 @@ import {
   resolvesNext,
   stub,
 } from "jsr:@std/testing@0.224.0/mock";
-import { delay } from "jsr:@std/async@0.224.0/delay";
+import { delay } from "jsr:@std/async@1.0.1/delay";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@1.1.0";
 import { Client } from "jsr:@lambdalisue/messagepack-rpc@2.4.0";

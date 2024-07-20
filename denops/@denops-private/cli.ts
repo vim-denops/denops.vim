@@ -2,7 +2,7 @@ import {
   readableStreamFromWorker,
   writableStreamFromWorker,
 } from "jsr:@lambdalisue/workerio@4.0.1";
-import { deadline } from "jsr:@std/async@0.224.0/deadline";
+import { deadline } from "jsr:@std/async@1.0.1/deadline";
 import { parseArgs } from "jsr:@std/cli@0.224.3/parse-args";
 import { asyncSignal } from "jsr:@milly/async-signal@^1.0.0";
 
