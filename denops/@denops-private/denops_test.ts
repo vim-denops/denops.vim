@@ -1,4 +1,4 @@
-import { BatchError, type Meta } from "jsr:@denops/core@7.0.0-pre1";
+import { BatchError, type Meta } from "jsr:@denops/core@7.0.0";
 import {
   assertEquals,
   assertInstanceOf,

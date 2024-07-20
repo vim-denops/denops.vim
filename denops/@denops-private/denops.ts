@@ -1,10 +1,5 @@
-import type {
-  Context,
-  Denops,
-  Dispatcher,
-  Meta,
-} from "jsr:@denops/core@7.0.0-pre1";
-import { BatchError } from "jsr:@denops/core@7.0.0-pre1";
+import type { Context, Denops, Dispatcher, Meta } from "jsr:@denops/core@7.0.0";
+import { BatchError } from "jsr:@denops/core@7.0.0";
 import { ensure, is } from "jsr:@core/unknownutil@3.18.0";
 import type { Host as HostOrigin } from "./host.ts";
 import type { Service as ServiceOrigin } from "./service.ts";
