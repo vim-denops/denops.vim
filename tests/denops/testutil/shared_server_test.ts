@@ -110,7 +110,7 @@ Deno.test("useSharedServer()", async (t) => {
         await useSharedServer({ timeout: 0 });
       },
       Error,
-      "Deadline",
+      "Signal timed out",
     );
   });
 });
