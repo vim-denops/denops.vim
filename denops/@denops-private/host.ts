@@ -1,4 +1,4 @@
-import { ensure, is, type Predicate } from "jsr:@core/unknownutil@3.18.0";
+import { ensure, is, type Predicate } from "jsr:@core/unknownutil@3.18.1";
 
 /**
  * Host (Vim/Neovim) which is visible from Service

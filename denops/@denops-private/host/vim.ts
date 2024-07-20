@@ -1,4 +1,4 @@
-import { ensure, is } from "jsr:@core/unknownutil@3.18.0";
+import { ensure, is } from "jsr:@core/unknownutil@3.18.1";
 import {
   Client,
   type Message,
