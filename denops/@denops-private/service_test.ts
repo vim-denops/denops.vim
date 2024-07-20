@@ -19,7 +19,7 @@ import {
 } from "jsr:@std/testing@0.224.0/mock";
 import type { Meta } from "jsr:@denops/core@7.0.0";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
-import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
+import { unimplemented } from "jsr:@lambdalisue/errorutil@1.1.0";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";
 import { toFileUrl } from "jsr:@std/path@0.225.0/to-file-url";

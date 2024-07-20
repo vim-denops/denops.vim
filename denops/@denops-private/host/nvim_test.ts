@@ -12,7 +12,7 @@ import {
 } from "jsr:@std/testing@0.224.0/mock";
 import { delay } from "jsr:@std/async@0.224.0/delay";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
-import { unimplemented } from "jsr:@lambdalisue/errorutil@1.0.0";
+import { unimplemented } from "jsr:@lambdalisue/errorutil@1.1.0";
 import { Client } from "jsr:@lambdalisue/messagepack-rpc@2.4.0";
 import { withNeovim } from "/denops-testutil/with.ts";
 import type { Service } from "../host.ts";
