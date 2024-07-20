@@ -17,7 +17,7 @@ import {
   resolvesNext,
   spy,
   stub,
-} from "jsr:@std/testing@0.224.0/mock";
+} from "jsr:@std/testing@1.0.0-rc.5/mock";
 
 // deno-lint-ignore no-explicit-any
 type AnyFn = (...args: any[]) => unknown;

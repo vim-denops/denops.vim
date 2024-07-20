@@ -11,7 +11,7 @@ import {
   assertSpyCalls,
   resolvesNext,
   stub,
-} from "jsr:@std/testing@0.224.0/mock";
+} from "jsr:@std/testing@1.0.0-rc.5/mock";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import { DenopsImpl, type Host, type Service } from "./denops.ts";
 

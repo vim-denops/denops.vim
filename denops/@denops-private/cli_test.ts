@@ -16,8 +16,8 @@ import {
   spy,
   type Stub,
   stub,
-} from "jsr:@std/testing@0.224.0/mock";
-import { FakeTime } from "jsr:@std/testing@0.224.0/time";
+} from "jsr:@std/testing@1.0.0-rc.5/mock";
+import { FakeTime } from "jsr:@std/testing@1.0.0-rc.5/time";
 import { delay } from "jsr:@std/async@1.0.1/delay";
 import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
 import {

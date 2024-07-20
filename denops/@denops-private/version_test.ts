@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert@1.0.1";
-import { resolvesNext, stub } from "jsr:@std/testing@0.224.0/mock";
+import { resolvesNext, stub } from "jsr:@std/testing@1.0.0-rc.5/mock";
 import type { SemVer } from "jsr:@std/semver@0.224.3/types";
 import { is, type Predicate } from "jsr:@core/unknownutil@3.18.1";
 import { getVersionOr } from "./version.ts";
