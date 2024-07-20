@@ -3,7 +3,7 @@ import {
   Client,
   type Message,
   Session,
-} from "jsr:@denops/vim-channel-command@4.0.0";
+} from "jsr:@denops/vim-channel-command@4.0.2";
 import { type Host, invoke, type Service } from "../host.ts";
 
 export class Vim implements Host {
