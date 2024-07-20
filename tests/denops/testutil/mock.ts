@@ -1,4 +1,4 @@
-import { AssertionError, unimplemented } from "jsr:@std/assert@0.225.2";
+import { AssertionError, unimplemented } from "jsr:@std/assert@1.0.1";
 import type { Meta } from "jsr:@denops/core@7.0.0";
 
 /** Returns a Promise that is never resolves or rejects. */

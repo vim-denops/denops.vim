@@ -1,4 +1,4 @@
-import { assertThrows } from "jsr:@std/assert@0.225.1";
+import { assertThrows } from "jsr:@std/assert@1.0.1";
 import {
   assertSpyCall,
   assertSpyCalls,

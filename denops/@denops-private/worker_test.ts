@@ -5,7 +5,7 @@ import {
   assertInstanceOf,
   assertMatch,
   assertObjectMatch,
-} from "jsr:@std/assert@0.225.2";
+} from "jsr:@std/assert@1.0.1";
 import {
   assertSpyCalls,
   resolvesNext,

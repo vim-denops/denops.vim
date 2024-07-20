@@ -1,4 +1,4 @@
-import { assert } from "jsr:@std/assert@0.225.2";
+import { assert } from "jsr:@std/assert@1.0.1";
 import { deadline } from "jsr:@std/async@0.224.0/deadline";
 import { resolve } from "jsr:@std/path@0.224.0/resolve";
 import { channel, pop } from "jsr:@lambdalisue/streamtools@1.0.0";

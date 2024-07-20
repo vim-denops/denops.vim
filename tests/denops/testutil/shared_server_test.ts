@@ -4,7 +4,7 @@ import {
   assertMatch,
   assertNotMatch,
   assertRejects,
-} from "jsr:@std/assert@0.225.2";
+} from "jsr:@std/assert@1.0.1";
 import { delay } from "jsr:@std/async@0.224.0/delay";
 import { join } from "jsr:@std/path@0.225.0/join";
 import { useSharedServer } from "./shared_server.ts";

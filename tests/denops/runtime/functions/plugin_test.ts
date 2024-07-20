@@ -6,7 +6,7 @@ import {
   assertMatch,
   assertRejects,
   assertStringIncludes,
-} from "jsr:@std/assert@0.225.2";
+} from "jsr:@std/assert@1.0.1";
 import { delay } from "jsr:@std/async@^0.224.0";
 import { join } from "jsr:@std/path@0.225.0/join";
 import { AsyncDisposableStack } from "jsr:@nick/dispose@1.1.0/async-disposable-stack";

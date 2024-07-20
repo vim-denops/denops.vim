@@ -1,4 +1,4 @@
-import { assertEquals, assertRejects } from "jsr:@std/assert@0.225.1";
+import { assertEquals, assertRejects } from "jsr:@std/assert@1.0.1";
 import {
   assertSpyCalls,
   resolvesNext,
