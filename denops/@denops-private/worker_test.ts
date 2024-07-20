@@ -1,5 +1,5 @@
 // @deno-types="npm:@types/sinon@17.0.3"
-import sinon from "npm:sinon@17.0.1";
+import sinon from "npm:sinon@18.0.0";
 import {
   assertEquals,
   assertInstanceOf,
