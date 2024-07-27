@@ -56,5 +56,7 @@ function! s:echomsg_batch() abort
   let s:delayed_timer = 0
   let s:delayed_messages = []
   " Forcibly show the messages to the user
-  call feedkeys(printf("\<Cmd>%dmessages\<CR>", l:counter), 'n')
+  if l:counter > 1 && !g:denops#_test
+    call feedkeys(printf("\<Cmd>%dmessages\<CR>", l:counter), 'n')
+  endif
 endfunction

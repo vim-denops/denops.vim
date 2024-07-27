@@ -1,55 +1,36 @@
 const s:SCRIPT = denops#_internal#path#script(['@denops-private', 'cli.ts'])
 
 let s:job = v:null
-let s:options = v:null
 let s:stopped_on_purpose = 0
 let s:exiting = 0
 
 " Args:
 "   options: {
-"     retry_interval: number
-"     retry_threshold: number
 "     restart_on_exit: boolean
 "     restart_delay: number
 "     restart_interval: number
 "     restart_threshold: number
 "   }
 " Return:
-"   boolean
+"   v:true
 function! denops#_internal#server#proc#start(options) abort
+  call s:clear_restart_delayer()
   if s:job isnot# v:null
     throw '[denops] Server already exists'
   endif
-  let l:retry_interval = a:options.retry_interval
-  let l:retry_threshold = a:options.retry_threshold
-  let l:previous_exception = ''
-  for l:i in range(l:retry_threshold)
-    call denops#_internal#echo#debug(printf(
-          \ 'Spawn server [%d/%d]',
-          \ l:i + 1,
-          \ l:retry_threshold + 1,
-          \))
-    try
-      call s:start(a:options)
-      return v:true
-    catch
-      call denops#_internal#echo#debug(printf(
-            \ 'Failed to spawn server [%d/%d]: %s',
-            \ l:i + 1,
-            \ l:retry_threshold + 1,
-            \ v:exception,
-            \))
-      let l:previous_exception = v:exception
-    endtry
-    execute printf('sleep %dm', l:retry_interval)
-  endfor
-  call denops#_internal#echo#error(printf(
-        \ 'Failed to spawn server: %s',
-        \ l:previous_exception,
+  call denops#_internal#echo#debug(printf(
+        \ 'Spawn server [%d/%d]',
+        \ get(s:, 'restart_count', 0),
+        \ a:options.restart_threshold,
         \))
+  call s:start(a:options)
+  return v:true
 endfunction
 
 function! denops#_internal#server#proc#stop() abort
+  if s:clear_restart_delayer()
+    return
+  endif
   if s:job is# v:null
     throw '[denops] Server does not exist yet'
   endif
@@ -86,9 +67,8 @@ function! s:start(options) abort
         \ 'on_stderr': { _job, data, _event -> s:on_stderr(data) },
         \ 'on_exit': { _job, status, _event -> s:on_exit(a:options, status) },
         \})
-  let s:options = a:options
   call denops#_internal#echo#debug(printf('Server started: %s', l:args))
-  doautocmd <nomodeline> User DenopsProcessStarted
+  call denops#_internal#event#emit('DenopsSystemProcessStarted')
 endfunction
 
 function! s:on_stdout(store, data) abort
@@ -101,7 +81,7 @@ function! s:on_stdout(store, data) abort
   let a:store.prepared = 1
   let l:addr = substitute(a:data, '\r\?\n$', '', 'g')
   call denops#_internal#echo#debug(printf('Server listen: %s', l:addr))
-  execute printf('doautocmd <nomodeline> User DenopsProcessListen:%s', l:addr)
+  call denops#_internal#event#emit(printf('DenopsSystemProcessListen:%s', l:addr))
 endfunction
 
 function! s:on_stderr(data) abort
@@ -115,8 +95,8 @@ endfunction
 function! s:on_exit(options, status) abort
   let s:job = v:null
   call denops#_internal#echo#debug(printf('Server stopped: %s', a:status))
-  execute printf('doautocmd <nomodeline> User DenopsProcessStopped:%s', a:status)
-  if !a:options.restart_on_exit || s:stopped_on_purpose || s:exiting
+  call denops#_internal#event#emit(printf('DenopsSystemProcessStopped:%s', a:status))
+  if s:job isnot# v:null || !a:options.restart_on_exit || s:stopped_on_purpose || s:exiting
     return
   endif
   " Restart
@@ -127,9 +107,9 @@ function! s:on_exit(options, status) abort
         \ 'Server stopped (%d). Restarting...',
         \ a:status,
         \))
-  call timer_start(
+  let s:restart_delayer = timer_start(
         \ a:options.restart_delay,
-        \ { -> denops#_internal#server#proc#start(s:options) },
+        \ { -> denops#_internal#server#proc#start(a:options) },
         \)
 endfunction
 
@@ -137,12 +117,13 @@ function! s:restart_guard(options) abort
   let l:restart_threshold = a:options.restart_threshold
   let l:restart_interval = a:options.restart_interval
   let s:restart_count = get(s:, 'restart_count', 0) + 1
-  if s:restart_count >= l:restart_threshold
+  if s:restart_count > l:restart_threshold
     call denops#_internal#echo#warn(printf(
           \ 'Server stopped %d times within %d millisec. Denops is disabled to avoid infinity restart loop.',
-          \ l:restart_threshold,
+          \ s:restart_count,
           \ l:restart_interval,
           \))
+    let s:restart_count = 0
     let g:denops#disabled = 1
     return 1
   endif
@@ -155,10 +136,25 @@ function! s:restart_guard(options) abort
         \)
 endfunction
 
+function! s:clear_restart_delayer() abort
+  if exists('s:restart_delayer')
+    call timer_stop(s:restart_delayer)
+    unlet s:restart_delayer
+    return v:true
+  endif
+endfunction
+
 augroup denops_internal_server_proc_internal
   autocmd!
   autocmd VimLeave * let s:exiting = 1
-  autocmd User DenopsProcessStarted :
-  autocmd User DenopsProcessListen:* :
-  autocmd User DenopsProcessStopped:* :
+  autocmd User DenopsSystemProcessStarted :
+  autocmd User DenopsSystemProcessListen:* :
+  autocmd User DenopsSystemProcessStopped:* :
 augroup END
+
+function! denops#_internal#server#proc#_get_job_for_test() abort
+  call denops#_internal#echo#warn(
+        \ '_get_job_for_test() should only be used for testing.'
+        \)
+  return s:job
+endfunction

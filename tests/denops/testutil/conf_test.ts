@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.217.0/assert/mod.ts";
+import { assertEquals } from "jsr:@std/assert@1.0.1";
 import { _internal } from "./conf.ts";
 
 Deno.test({

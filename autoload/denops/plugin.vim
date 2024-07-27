@@ -53,6 +53,10 @@ function! denops#plugin#load(name, script) abort
   call denops#_internal#plugin#load(a:name, a:script)
 endfunction
 
+function! denops#plugin#unload(name) abort
+  call denops#_internal#plugin#unload(a:name)
+endfunction
+
 function! denops#plugin#reload(name) abort
   call denops#_internal#plugin#reload(a:name)
 endfunction
@@ -62,7 +66,7 @@ function! denops#plugin#discover() abort
   let l:counter = 0 
   for l:script in globpath(&runtimepath, l:pattern, 1, 1, 1)
     let l:name = fnamemodify(l:script, ':h:t')
-    if l:name[:0] ==# '@' || !filereadable(l:script)
+    if !denops#_internal#plugin#is_valid_name(l:name) || !filereadable(l:script)
       continue
     endif
     call denops#plugin#load(l:name, l:script)
@@ -72,11 +76,13 @@ function! denops#plugin#discover() abort
 endfunction
 
 function! denops#plugin#check_type(...) abort
-  let l:plugins = a:0
-        \ ? [denops#_internal#plugin#get(a:1)]
-        \ : denops#_internal#plugin#list()
-  let l:args = [g:denops#deno, 'check']
-  let l:args = extend(l:args, map(l:plugins, { _, v -> v.script }))
+  if a:0
+    let l:scripts = [denops#_internal#plugin#get(a:1).script]
+  else
+    let l:scripts = denops#_internal#plugin#list()
+          \->copy()->map({ _, v -> v.script })->filter({ _, v -> v !=# '' })
+  endif
+  let l:args = [g:denops#deno, 'check'] + l:scripts
   let l:job = denops#_internal#job#start(l:args, {
         \ 'env': {
         \   'NO_COLOR': 1,
@@ -88,34 +94,6 @@ function! denops#plugin#check_type(...) abort
         \   : denops#_internal#echo#info('Type check succeeded')
         \ },
         \ })
-endfunction
-
-" DEPRECATED
-" Some plugins (e.g. dein.vim) use this function with options thus we cannot
-" change the interface of this function.
-" That's why we introduce 'load' function that replaces this function.
-function! denops#plugin#register(name, ...) abort
-  call denops#_internal#echo#deprecate(
-        \ 'denops#plugin#register() is deprecated. Use denops#plugin#load() instead.',
-        \)
-  if a:0 is# 0 || type(a:1) is# v:t_dict
-    let l:script = s:find_script(a:name)
-  else
-    let l:script = a:1
-  endif
-  return denops#plugin#load(a:name, l:script)
-endfunction
-
-function! s:find_script(name) abort
-  const l:pattern = denops#_internal#path#join(['denops', a:name, 'main.ts'])
-  for l:script in globpath(&runtimepath, l:pattern, 1, 1, 1)
-    let l:name = fnamemodify(l:script, ':h:t')
-    if l:name[:0] ==# '@' || !filereadable(l:script)
-      continue
-    endif
-    return l:script
-  endfor
-  throw printf('Denops plugin "%s" does not exist in the runtimepath', a:name)
 endfunction
 
 call denops#_internal#conf#define('denops#plugin#wait_interval', 200)

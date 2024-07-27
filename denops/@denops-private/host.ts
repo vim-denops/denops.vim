@@ -1,4 +1,4 @@
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
+import { ensure, is, type Predicate } from "jsr:@core/unknownutil@3.18.1";
 
 /**
  * Host (Vim/Neovim) which is visible from Service
@@ -22,9 +22,9 @@ export interface Host extends AsyncDisposable {
   ): Promise<[unknown[], string]>;
 
   /**
-   * Call host function and do nothing
+   * Call host function and does not check results
    */
-  notify(fn: string, ...args: unknown[]): void;
+  notify(fn: string, ...args: unknown[]): Promise<void>;
 
   /**
    * Initialize host
@@ -45,11 +45,13 @@ export type HostConstructor = {
 };
 
 // Minimum interface of Service that Host is relies on
-type CallbackId = string;
+export type CallbackId = string;
 export type Service = {
   bind(host: Host): void;
   load(name: string, script: string): Promise<void>;
+  unload(name: string): Promise<void>;
   reload(name: string): Promise<void>;
+  interrupt(reason?: unknown): void;
   dispatch(name: string, fn: string, args: unknown[]): Promise<unknown>;
   dispatchAsync(
     name: string,
@@ -58,36 +60,49 @@ export type Service = {
     success: CallbackId,
     failure: CallbackId,
   ): Promise<void>;
+  close(): Promise<void>;
 };
 
+type ServiceForInvoke = Omit<Service, "bind">;
+
 export function invoke(
-  service: Omit<Service, "bind">,
+  service: ServiceForInvoke,
   name: string,
   args: unknown[],
 ): Promise<unknown> {
   switch (name) {
     case "load":
-      return service.load(
-        ...ensure(args, is.TupleOf([is.String, is.String] as const)),
-      );
+      return service.load(...ensure(args, serviceMethodArgs.load));
+    case "unload":
+      return service.unload(...ensure(args, serviceMethodArgs.unload));
     case "reload":
-      return service.reload(
-        ...ensure(args, is.TupleOf([is.String] as const)),
-      );
+      return service.reload(...ensure(args, serviceMethodArgs.reload));
+    case "interrupt":
+      service.interrupt(...ensure(args, serviceMethodArgs.interrupt));
+      return Promise.resolve();
     case "dispatch":
-      return service.dispatch(
-        ...ensure(args, is.TupleOf([is.String, is.String, is.Array] as const)),
-      );
+      return service.dispatch(...ensure(args, serviceMethodArgs.dispatch));
     case "dispatchAsync":
       return service.dispatchAsync(
-        ...ensure(
-          args,
-          is.TupleOf(
-            [is.String, is.String, is.Array, is.String, is.String] as const,
-          ),
-        ),
+        ...ensure(args, serviceMethodArgs.dispatchAsync),
       );
+    case "close":
+      return service.close(...ensure(args, serviceMethodArgs.close));
     default:
       throw new Error(`Service does not have a method '${name}'`);
   }
 }
+
+const serviceMethodArgs = {
+  load: is.ParametersOf([is.String, is.String] as const),
+  unload: is.ParametersOf([is.String] as const),
+  reload: is.ParametersOf([is.String] as const),
+  interrupt: is.ParametersOf([is.OptionalOf(is.Unknown)] as const),
+  dispatch: is.ParametersOf([is.String, is.String, is.Array] as const),
+  dispatchAsync: is.ParametersOf(
+    [is.String, is.String, is.Array, is.String, is.String] as const,
+  ),
+  close: is.ParametersOf([] as const),
+} as const satisfies {
+  [K in keyof ServiceForInvoke]: Predicate<Parameters<ServiceForInvoke[K]>>;
+};

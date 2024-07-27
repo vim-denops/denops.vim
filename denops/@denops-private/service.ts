@@ -1,83 +1,104 @@
-import type {
-  Denops,
-  Meta,
-} from "https://deno.land/x/denops_core@v6.0.5/mod.ts";
-import { toFileUrl } from "https://deno.land/std@0.217.0/path/mod.ts";
-import { toErrorObject } from "https://deno.land/x/errorutil@v0.1.1/mod.ts";
-import { DenopsImpl, Host } from "./denops.ts";
-
-// We can use `PromiseWithResolvers<void>` but Deno 1.38 doesn't have `PromiseWithResolvers`
-type Waiter = {
-  promise: Promise<void>;
-  resolve: () => void;
-};
+import type { Denops, Entrypoint, Meta } from "jsr:@denops/core@7.0.0";
+import { toFileUrl } from "jsr:@std/path@1.0.2/to-file-url";
+import { toErrorObject } from "jsr:@lambdalisue/errorutil@1.1.0";
+import { DenopsImpl, type Host } from "./denops.ts";
+import type { CallbackId, Service as HostService } from "./host.ts";
 
 /**
  * Service manage plugins and is visible from the host (Vim/Neovim) through `invoke()` function.
  */
-export class Service implements Disposable {
-  #plugins: Map<string, Plugin> = new Map();
-  #waiters: Map<string, Waiter> = new Map();
+export class Service implements HostService, AsyncDisposable {
+  #interruptController = new AbortController();
+  #plugins = new Map<string, Plugin>();
+  #waiters = new Map<string, PromiseWithResolvers<void>>();
   #meta: Meta;
   #host?: Host;
+  #closed = false;
+  #closedWaiter = Promise.withResolvers<void>();
 
   constructor(meta: Meta) {
     this.#meta = meta;
   }
 
-  #getWaiter(name: string): Waiter {
-    if (!this.#waiters.has(name)) {
-      this.#waiters.set(name, Promise.withResolvers());
+  #getWaiter(name: string): PromiseWithResolvers<void> {
+    let waiter = this.#waiters.get(name);
+    if (!waiter) {
+      waiter = Promise.withResolvers();
+      waiter.promise.catch(() => {});
+      this.#waiters.set(name, waiter);
     }
-    return this.#waiters.get(name)!;
+    return waiter;
+  }
+
+  get interrupted(): AbortSignal {
+    return this.#interruptController.signal;
   }
 
   bind(host: Host): void {
     this.#host = host;
   }
 
-  async load(
-    name: string,
-    script: string,
-    suffix = "",
-  ): Promise<void> {
+  async load(name: string, script: string): Promise<void> {
+    if (this.#closed) {
+      throw new Error("Service closed");
+    }
     if (!this.#host) {
       throw new Error("No host is bound to the service");
     }
-    let plugin = this.#plugins.get(name);
-    if (plugin) {
+    if (this.#plugins.has(name)) {
       if (this.#meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is already loaded. Skip`);
       }
       return;
     }
     const denops = new DenopsImpl(name, this.#meta, this.#host, this);
-    plugin = new Plugin(denops, name, script);
+    const plugin = new Plugin(denops, name, script);
     this.#plugins.set(name, plugin);
-    await plugin.load(suffix);
-    this.#getWaiter(name).resolve();
+    try {
+      await plugin.waitLoaded();
+      this.#getWaiter(name).resolve();
+    } catch {
+      this.#plugins.delete(name);
+    }
   }
 
-  reload(
-    name: string,
-  ): Promise<void> {
+  async #unload(name: string): Promise<Plugin | undefined> {
     const plugin = this.#plugins.get(name);
     if (!plugin) {
       if (this.#meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is not loaded yet. Skip`);
       }
-      return Promise.resolve();
+      return;
     }
+    this.#waiters.get(name)?.promise.finally(() => {
+      this.#waiters.delete(name);
+    });
+    await plugin.unload();
     this.#plugins.delete(name);
-    this.#waiters.delete(name);
-    // Import module with fragment so that reload works properly
-    // https://github.com/vim-denops/denops.vim/issues/227
-    const suffix = `#${performance.now()}`;
-    return this.load(name, plugin.script, suffix);
+    return plugin;
+  }
+
+  async unload(name: string): Promise<void> {
+    await this.#unload(name);
+  }
+
+  async reload(name: string): Promise<void> {
+    const plugin = await this.#unload(name);
+    if (plugin) {
+      await this.load(name, plugin.script);
+    }
   }
 
   waitLoaded(name: string): Promise<void> {
+    if (this.#closed) {
+      return Promise.reject(new Error("Service closed"));
+    }
     return this.#getWaiter(name).promise;
+  }
+
+  interrupt(reason?: unknown): void {
+    this.#interruptController.abort(reason);
+    this.#interruptController = new AbortController();
   }
 
   async #dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
@@ -100,8 +121,8 @@ export class Service implements Disposable {
     name: string,
     fn: string,
     args: unknown[],
-    success: string, // Callback ID
-    failure: string, // Callback ID
+    success: CallbackId,
+    failure: CallbackId,
   ): Promise<void> {
     if (!this.#host) {
       throw new Error("No host is bound to the service");
@@ -125,13 +146,42 @@ export class Service implements Disposable {
     }
   }
 
-  [Symbol.dispose](): void {
-    this.#plugins.clear();
+  async close(): Promise<void> {
+    if (!this.#closed) {
+      this.#closed = true;
+      const error = new Error("Service closed");
+      for (const { reject } of this.#waiters.values()) {
+        reject(error);
+      }
+      this.#waiters.clear();
+      await Promise.all(
+        [...this.#plugins.values()].map((plugin) => plugin.unload()),
+      );
+      this.#plugins.clear();
+      this.#host = undefined;
+      this.#closedWaiter.resolve();
+    }
+    return this.waitClosed();
+  }
+
+  waitClosed(): Promise<void> {
+    return this.#closedWaiter.promise;
+  }
+
+  [Symbol.asyncDispose](): Promise<void> {
+    return this.close();
   }
 }
 
+type PluginModule = {
+  main: Entrypoint;
+};
+
 class Plugin {
   #denops: Denops;
+  #loadedWaiter: Promise<void>;
+  #unloadedWaiter?: Promise<void>;
+  #disposable: AsyncDisposable = voidAsyncDisposable;
 
   readonly name: string;
   readonly script: string;
@@ -140,14 +190,19 @@ class Plugin {
     this.#denops = denops;
     this.name = name;
     this.script = resolveScriptUrl(script);
+    this.#loadedWaiter = this.#load();
   }
 
-  async load(suffix = ""): Promise<void> {
+  waitLoaded(): Promise<void> {
+    return this.#loadedWaiter;
+  }
+
+  async #load(): Promise<void> {
+    const suffix = createScriptSuffix(this.script);
+    await emit(this.#denops, `DenopsSystemPluginPre:${this.name}`);
     try {
-      await emit(this.#denops, `DenopsSystemPluginPre:${this.name}`);
-      const mod = await import(`${this.script}${suffix}`);
-      await mod.main(this.#denops);
-      await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
+      const mod: PluginModule = await import(`${this.script}${suffix}`);
+      this.#disposable = await mod.main(this.#denops) ?? voidAsyncDisposable;
     } catch (e) {
       // Show a warning message when Deno module cache issue is detected
       // https://github.com/vim-denops/denops.vim/issues/358
@@ -164,7 +219,37 @@ class Plugin {
       }
       console.error(`Failed to load plugin '${this.name}': ${e}`);
       await emit(this.#denops, `DenopsSystemPluginFail:${this.name}`);
+      throw e;
     }
+    await emit(this.#denops, `DenopsSystemPluginPost:${this.name}`);
+  }
+
+  unload(): Promise<void> {
+    if (!this.#unloadedWaiter) {
+      this.#unloadedWaiter = this.#unload();
+    }
+    return this.#unloadedWaiter;
+  }
+
+  async #unload(): Promise<void> {
+    try {
+      // Wait for the load to complete to make the events atomically.
+      await this.#loadedWaiter;
+    } catch {
+      // Load failed, do nothing
+      return;
+    }
+    const disposable = this.#disposable;
+    this.#disposable = voidAsyncDisposable;
+    await emit(this.#denops, `DenopsSystemPluginUnloadPre:${this.name}`);
+    try {
+      await disposable[Symbol.asyncDispose]();
+    } catch (e) {
+      console.error(`Failed to unload plugin '${this.name}': ${e}`);
+      await emit(this.#denops, `DenopsSystemPluginUnloadFail:${this.name}`);
+      return;
+    }
+    await emit(this.#denops, `DenopsSystemPluginUnloadPost:${this.name}`);
   }
 
   async call(fn: string, ...args: unknown[]): Promise<unknown> {
@@ -179,9 +264,24 @@ class Plugin {
   }
 }
 
+const voidAsyncDisposable = {
+  [Symbol.asyncDispose]: () => Promise.resolve(),
+} as const satisfies AsyncDisposable;
+
+const loadedScripts = new Set<string>();
+
+function createScriptSuffix(script: string): string {
+  // Import module with fragment so that reload works properly
+  // https://github.com/vim-denops/denops.vim/issues/227
+  const suffix = loadedScripts.has(script) ? `#${performance.now()}` : "";
+  loadedScripts.add(script);
+  return suffix;
+}
+
+/** NOTE: `emit()` is never throws or rejects. */
 async function emit(denops: Denops, name: string): Promise<void> {
   try {
-    await denops.cmd(`doautocmd <nomodeline> User ${name}`);
+    await denops.call("denops#_internal#event#emit", name);
   } catch (e) {
     console.error(`Failed to emit ${name}: ${e}`);
   }
