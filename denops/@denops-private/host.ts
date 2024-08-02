@@ -1,4 +1,10 @@
-import { ensure, is, type Predicate } from "jsr:@core/unknownutil@^3.18.1";
+import type { Predicate } from "jsr:@core/unknownutil@^4.0.0/type";
+import { ensure } from "jsr:@core/unknownutil@^4.0.0/ensure";
+import { asOptional } from "jsr:@core/unknownutil@^4.0.0/as/optional";
+import { isArray } from "jsr:@core/unknownutil@^4.0.0/is/array";
+import { isParametersOf } from "jsr:@core/unknownutil@^4.0.0/is/parameters-of";
+import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
+import { isUnknown } from "jsr:@core/unknownutil@^4.0.0/is/unknown";
 
 /**
  * Host (Vim/Neovim) which is visible from Service
@@ -94,15 +100,15 @@ export function invoke(
 }
 
 const serviceMethodArgs = {
-  load: is.ParametersOf([is.String, is.String] as const),
-  unload: is.ParametersOf([is.String] as const),
-  reload: is.ParametersOf([is.String] as const),
-  interrupt: is.ParametersOf([is.OptionalOf(is.Unknown)] as const),
-  dispatch: is.ParametersOf([is.String, is.String, is.Array] as const),
-  dispatchAsync: is.ParametersOf(
-    [is.String, is.String, is.Array, is.String, is.String] as const,
+  load: isParametersOf([isString, isString] as const),
+  unload: isParametersOf([isString] as const),
+  reload: isParametersOf([isString] as const),
+  interrupt: isParametersOf([asOptional(isUnknown)] as const),
+  dispatch: isParametersOf([isString, isString, isArray] as const),
+  dispatchAsync: isParametersOf(
+    [isString, isString, isArray, isString, isString] as const,
   ),
-  close: is.ParametersOf([] as const),
+  close: isParametersOf([] as const),
 } as const satisfies {
   [K in keyof ServiceForInvoke]: Predicate<Parameters<ServiceForInvoke[K]>>;
 };
