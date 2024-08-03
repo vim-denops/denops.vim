@@ -1,6 +1,6 @@
-import type { Denops, Entrypoint, Meta } from "jsr:@denops/core@7.0.0";
-import { toFileUrl } from "jsr:@std/path@1.0.2/to-file-url";
-import { toErrorObject } from "jsr:@lambdalisue/errorutil@1.1.0";
+import type { Denops, Entrypoint, Meta } from "jsr:@denops/core@^7.0.0";
+import { toFileUrl } from "jsr:@std/path@^1.0.2/to-file-url";
+import { toErrorObject } from "jsr:@lambdalisue/errorutil@^1.1.0";
 import { DenopsImpl, type Host } from "./denops.ts";
 import type { CallbackId, Service as HostService } from "./host.ts";
 

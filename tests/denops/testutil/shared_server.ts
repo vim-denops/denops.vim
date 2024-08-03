@@ -1,7 +1,7 @@
-import { assert } from "jsr:@std/assert@1.0.1";
-import { deadline } from "jsr:@std/async@1.0.1/deadline";
-import { resolve } from "jsr:@std/path@1.0.2/resolve";
-import { channel, pop } from "jsr:@lambdalisue/streamtools@1.0.0";
+import { assert } from "jsr:@std/assert@^1.0.1";
+import { deadline } from "jsr:@std/async@^1.0.1/deadline";
+import { resolve } from "jsr:@std/path@^1.0.2/resolve";
+import { channel, pop } from "jsr:@lambdalisue/streamtools@^1.0.0";
 import { tap } from "jsr:@milly/streams@^1.0.0/transform/tap";
 import { getConfig } from "./conf.ts";
 

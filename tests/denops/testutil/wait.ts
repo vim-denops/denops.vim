@@ -1,4 +1,4 @@
-import { AssertionError } from "jsr:@std/assert@1.0.1/assertion-error";
+import { AssertionError } from "jsr:@std/assert@^1.0.1/assertion-error";
 import { getConfig } from "./conf.ts";
 
 const DEFAULT_TIMEOUT = 30_000;

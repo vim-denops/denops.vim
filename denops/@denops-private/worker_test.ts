@@ -1,19 +1,19 @@
 // @deno-types="npm:@types/sinon@17.0.3"
-import sinon from "npm:sinon@18.0.0";
+import sinon from "npm:sinon@^18.0.0";
 import {
   assertEquals,
   assertInstanceOf,
   assertMatch,
   assertObjectMatch,
-} from "jsr:@std/assert@1.0.1";
+} from "jsr:@std/assert@^1.0.1";
 import {
   assertSpyCalls,
   resolvesNext,
   spy,
   stub,
-} from "jsr:@std/testing@1.0.0-rc.5/mock";
-import { delay } from "jsr:@std/async@1.0.1/delay";
-import { DisposableStack } from "jsr:@nick/dispose@1.1.0/disposable-stack";
+} from "jsr:@std/testing@^1.0.0-rc.5/mock";
+import { delay } from "jsr:@std/async@^1.0.1/delay";
+import { DisposableStack } from "jsr:@nick/dispose@^1.1.0/disposable-stack";
 import * as nvimCodec from "jsr:@lambdalisue/messagepack@^1.0.1";
 import { createFakeMeta } from "/denops-testutil/mock.ts";
 import { Neovim } from "./host/nvim.ts";

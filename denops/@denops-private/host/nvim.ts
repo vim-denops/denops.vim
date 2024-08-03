@@ -1,5 +1,5 @@
-import { ensure, is } from "jsr:@core/unknownutil@3.18.1";
-import { Client, Session } from "jsr:@lambdalisue/messagepack-rpc@2.4.0";
+import { ensure, is } from "jsr:@core/unknownutil@^3.18.1";
+import { Client, Session } from "jsr:@lambdalisue/messagepack-rpc@^2.4.0";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { getVersionOr } from "../version.ts";
 import { type Host, invoke, type Service } from "../host.ts";

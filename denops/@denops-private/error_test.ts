@@ -1,5 +1,5 @@
-import { assert, assertEquals, assertInstanceOf } from "jsr:@std/assert@1.0.1";
-import { is } from "jsr:@core/unknownutil@3.18.1";
+import { assert, assertEquals, assertInstanceOf } from "jsr:@std/assert@^1.0.1";
+import { is } from "jsr:@core/unknownutil@^3.18.1";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 
 Deno.test("errorSerializer", async (t) => {

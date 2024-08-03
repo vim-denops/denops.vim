@@ -9,20 +9,20 @@ import {
   assertRejects,
   assertStrictEquals,
   assertThrows,
-} from "jsr:@std/assert@1.0.1";
+} from "jsr:@std/assert@^1.0.1";
 import {
   assertSpyCall,
   assertSpyCalls,
   resolvesNext,
   spy,
   stub,
-} from "jsr:@std/testing@1.0.0-rc.5/mock";
-import type { Meta } from "jsr:@denops/core@7.0.0";
-import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
-import { unimplemented } from "jsr:@lambdalisue/errorutil@1.1.0";
+} from "jsr:@std/testing@^1.0.0-rc.5/mock";
+import type { Meta } from "jsr:@denops/core@^7.0.0";
+import { promiseState } from "jsr:@lambdalisue/async@^2.1.1";
+import { unimplemented } from "jsr:@lambdalisue/errorutil@^1.1.0";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";
-import { toFileUrl } from "jsr:@std/path@1.0.2/to-file-url";
+import { toFileUrl } from "jsr:@std/path@^1.0.2/to-file-url";
 
 const NOOP = () => {};
 
