@@ -39,6 +39,10 @@ jobs:
         run: deno fmt --check
       - name: Type check
         run: deno task check
+      - name: Supported version inconsistency check
+        run: |
+          deno task apply:supported-versions
+          git diff --exit-code
 
   test:
     needs: check
