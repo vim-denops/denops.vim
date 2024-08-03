@@ -1,18 +1,18 @@
-import { BatchError, type Meta } from "jsr:@denops/core@7.0.0";
+import { BatchError, type Meta } from "jsr:@denops/core@^7.0.0";
 import {
   assertEquals,
   assertInstanceOf,
   assertRejects,
   assertStrictEquals,
   unimplemented,
-} from "jsr:@std/assert@1.0.1";
+} from "jsr:@std/assert@^1.0.1";
 import {
   assertSpyCallArgs,
   assertSpyCalls,
   resolvesNext,
   stub,
-} from "jsr:@std/testing@1.0.0-rc.5/mock";
-import { promiseState } from "jsr:@lambdalisue/async@2.1.1";
+} from "jsr:@std/testing@^1.0.0-rc.5/mock";
+import { promiseState } from "jsr:@lambdalisue/async@^2.1.1";
 import { DenopsImpl, type Host, type Service } from "./denops.ts";
 
 type BatchReturn = [results: unknown[], errmsg: string];

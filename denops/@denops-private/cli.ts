@@ -1,9 +1,9 @@
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
-} from "jsr:@lambdalisue/workerio@4.0.1";
-import { deadline } from "jsr:@std/async@1.0.1/deadline";
-import { parseArgs } from "jsr:@std/cli@1.0.1/parse-args";
+} from "jsr:@lambdalisue/workerio@^4.0.1";
+import { deadline } from "jsr:@std/async@^1.0.1/deadline";
+import { parseArgs } from "jsr:@std/cli@^1.0.1/parse-args";
 import { asyncSignal } from "jsr:@milly/async-signal@^1.0.0";
 
 const WORKER_SCRIPT = import.meta.resolve("./worker.ts");

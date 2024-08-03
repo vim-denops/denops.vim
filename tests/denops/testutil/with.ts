@@ -1,4 +1,4 @@
-import { channel } from "jsr:@lambdalisue/streamtools@1.0.0";
+import { channel } from "jsr:@lambdalisue/streamtools@^1.0.0";
 import { tap } from "jsr:@milly/streams@^1.0.0/transform/tap";
 import { ADDR_ENV_NAME } from "./cli.ts";
 import { getConfig } from "./conf.ts";

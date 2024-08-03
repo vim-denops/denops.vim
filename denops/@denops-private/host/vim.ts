@@ -1,9 +1,9 @@
-import { ensure, is } from "jsr:@core/unknownutil@3.18.1";
+import { ensure, is } from "jsr:@core/unknownutil@^3.18.1";
 import {
   Client,
   type Message,
   Session,
-} from "jsr:@denops/vim-channel-command@4.0.2";
+} from "jsr:@denops/vim-channel-command@^4.0.2";
 import { type Host, invoke, type Service } from "../host.ts";
 
 export class Vim implements Host {
