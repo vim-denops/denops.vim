@@ -9,7 +9,7 @@ on:
       - "**.ts"
       - "**.vim"
       - "**.md"
-      - "deno.jsonc"
+      - "**.json{c,}"
       - ".github/workflows/test.yml"
   workflow_dispatch:
 
