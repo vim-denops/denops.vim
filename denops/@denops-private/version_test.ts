@@ -1,7 +1,12 @@
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.1";
 import { resolvesNext, stub } from "jsr:@std/testing@^1.0.0-rc.5/mock";
 import type { SemVer } from "jsr:@std/semver@^0.224.3/types";
-import { is, type Predicate } from "jsr:@core/unknownutil@^3.18.1";
+import type { Predicate } from "jsr:@core/unknownutil@^4.0.0/type";
+import { isArrayOf } from "jsr:@core/unknownutil@^4.0.0/is/array-of";
+import { isNumber } from "jsr:@core/unknownutil@^4.0.0/is/number";
+import { isObjectOf } from "jsr:@core/unknownutil@^4.0.0/is/object-of";
+import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
+import { isUnionOf } from "jsr:@core/unknownutil@^4.0.0/is/union-of";
 import { getVersionOr } from "./version.ts";
 
 Deno.test("getVersionOr()", async (t) => {
@@ -53,12 +58,12 @@ Deno.test("getVersionOr()", async (t) => {
   });
 });
 
-const isSemVer = is.ObjectOf({
-  major: is.Number,
-  minor: is.Number,
-  patch: is.Number,
-  prerelease: is.ArrayOf(is.UnionOf([is.String, is.Number])),
-  build: is.ArrayOf(is.String),
+const isSemVer = isObjectOf({
+  major: isNumber,
+  minor: isNumber,
+  patch: isNumber,
+  prerelease: isArrayOf(isUnionOf([isString, isNumber])),
+  build: isArrayOf(isString),
 }) satisfies Predicate<SemVer>;
 
 async function isInsideWorkTree(): Promise<boolean> {

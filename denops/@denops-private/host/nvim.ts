@@ -1,4 +1,10 @@
-import { ensure, is } from "jsr:@core/unknownutil@^3.18.1";
+import { ensure } from "jsr:@core/unknownutil@^4.0.0/ensure";
+import { isArray } from "jsr:@core/unknownutil@^4.0.0/is/array";
+import { isNull } from "jsr:@core/unknownutil@^4.0.0/is/null";
+import { isNumber } from "jsr:@core/unknownutil@^4.0.0/is/number";
+import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
+import { isTupleOf } from "jsr:@core/unknownutil@^4.0.0/is/tuple-of";
+import { isUnionOf } from "jsr:@core/unknownutil@^4.0.0/is/union-of";
 import { Client, Session } from "jsr:@lambdalisue/messagepack-rpc@^2.4.0";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { getVersionOr } from "../version.ts";
@@ -27,8 +33,8 @@ export class Neovim implements Host {
         }
         return invoke(
           this.#service,
-          ensure(method, is.String),
-          ensure(args, is.Array),
+          ensure(method, isString),
+          ensure(args, isArray),
         );
       },
 
@@ -130,16 +136,16 @@ export class Neovim implements Host {
 // nvim_call_function throws a special error object
 // https://github.com/neovim/neovim/blob/5dc0bdfe98b59bb03226167ed541d17cc5af30b1/src/nvim/api/vimscript.c#L260
 // https://github.com/neovim/neovim/blob/5dc0bdfe98b59bb03226167ed541d17cc5af30b1/src/nvim/api/private/defs.h#L63-L66
-const isNvimErrorObject = is.TupleOf([is.Number, is.String] as const);
+const isNvimErrorObject = isTupleOf([isNumber, isString] as const);
 
 // nvim_call_atomics returns a tuple of [return values, error details]
-const isNvimCallAtomicReturn = is.TupleOf(
+const isNvimCallAtomicReturn = isTupleOf(
   [
-    is.Array,
-    is.OneOf([
-      is.Null,
+    isArray,
+    isUnionOf([
+      isNull,
       // the index, the error type, the error message
-      is.TupleOf([is.Number, is.Number, is.String] as const),
+      isTupleOf([isNumber, isNumber, isString] as const),
     ]),
   ] as const,
 );

@@ -5,11 +5,14 @@ import {
   type Dispatcher,
   type Meta,
 } from "jsr:@denops/core@^7.0.0";
-import { ensure, is } from "jsr:@core/unknownutil@^3.18.1";
+import { ensure } from "jsr:@core/unknownutil@^4.0.0/ensure";
+import { isTupleOf } from "jsr:@core/unknownutil@^4.0.0/is/tuple-of";
+import { isArray } from "jsr:@core/unknownutil@^4.0.0/is/array";
+import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
 import type { Host as HostOrigin } from "./host.ts";
 import type { Service as ServiceOrigin } from "./service.ts";
 
-const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
+const isBatchReturn = isTupleOf([isArray, isString] as const);
 
 export type Host = Pick<HostOrigin, "redraw" | "call" | "batch">;
 

@@ -1,4 +1,9 @@
-import { ensure, is } from "jsr:@core/unknownutil@^3.18.1";
+import { ensure } from "jsr:@core/unknownutil@^4.0.0/ensure";
+import { isArray } from "jsr:@core/unknownutil@^4.0.0/is/array";
+import { isLiteralOf } from "jsr:@core/unknownutil@^4.0.0/is/literal-of";
+import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
+import { isTupleOf } from "jsr:@core/unknownutil@^4.0.0/is/tuple-of";
+import { isUnknown } from "jsr:@core/unknownutil@^4.0.0/is/unknown";
 import {
   Client,
   type Message,
@@ -120,16 +125,16 @@ export class Vim implements Host {
   }
 }
 
-const isCallReturn = is.TupleOf([is.Unknown, is.String] as const);
+const isCallReturn = isTupleOf([isUnknown, isString] as const);
 
-const isBatchReturn = is.TupleOf([is.Array, is.String] as const);
+const isBatchReturn = isTupleOf([isArray, isString] as const);
 
-const isVoidMessage = is.TupleOf([is.LiteralOf("void")] as const);
+const isVoidMessage = isTupleOf([isLiteralOf("void")] as const);
 
-const isInvokeMessage = is.TupleOf(
+const isInvokeMessage = isTupleOf(
   [
-    is.LiteralOf("invoke"),
-    is.String,
-    is.Array,
+    isLiteralOf("invoke"),
+    isString,
+    isArray,
   ] as const,
 );

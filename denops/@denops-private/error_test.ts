@@ -1,12 +1,12 @@
 import { assert, assertEquals, assertInstanceOf } from "jsr:@std/assert@^1.0.1";
-import { is } from "jsr:@core/unknownutil@^3.18.1";
+import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
 import { errorDeserializer, errorSerializer } from "./error.ts";
 
 Deno.test("errorSerializer", async (t) => {
   await t.step("serializes Error", () => {
     const err = new Error("error message");
     const ret = errorSerializer(err);
-    assert(is.String(ret));
+    assert(isString(ret));
     assertEquals({ ...JSON.parse(ret), stack: "stack" }, {
       attributes: {},
       message: "error message",
@@ -19,7 +19,7 @@ Deno.test("errorSerializer", async (t) => {
   await t.step("serializes String", () => {
     const err = "error message";
     const ret = errorSerializer(err);
-    assert(is.String(ret));
+    assert(isString(ret));
     assertEquals(ret, "error message");
   });
 
@@ -29,7 +29,7 @@ Deno.test("errorSerializer", async (t) => {
       message: "error message",
     };
     const ret = errorSerializer(err);
-    assert(is.String(ret));
+    assert(isString(ret));
     assertEquals(JSON.parse(ret), {
       type: "error",
       message: "error message",
