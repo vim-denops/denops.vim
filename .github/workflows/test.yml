@@ -39,6 +39,10 @@ jobs:
         run: deno fmt --check
       - name: Type check
         run: deno task check
+      - name: Supported version inconsistency check
+        run: |
+          deno task apply:supported-versions
+          git diff --exit-code
 
   test:
     needs: check
@@ -50,8 +54,8 @@ jobs:
           - windows-latest
           - macos-latest
           - ubuntu-latest
-        version:
-          - "1.45.x"
+        deno_version:
+          - "1.45.0"
           - "1.x"
         host_version:
           - vim: "v9.1.0448"
@@ -67,7 +71,7 @@ jobs:
 
       - uses: denoland/setup-deno@v1.1.4
         with:
-          deno-version: "${{ matrix.version }}"
+          deno-version: "${{ matrix.deno_version }}"
 
       - uses: rhysd/action-setup-vim@v1
         id: vim
