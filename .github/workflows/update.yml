@@ -10,39 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1.1.4
+      - uses: hasundue/molt-action@v1
         with:
-          deno-version: 1.x
-      - name: Configure Git
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email github-actions[bot]@users.noreply.github.com
-      - name: Update dependencies and commit changes
-        run: deno task -q update:commit --summary ../title.txt --report ../body.md
-      - name: Check result
-        id: result
-        uses: andstor/file-existence-action@v2
-        with:
-          files: ../title.txt, ../body.md
-      - name: Read title.txt
-        id: title
-        if: steps.result.outputs.files_exists == 'true'
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: ../title.txt
-      - name: Read body.md
-        id: body
-        if: steps.result.outputs.files_exists == 'true'
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: ../body.md
-      - name: Create a pull request
-        if: steps.result.outputs.files_exists == 'true'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
           branch: automation/update-dependencies
-          title: ${{ steps.title.outputs.content }}
-          body: ${{ steps.body.outputs.content }}
+          config: false
           labels: automation
-          delete-branch: true
+          token: ${{ secrets.PA_TOKEN }}
+          source: "**/*.ts"
