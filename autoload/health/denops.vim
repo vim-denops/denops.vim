@@ -51,8 +51,9 @@ endfunction
 function! s:check_deno_version(supported_version) abort
   const l:deno_version = s:get_deno_version(g:denops#deno)
   call s:report_info(printf(
-        \ 'Detected Deno version: `%s`',
+        \ 'Detected Deno version: `%s` (%s)',
         \ l:deno_version,
+        \ exepath(g:denops#deno),
         \))
   if empty(l:deno_version)
     call s:report_error('Unable to detect version of deno, make sure your deno runtime is correct.')
