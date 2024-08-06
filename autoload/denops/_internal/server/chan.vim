@@ -170,6 +170,18 @@ function! s:reconnect(options) abort
         \))
   try
     call s:connect(s:addr, a:options)
+  catch /Could not find constraint\|Could not find version of/
+    " Show a warning message when Deno module cache issue is detected
+    " https://github.com/vim-denops/denops.vim/issues/358
+    call denops#_internal#echo#debug(repeat('*', 80))
+    call denops#_internal#echo#debug('Deno module cache issue is detected.')
+    call denops#_internal#echo#debug(
+          \ "Execute 'call denops#cache#update(#{reload: v:true})' and restart Vim/Neovim."
+          \ )
+    call denops#_internal#echo#debug(
+          \ 'See https://github.com/vim-denops/denops.vim/issues/358 for more detail.'
+          \ )
+    call denops#_internal#echo#debug(repeat('*', 80))
   catch
     call denops#_internal#echo#debug(printf(
           \ 'Failed to reconnect channel `%s` [%d/%d]: %s',
