@@ -164,6 +164,7 @@ function! health#denops#check() abort
         \ 'Supported Neovim version: `%s`',
         \ l:supported_versions.neovim,
         \))
+  call s:check_deno_executable()
   call s:check_deno_version(l:supported_versions.deno)
   if !has('nvim')
     call s:check_vim_version(l:supported_versions.vim)
