@@ -51,8 +51,9 @@ endfunction
 function! s:check_deno_version(supported_version) abort
   const l:deno_version = s:get_deno_version(g:denops#deno)
   call s:report_info(printf(
-        \ 'Detected Deno version: `%s`',
+        \ 'Detected Deno version: `%s` (%s)',
         \ l:deno_version,
+        \ exepath(g:denops#deno),
         \))
   if empty(l:deno_version)
     call s:report_error('Unable to detect version of deno, make sure your deno runtime is correct.')
@@ -164,6 +165,7 @@ function! health#denops#check() abort
         \ 'Supported Neovim version: `%s`',
         \ l:supported_versions.neovim,
         \))
+  call s:check_deno_executable()
   call s:check_deno_version(l:supported_versions.deno)
   if !has('nvim')
     call s:check_vim_version(l:supported_versions.vim)
