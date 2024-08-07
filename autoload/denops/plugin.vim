@@ -77,10 +77,15 @@ endfunction
 
 function! denops#plugin#check_type(...) abort
   if a:0
-    let l:scripts = [denops#_internal#plugin#get(a:1).script]
+    const l:plugins = [denops#_internal#plugin#get(a:1)]
   else
-    let l:scripts = denops#_internal#plugin#list()
-          \->copy()->map({ _, v -> v.script })->filter({ _, v -> v !=# '' })
+    const l:plugins = denops#_internal#plugin#list()
+  endif
+  const l:scripts = l:plugins
+        \->copy()->map({ _, v -> v.script })->filter({ _, v -> v !=# '' })
+  if empty(l:scripts)
+    call denops#_internal#echo#info("No plugins are loaded")
+    return
   endif
   let l:args = [g:denops#deno, 'check'] + l:scripts
   let l:job = denops#_internal#job#start(l:args, {
