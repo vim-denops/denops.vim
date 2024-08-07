@@ -96,6 +96,21 @@ function! s:on_exit(options, status) abort
   let s:job = v:null
   call denops#_internal#echo#debug(printf('Server stopped: %s', a:status))
   call denops#_internal#event#emit(printf('DenopsSystemProcessStopped:%s', a:status))
+  const l:last_error = execute('20messages')
+  if l:last_error =~# 'Could not find constraint\|Could not find version of'
+    " Show a warning message when Deno module cache issue is detected
+    " https://github.com/vim-denops/denops.vim/issues/358
+    call denops#_internal#echo#warn(repeat('*', 80))
+    call denops#_internal#echo#warn('Deno module cache issue is detected.')
+    call denops#_internal#echo#warn(
+          \ "Execute 'call denops#cache#update(#{reload: v:true})' and restart Vim/Neovim."
+          \ )
+    call denops#_internal#echo#warn(
+          \ 'See https://github.com/vim-denops/denops.vim/issues/358 for more detail.'
+          \ )
+    call denops#_internal#echo#warn(repeat('*', 80))
+    return
+  endif
   if s:job isnot# v:null || !a:options.restart_on_exit || s:stopped_on_purpose || s:exiting
     return
   endif
