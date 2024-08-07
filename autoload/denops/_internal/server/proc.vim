@@ -1,4 +1,5 @@
 const s:SCRIPT = denops#_internal#path#script(['@denops-private', 'cli.ts'])
+const s:LAST_ERROR_LINES = 20
 
 let s:job = v:null
 let s:stopped_on_purpose = 0
@@ -59,13 +60,13 @@ function! s:start(options) abort
   if g:denops#deno_dir isnot# v:null
     let l:env['DENO_DIR'] = g:denops#deno_dir
   endif
-  let l:store = {'prepared': 0}
+  let l:store = {'prepared': 0, 'stderr': []}
   let s:stopped_on_purpose = 0
   let s:job = denops#_internal#job#start(l:args, {
         \ 'env': l:env,
         \ 'on_stdout': { _job, data, _event -> s:on_stdout(l:store, data) },
-        \ 'on_stderr': { _job, data, _event -> s:on_stderr(data) },
-        \ 'on_exit': { _job, status, _event -> s:on_exit(a:options, status) },
+        \ 'on_stderr': { _job, data, _event -> s:on_stderr(l:store, data) },
+        \ 'on_exit': { _job, status, _event -> s:on_exit(l:store, a:options, status) },
         \})
   call denops#_internal#echo#debug(printf('Server started: %s', l:args))
   call denops#_internal#event#emit('DenopsSystemProcessStarted')
@@ -84,18 +85,36 @@ function! s:on_stdout(store, data) abort
   call denops#_internal#event#emit(printf('DenopsSystemProcessListen:%s', l:addr))
 endfunction
 
-function! s:on_stderr(data) abort
+function! s:on_stderr(store, data) abort
   echohl ErrorMsg
   for l:line in split(a:data, '\n')
     echomsg printf('[denops] %s', substitute(l:line, '\t', '    ', 'g'))
   endfor
   echohl None
+  if a:store.stderr->add(a:data)->len() > s:LAST_ERROR_LINES
+    eval a:store.stderr->remove(0, -(s:LAST_ERROR_LINES + 1))
+  endif
 endfunction
 
-function! s:on_exit(options, status) abort
+function! s:on_exit(store, options, status) abort
   let s:job = v:null
   call denops#_internal#echo#debug(printf('Server stopped: %s', a:status))
   call denops#_internal#event#emit(printf('DenopsSystemProcessStopped:%s', a:status))
+  const l:last_error = a:store.stderr->join("\n")
+  if l:last_error =~# 'Could not find constraint\|Could not find version of'
+    " Show a warning message when Deno module cache issue is detected
+    " https://github.com/vim-denops/denops.vim/issues/358
+    call denops#_internal#echo#warn(repeat('*', 80))
+    call denops#_internal#echo#warn('Deno module cache issue is detected.')
+    call denops#_internal#echo#warn(
+          \ "Execute 'call denops#cache#update(#{reload: v:true})' and restart Vim/Neovim."
+          \ )
+    call denops#_internal#echo#warn(
+          \ 'See https://github.com/vim-denops/denops.vim/issues/358 for more detail.'
+          \ )
+    call denops#_internal#echo#warn(repeat('*', 80))
+    return
+  endif
   if s:job isnot# v:null || !a:options.restart_on_exit || s:stopped_on_purpose || s:exiting
     return
   endif

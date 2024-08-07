@@ -3,7 +3,9 @@ import {
   assertEquals,
   assertFalse,
   assertMatch,
+  assertNotMatch,
   assertRejects,
+  assertStringIncludes,
 } from "jsr:@std/assert@^1.0.1";
 import { delay } from "jsr:@std/async@^0.224.0/delay";
 import { AsyncDisposableStack } from "jsr:@nick/dispose@^1.1.0/async-disposable-stack";
@@ -489,6 +491,56 @@ testHost({
         );
       });
     });
+
+    await t.step(
+      "if the server is stopped with a constraint error",
+      async (t) => {
+        await using stack = new AsyncDisposableStack();
+        stack.defer(async () => {
+          await host.call("denops#server#stop");
+          await wait(
+            () => host.call("eval", "denops#server#status() ==# 'stopped'"),
+          );
+        });
+
+        outputs = [];
+        await host.call("execute", [
+          "silent! unlet g:__test_denops_process_stopped_fired",
+          `let g:denops#server#deno_args = ['${
+            resolve("no_check/cli_error_on_issue_401.ts")
+          }']`,
+          "let g:denops#server#restart_delay = 1000",
+          "let g:denops#server#restart_interval = 10000",
+          "let g:denops#server#restart_threshold = 1",
+          "call denops#server#start()",
+        ], "");
+
+        await t.step("fires DenopsProcessStopped", async () => {
+          await wait(() =>
+            host.call("exists", "g:__test_denops_process_stopped_fired")
+          );
+        });
+
+        await t.step("changes status to 'stopped' asynchronously", async () => {
+          assertEquals(await host.call("denops#server#status"), "stopped");
+        });
+
+        await t.step("outputs warning message", async () => {
+          await delay(MESSAGE_DELAY);
+          assertStringIncludes(
+            outputs.join(""),
+            "Execute 'call denops#cache#update(#{reload: v:true})' and restart Vim/Neovim.",
+          );
+        });
+
+        await t.step("does not restart the server", () => {
+          assertNotMatch(
+            outputs.join(""),
+            /Server stopped.*Restarting/,
+          );
+        });
+      },
+    );
   },
 });
 
@@ -1275,3 +1327,8 @@ testHost({
     });
   },
 });
+
+/** Resolve testdata script URL. */
+function resolve(path: string): string {
+  return new URL(`../../testdata/${path}`, import.meta.url).href;
+}
