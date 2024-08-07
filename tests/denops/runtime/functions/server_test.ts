@@ -493,7 +493,7 @@ testHost({
     });
 
     await t.step(
-      "if the server is stopped with a constraint error",
+      "if the server is stopped with a constraint error (issue 401)",
       async (t) => {
         await using stack = new AsyncDisposableStack();
         stack.defer(async () => {
@@ -507,7 +507,7 @@ testHost({
         await host.call("execute", [
           "silent! unlet g:__test_denops_process_stopped_fired",
           `let g:denops#server#deno_args = ['${
-            resolve("no_check/cli_error_on_issue_401.ts")
+            resolve("no_check/cli_constraint_error_on_issue_401.ts")
           }']`,
           "let g:denops#server#restart_delay = 1000",
           "let g:denops#server#restart_interval = 10000",
