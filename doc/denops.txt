@@ -437,7 +437,7 @@ denops#plugin#reload({plugin}[, {options}])
 
 						*denops#plugin#check_type()*
 denops#plugin#check_type([{name}])
-	Runs Deno's type check feature for {name} or all registered plugins.
+	Runs Deno's type check feature for {name} or all loaded plugins.
 	The result of the check will be displayed in |message-history|. It
 	throws an error when {name} does not match the |denops-plugin-name|.
 
