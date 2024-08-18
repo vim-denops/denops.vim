@@ -12,10 +12,19 @@ on:
       - "**.json{c,}"
       - ".github/workflows/test.yml"
   workflow_dispatch:
+    inputs:
+      verbose:
+        type: boolean
+        required: false
+        description: 'Enable verbose output'
+        default: false
 
 defaults:
   run:
     shell: bash --noprofile --norc -eo pipefail {0}
+
+env:
+  DENOPS_TEST_VERBOSE: ${{ github.event.inputs.verbose }}
 
 jobs:
   check:
