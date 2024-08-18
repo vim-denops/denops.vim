@@ -39,6 +39,8 @@ jobs:
         run: deno fmt --check
       - name: Type check
         run: deno task check
+      - name: Doc check
+        run: deno task check:doc
       - name: Supported version inconsistency check
         run: |
           deno task apply:supported-versions

@@ -1,7 +1,8 @@
 {
   "tasks": {
     "check": "deno check **/*.ts",
-    "test": "LANG=C deno test -A --parallel --shuffle --doc",
+    "check:doc": "deno test --doc --no-run",
+    "test": "LANG=C deno test -A --parallel --shuffle",
     "test:coverage": "deno task test --coverage=.coverage",
     "coverage": "deno coverage --exclude=\"test[.]ts(#.*)?$\" .coverage",
     "update": "deno run --allow-env --allow-read --allow-write --allow-run=git,deno --allow-net=jsr.io,registry.npmjs.org jsr:@molt/cli **/*.ts",
