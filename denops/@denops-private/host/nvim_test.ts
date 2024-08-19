@@ -9,7 +9,7 @@ import {
   assertSpyCalls,
   resolvesNext,
   stub,
-} from "jsr:@std/testing@^1.0.0-rc.5/mock";
+} from "jsr:@std/testing@^1.0.0/mock";
 import { delay } from "jsr:@std/async@^1.0.1/delay";
 import { promiseState } from "jsr:@lambdalisue/async@^2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@^1.1.0";
