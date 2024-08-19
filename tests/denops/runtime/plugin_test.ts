@@ -1,5 +1,5 @@
 import { assertEquals, assertMatch } from "jsr:@std/assert@^1.0.1";
-import { delay } from "jsr:@std/async@^0.224.0/delay";
+import { delay } from "jsr:@std/async@^1.0.1/delay";
 import { withHost } from "/denops-testutil/host.ts";
 import { useSharedServer } from "/denops-testutil/shared_server.ts";
 import { wait } from "/denops-testutil/wait.ts";

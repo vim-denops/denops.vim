@@ -3,7 +3,7 @@ import {
   assertMatch,
   assertRejects,
 } from "jsr:@std/assert@^1.0.1";
-import { delay } from "jsr:@std/async@^0.224.0";
+import { delay } from "jsr:@std/async@^1.0.1";
 import { join } from "jsr:@std/path@^1.0.2/join";
 import { testHost } from "/denops-testutil/host.ts";
 import { wait } from "/denops-testutil/wait.ts";
