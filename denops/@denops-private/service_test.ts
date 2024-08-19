@@ -16,7 +16,7 @@ import {
   resolvesNext,
   spy,
   stub,
-} from "jsr:@std/testing@^1.0.0-rc.5/mock";
+} from "jsr:@std/testing@^1.0.0/mock";
 import type { Meta } from "jsr:@denops/core@^7.0.0";
 import { promiseState } from "jsr:@lambdalisue/async@^2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@^1.1.0";

@@ -5,7 +5,7 @@ import {
   assertMatch,
   assertRejects,
 } from "jsr:@std/assert@^1.0.1";
-import { delay } from "jsr:@std/async@^0.224.0/delay";
+import { delay } from "jsr:@std/async@^1.0.1/delay";
 import { AsyncDisposableStack } from "jsr:@nick/dispose@^1.1.0/async-disposable-stack";
 import { testHost } from "/denops-testutil/host.ts";
 import { useSharedServer } from "/denops-testutil/shared_server.ts";

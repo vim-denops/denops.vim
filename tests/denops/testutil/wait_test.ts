@@ -4,8 +4,8 @@ import {
   resolvesNext,
   returnsNext,
   spy,
-} from "jsr:@std/testing@^1.0.0-rc.5/mock";
-import { FakeTime } from "jsr:@std/testing@^1.0.0-rc.5/time";
+} from "jsr:@std/testing@^1.0.0/mock";
+import { FakeTime } from "jsr:@std/testing@^1.0.0/time";
 import { wait } from "./wait.ts";
 
 Deno.test("wait()", async (t) => {

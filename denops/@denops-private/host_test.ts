@@ -3,7 +3,7 @@ import {
   assertSpyCall,
   assertSpyCalls,
   stub,
-} from "jsr:@std/testing@^1.0.0-rc.5/mock";
+} from "jsr:@std/testing@^1.0.0/mock";
 import { AssertError } from "jsr:@core/unknownutil@^4.0.0/assert";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@^1.1.0";
 import { invoke, type Service } from "./host.ts";
