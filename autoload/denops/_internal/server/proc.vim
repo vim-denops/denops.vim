@@ -55,6 +55,7 @@ function! s:start(options) abort
   let l:env = {
         \   'NO_COLOR': 1,
         \   'DENO_NO_PROMPT': 1,
+        \   'DENO_NO_PACKAGE_JSON': 1,
         \ }
   if g:denops#deno_dir isnot# v:null
     let l:env['DENO_DIR'] = g:denops#deno_dir
