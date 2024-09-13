@@ -6,8 +6,10 @@ import {
   assertInstanceOf,
   assertMatch,
   assertNotStrictEquals,
+  assertObjectMatch,
   assertRejects,
   assertStrictEquals,
+  assertStringIncludes,
   assertThrows,
 } from "jsr:@std/assert@^1.0.1";
 import {
@@ -21,6 +23,7 @@ import { toFileUrl } from "jsr:@std/path@^1.0.2/to-file-url";
 import type { Meta } from "jsr:@denops/core@^7.0.0";
 import { promiseState } from "jsr:@lambdalisue/async@^2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@^1.1.0";
+import { INVALID_PLUGIN_NAMES } from "/denops-testdata/invalid_plugin_names.ts";
 import { resolveTestDataURL } from "/denops-testdata/resolve.ts";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";
@@ -439,6 +442,26 @@ Deno.test("Service", async (t) => {
         ]);
       });
     });
+
+    for (const [plugin_name, label] of INVALID_PLUGIN_NAMES) {
+      await t.step(`if the plugin name is invalid (${label})`, async (t) => {
+        const service = new Service(meta);
+        service.bind(host);
+        using host_call = stub(host, "call");
+
+        await t.step("rejects", async () => {
+          await assertRejects(
+            () => service.load(plugin_name, scriptValid),
+            TypeError,
+            `Invalid plugin name: ${plugin_name}`,
+          );
+        });
+
+        await t.step("does not calls the host", () => {
+          assertSpyCalls(host_call, 0);
+        });
+      });
+    }
   });
 
   await t.step(".unload()", async (t) => {
@@ -760,6 +783,26 @@ Deno.test("Service", async (t) => {
         ]);
       });
     });
+
+    for (const [plugin_name, label] of INVALID_PLUGIN_NAMES) {
+      await t.step(`if the plugin name is invalid (${label})`, async (t) => {
+        const service = new Service(meta);
+        service.bind(host);
+        using host_call = stub(host, "call");
+
+        await t.step("rejects", async () => {
+          await assertRejects(
+            () => service.unload(plugin_name),
+            TypeError,
+            `Invalid plugin name: ${plugin_name}`,
+          );
+        });
+
+        await t.step("does not calls the host", () => {
+          assertSpyCalls(host_call, 0);
+        });
+      });
+    }
   });
 
   await t.step(".reload()", async (t) => {
@@ -1059,6 +1102,26 @@ Deno.test("Service", async (t) => {
         });
       });
     });
+
+    for (const [plugin_name, label] of INVALID_PLUGIN_NAMES) {
+      await t.step(`if the plugin name is invalid (${label})`, async (t) => {
+        const service = new Service(meta);
+        service.bind(host);
+        using host_call = stub(host, "call");
+
+        await t.step("rejects", async () => {
+          await assertRejects(
+            () => service.reload(plugin_name),
+            TypeError,
+            `Invalid plugin name: ${plugin_name}`,
+          );
+        });
+
+        await t.step("does not calls the host", () => {
+          assertSpyCalls(host_call, 0);
+        });
+      });
+    }
   });
 
   await t.step(".waitLoaded()", async (t) => {
@@ -1145,6 +1208,7 @@ Deno.test("Service", async (t) => {
       using _host_call = stub(host, "call");
 
       const actual = service.waitLoaded("dummy");
+      actual.catch(NOOP);
       await service.close();
 
       assertEquals(await promiseState(actual), "rejected");
@@ -1154,6 +1218,21 @@ Deno.test("Service", async (t) => {
         "Service closed",
       );
     });
+
+    for (const [plugin_name, label] of INVALID_PLUGIN_NAMES) {
+      await t.step(`if the plugin name is invalid (${label})`, async (t) => {
+        const service = new Service(meta);
+        service.bind(host);
+
+        await t.step("rejects", async () => {
+          await assertRejects(
+            () => service.waitLoaded(plugin_name),
+            TypeError,
+            `Invalid plugin name: ${plugin_name}`,
+          );
+        });
+      });
+    }
   });
 
   await t.step(".interrupt()", async (t) => {
@@ -1296,6 +1375,21 @@ Deno.test("Service", async (t) => {
         });
       });
     });
+
+    for (const [plugin_name, label] of INVALID_PLUGIN_NAMES) {
+      await t.step(`if the plugin name is invalid (${label})`, async (t) => {
+        const service = new Service(meta);
+        service.bind(host);
+
+        await t.step("rejects", async () => {
+          const err = await assertRejects(
+            () => service.dispatch(plugin_name, "test", []),
+          );
+          assert(typeof err === "string");
+          assertStringIncludes(err, `Invalid plugin name: ${plugin_name}`);
+        });
+      });
+    }
   });
 
   await t.step(".dispatchAsync()", async (t) => {
@@ -1522,6 +1616,40 @@ Deno.test("Service", async (t) => {
         });
       });
     });
+
+    for (const [plugin_name, label] of INVALID_PLUGIN_NAMES) {
+      await t.step(`if the plugin name is invalid (${label})`, async (t) => {
+        const service = new Service(meta);
+        service.bind(host);
+        using host_call = stub(host, "call");
+
+        await t.step("resolves", async () => {
+          await service.dispatchAsync(
+            plugin_name,
+            "test",
+            ["foo"],
+            "success",
+            "failure",
+          );
+        });
+
+        await t.step("calls 'failure' callback", () => {
+          const err = host_call.calls[0]?.args[2];
+          assert(err && typeof err === "object");
+          assertSpyCall(host_call, 0, {
+            args: [
+              "denops#callback#call",
+              "failure",
+              err,
+            ],
+          });
+          assertObjectMatch(err, {
+            name: "TypeError",
+            message: `Invalid plugin name: ${plugin_name}`,
+          });
+        });
+      });
+    }
   });
 
   await t.step(".close()", async (t) => {

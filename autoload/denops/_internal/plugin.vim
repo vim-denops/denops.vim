@@ -4,6 +4,7 @@ const s:STATE_LOADED = 'loaded'
 const s:STATE_UNLOADING = 'unloading'
 const s:STATE_FAILED = 'failed'
 
+" NOTE: same as denops/@denops-private/service.ts
 const s:VALID_NAME_PATTERN = '^[-_0-9a-zA-Z]\+$'
 
 let s:plugins = {}
