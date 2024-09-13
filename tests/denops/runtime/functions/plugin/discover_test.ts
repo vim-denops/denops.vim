@@ -4,13 +4,13 @@ import {
   assertMatch,
 } from "jsr:@std/assert@^1.0.1";
 import { delay } from "jsr:@std/async@^1.0.1";
-import { join } from "jsr:@std/path@^1.0.2/join";
+import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
 import { testHost } from "/denops-testutil/host.ts";
 import { wait } from "/denops-testutil/wait.ts";
 
 const MESSAGE_DELAY = 200; // msc
 
-const runtimepathPlugin = resolve("dummy_plugins");
+const runtimepathPlugin = resolveTestDataPath("dummy_plugins");
 
 testHost({
   name: "denops#plugin#discover()",
@@ -83,8 +83,3 @@ testHost({
     });
   },
 });
-
-/** Resolve testdata script path. */
-function resolve(path: string): string {
-  return join(import.meta.dirname!, `../../../testdata/${path}`);
-}

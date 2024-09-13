@@ -6,7 +6,7 @@ import {
   assertRejects,
 } from "jsr:@std/assert@^1.0.1";
 import { delay } from "jsr:@std/async@^1.0.1/delay";
-import { join } from "jsr:@std/path@^1.0.2/join";
+import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
 import { useSharedServer } from "./shared_server.ts";
 
 Deno.test("useSharedServer()", async (t) => {
@@ -49,7 +49,7 @@ Deno.test("useSharedServer()", async (t) => {
             "--allow-env",
             "--allow-read",
             "--allow-run",
-            resolve("shared_server_test_no_verbose.ts"),
+            resolveTestDataPath("shared_server_test_no_verbose.ts"),
           ],
           stdout: "piped",
         }).spawn();
@@ -94,7 +94,7 @@ Deno.test("useSharedServer()", async (t) => {
           "--allow-env",
           "--allow-read",
           "--allow-run",
-          resolve("shared_server_test_verbose_true.ts"),
+          resolveTestDataPath("shared_server_test_verbose_true.ts"),
         ],
         stdout: "piped",
       }).spawn();
@@ -114,8 +114,3 @@ Deno.test("useSharedServer()", async (t) => {
     );
   });
 });
-
-/** Resolve testdata script path. */
-function resolve(path: string): string {
-  return join(import.meta.dirname!, `../testdata/${path}`);
-}
