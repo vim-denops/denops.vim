@@ -17,21 +17,28 @@ import {
   spy,
   stub,
 } from "jsr:@std/testing@^1.0.0/mock";
+import { toFileUrl } from "jsr:@std/path@^1.0.2/to-file-url";
 import type { Meta } from "jsr:@denops/core@^7.0.0";
 import { promiseState } from "jsr:@lambdalisue/async@^2.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@^1.1.0";
+import { resolveTestDataURL } from "/denops-testdata/resolve.ts";
 import type { Host } from "./denops.ts";
 import { Service } from "./service.ts";
-import { toFileUrl } from "jsr:@std/path@^1.0.2/to-file-url";
 
 const NOOP = () => {};
 
-const scriptValid = resolve("dummy_valid_plugin.ts");
-const scriptInvalid = resolve("dummy_invalid_plugin.ts");
-const scriptValidDispose = resolve("dummy_valid_dispose_plugin.ts");
-const scriptInvalidDispose = resolve("dummy_invalid_dispose_plugin.ts");
-const scriptInvalidConstraint = resolve("dummy_invalid_constraint_plugin.ts");
-const scriptInvalidConstraint2 = resolve("dummy_invalid_constraint_plugin2.ts");
+const scriptValid = resolveTestDataURL("dummy_valid_plugin.ts");
+const scriptInvalid = resolveTestDataURL("dummy_invalid_plugin.ts");
+const scriptValidDispose = resolveTestDataURL("dummy_valid_dispose_plugin.ts");
+const scriptInvalidDispose = resolveTestDataURL(
+  "dummy_invalid_dispose_plugin.ts",
+);
+const scriptInvalidConstraint = resolveTestDataURL(
+  "dummy_invalid_constraint_plugin.ts",
+);
+const scriptInvalidConstraint2 = resolveTestDataURL(
+  "dummy_invalid_constraint_plugin2.ts",
+);
 
 Deno.test("Service", async (t) => {
   const meta: Meta = {
@@ -1620,11 +1627,6 @@ Deno.test("Service", async (t) => {
     });
   });
 });
-
-/** Resolve testdata script URL. */
-function resolve(path: string): string {
-  return new URL(`../../tests/denops/testdata/${path}`, import.meta.url).href;
-}
 
 async function useTempFile(options?: Deno.MakeTempOptions) {
   const path = await Deno.makeTempFile(options);

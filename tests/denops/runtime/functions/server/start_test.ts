@@ -8,6 +8,7 @@ import {
 } from "jsr:@std/assert@^1.0.1";
 import { delay } from "jsr:@std/async@^1.0.1/delay";
 import { AsyncDisposableStack } from "jsr:@nick/dispose@^1.1.0/async-disposable-stack";
+import { resolveTestDataURL } from "/denops-testdata/resolve.ts";
 import { testHost } from "/denops-testutil/host.ts";
 import { useSharedServer } from "/denops-testutil/shared_server.ts";
 import { wait } from "/denops-testutil/wait.ts";
@@ -404,7 +405,7 @@ testHost({
         await host.call("execute", [
           "silent! unlet g:__test_denops_process_stopped_fired",
           `let g:denops#server#deno_args = ['${
-            resolve("no_check/cli_constraint_error_on_issue_401.ts")
+            resolveTestDataURL("no_check/cli_constraint_error_on_issue_401.ts")
           }']`,
           "let g:denops#server#restart_delay = 1000",
           "let g:denops#server#restart_interval = 10000",
@@ -440,8 +441,3 @@ testHost({
     );
   },
 });
-
-/** Resolve testdata script URL. */
-function resolve(path: string): string {
-  return new URL(`../../../testdata/${path}`, import.meta.url).href;
-}

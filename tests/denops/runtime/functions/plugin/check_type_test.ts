@@ -3,11 +3,11 @@ import {
   assertNotMatch,
   assertRejects,
 } from "jsr:@std/assert@^1.0.1";
-import { join } from "jsr:@std/path@^1.0.2/join";
+import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
 import { testHost } from "/denops-testutil/host.ts";
 import { wait } from "/denops-testutil/wait.ts";
 
-const scriptValid = resolve("dummy_valid_plugin.ts");
+const scriptValid = resolveTestDataPath("dummy_valid_plugin.ts");
 
 testHost({
   name: "denops#plugin#check_type()",
@@ -211,8 +211,3 @@ testHost({
     });
   },
 });
-
-/** Resolve testdata script path. */
-function resolve(path: string): string {
-  return join(import.meta.dirname!, `../../../testdata/${path}`);
-}
