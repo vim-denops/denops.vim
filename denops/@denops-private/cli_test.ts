@@ -19,7 +19,7 @@ import {
 } from "jsr:@std/testing@^1.0.0/mock";
 import { FakeTime } from "jsr:@std/testing@^1.0.0/time";
 import { delay } from "jsr:@std/async@^1.0.1/delay";
-import { promiseState } from "jsr:@lambdalisue/async@^2.1.1";
+import { flushPromises, peekPromiseState } from "jsr:@core/asyncutil@^1.1.1";
 import {
   createFakeTcpConn,
   createFakeTcpListener,
@@ -263,7 +263,7 @@ Deno.test("main()", async (t) => {
         });
 
         await t.step("pendings main() Promise", async () => {
-          assertEquals(await promiseState(p), "pending");
+          assertEquals(await peekPromiseState(p), "pending");
         });
       });
 
@@ -276,7 +276,7 @@ Deno.test("main()", async (t) => {
         });
 
         await t.step("pendings main() Promise", async () => {
-          assertEquals(await promiseState(p), "pending");
+          assertEquals(await peekPromiseState(p), "pending");
         });
 
         await t.step(
@@ -296,7 +296,7 @@ Deno.test("main()", async (t) => {
           });
 
           await t.step("resolves main() Promise", async () => {
-            assertEquals(await promiseState(p), "fulfilled");
+            assertEquals(await peekPromiseState(p), "fulfilled");
           });
         });
 
@@ -384,14 +384,15 @@ Deno.test("main()", async (t) => {
         });
 
         await t.step("pendings main() Promise", async () => {
-          assertEquals(await promiseState(p), "pending");
+          assertEquals(await peekPromiseState(p), "pending");
         });
 
         await t.step("and the listner is closed", async (t) => {
           fakeTcpListener.close();
+          await flushPromises();
 
           await t.step("resolves main() Promise", async () => {
-            assertEquals(await promiseState(p), "fulfilled");
+            assertEquals(await peekPromiseState(p), "fulfilled");
           });
         });
       });
@@ -460,7 +461,7 @@ Deno.test("main()", async (t) => {
         });
 
         await t.step("resolves main() Promise", async () => {
-          assertEquals(await promiseState(p), "fulfilled");
+          assertEquals(await peekPromiseState(p), "fulfilled");
         });
 
         await t.step("does not outputs error logs", () => {
@@ -604,7 +605,7 @@ Deno.test("main()", async (t) => {
       });
 
       await t.step("resolves main() Promise", async () => {
-        assertEquals(await promiseState(mainPromise), "fulfilled");
+        assertEquals(await peekPromiseState(mainPromise), "fulfilled");
       });
     });
   });

@@ -10,7 +10,7 @@ import {
   stub,
 } from "jsr:@std/testing@^1.0.0/mock";
 import { delay } from "jsr:@std/async@^1.0.1/delay";
-import { promiseState } from "jsr:@lambdalisue/async@^2.1.1";
+import { peekPromiseState } from "jsr:@core/asyncutil@^1.1.1";
 import { unimplemented } from "jsr:@lambdalisue/errorutil@^1.1.0";
 import { Client, Session } from "jsr:@denops/vim-channel-command@^4.0.2";
 import { withVim } from "/denops-testutil/with.ts";
@@ -378,14 +378,14 @@ Deno.test("Vim", async (t) => {
         const waitClosedPromise = host.waitClosed();
 
         await t.step("pendings before the session closes", async () => {
-          assertEquals(await promiseState(waitClosedPromise), "pending");
+          assertEquals(await peekPromiseState(waitClosedPromise), "pending");
         });
 
         // NOTE: Close the session of the host.
         await host[Symbol.asyncDispose]();
 
         await t.step("fulfilled when the session closes", async () => {
-          assertEquals(await promiseState(waitClosedPromise), "fulfilled");
+          assertEquals(await peekPromiseState(waitClosedPromise), "fulfilled");
         });
       });
     },
