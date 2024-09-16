@@ -4,7 +4,7 @@ import {
   assertInstanceOf,
   assertRejects,
 } from "jsr:@std/assert@^1.0.1";
-import { promiseState } from "jsr:@lambdalisue/async@^2.1.1";
+import { flushPromises, peekPromiseState } from "jsr:@core/asyncutil@^1.1.1";
 import {
   createFakeTcpConn,
   createFakeTcpListener,
@@ -38,7 +38,7 @@ Deno.test("pendingPromise()", async (t) => {
     const actual = pendingPromise();
 
     assertInstanceOf(actual, Promise);
-    assertEquals(await promiseState(actual), "pending");
+    assertEquals(await peekPromiseState(actual), "pending");
   });
 });
 
@@ -93,7 +93,7 @@ Deno.test("createFakeTcpListener()", async (t) => {
         const promise = listener.accept();
 
         assertInstanceOf(promise, Promise);
-        assertEquals(await promiseState(promise), "pending");
+        assertEquals(await peekPromiseState(promise), "pending");
       });
     });
 
@@ -102,11 +102,12 @@ Deno.test("createFakeTcpListener()", async (t) => {
       const resultPromise = iterator.next();
 
       await t.step("closes the conn iterator", async () => {
-        assertEquals(await promiseState(resultPromise), "pending");
+        assertEquals(await peekPromiseState(resultPromise), "pending");
 
         listener.close();
+        await flushPromises();
 
-        assertEquals(await promiseState(resultPromise), "fulfilled");
+        assertEquals(await peekPromiseState(resultPromise), "fulfilled");
         assertEquals(await resultPromise, {
           done: true,
           value: undefined,
@@ -142,11 +143,12 @@ Deno.test("createFakeTcpListener()", async (t) => {
         const resultPromise = iterator.next();
 
         assertSpyCalls(listener_accept, 1);
-        assertEquals(await promiseState(resultPromise), "pending");
+        assertEquals(await peekPromiseState(resultPromise), "pending");
 
         firstAcceptWaiter.resolve("fake-tcp-conn");
+        await flushPromises();
 
-        assertEquals(await promiseState(resultPromise), "fulfilled");
+        assertEquals(await peekPromiseState(resultPromise), "fulfilled");
         assertEquals(await resultPromise, {
           done: false,
           // deno-lint-ignore no-explicit-any

@@ -12,7 +12,7 @@ import {
   resolvesNext,
   stub,
 } from "jsr:@std/testing@^1.0.0/mock";
-import { promiseState } from "jsr:@lambdalisue/async@^2.1.1";
+import { flushPromises, peekPromiseState } from "jsr:@core/asyncutil@^1.1.1";
 import { DenopsImpl, type Host, type Service } from "./denops.ts";
 
 type BatchReturn = [results: unknown[], errmsg: string];
@@ -360,11 +360,14 @@ Deno.test("DenopsImpl", async (t) => {
 
         const dispatchPromise = denops.dispatch("dummy", "fn", "args");
 
-        assertEquals(await promiseState(dispatchPromise), "pending");
+        assertEquals(await peekPromiseState(dispatchPromise), "pending");
         assertSpyCalls(service_waitLoaded, 1);
         assertSpyCalls(service_dispatch, 0);
+
         waiter.resolve();
-        assertEquals(await promiseState(dispatchPromise), "fulfilled");
+        await flushPromises();
+
+        assertEquals(await peekPromiseState(dispatchPromise), "fulfilled");
         assertSpyCalls(service_waitLoaded, 1);
         assertSpyCalls(service_dispatch, 1);
       });
