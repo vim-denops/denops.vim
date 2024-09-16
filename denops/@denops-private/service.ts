@@ -45,6 +45,7 @@ export class Service implements HostService, AsyncDisposable {
     if (!this.#host) {
       throw new Error("No host is bound to the service");
     }
+    assertValidPluginName(name);
     if (this.#plugins.has(name)) {
       if (this.#meta.mode === "debug") {
         console.log(`A denops plugin '${name}' is already loaded. Skip`);
@@ -79,21 +80,24 @@ export class Service implements HostService, AsyncDisposable {
   }
 
   async unload(name: string): Promise<void> {
+    assertValidPluginName(name);
     await this.#unload(name);
   }
 
   async reload(name: string): Promise<void> {
+    assertValidPluginName(name);
     const plugin = await this.#unload(name);
     if (plugin) {
       await this.load(name, plugin.script);
     }
   }
 
-  waitLoaded(name: string): Promise<void> {
+  async waitLoaded(name: string): Promise<void> {
     if (this.#closed) {
-      return Promise.reject(new Error("Service closed"));
+      throw new Error("Service closed");
     }
-    return this.#getWaiter(name).promise;
+    assertValidPluginName(name);
+    await this.#getWaiter(name).promise;
   }
 
   interrupt(reason?: unknown): void {
@@ -111,6 +115,7 @@ export class Service implements HostService, AsyncDisposable {
 
   async dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
     try {
+      assertValidPluginName(name);
       return await this.#dispatch(name, fn, args);
     } catch (e) {
       throw toVimError(e);
@@ -128,6 +133,7 @@ export class Service implements HostService, AsyncDisposable {
       throw new Error("No host is bound to the service");
     }
     try {
+      assertValidPluginName(name);
       const r = await this.#dispatch(name, fn, args);
       try {
         await this.#host.call("denops#callback#call", success, r);
@@ -170,6 +176,15 @@ export class Service implements HostService, AsyncDisposable {
 
   [Symbol.asyncDispose](): Promise<void> {
     return this.close();
+  }
+}
+
+// NOTE: same as autoload/denops/_internal/plugin.vim
+const VALID_NAME_PATTERN = /^[-_0-9a-zA-Z]+$/;
+
+function assertValidPluginName(name: string) {
+  if (!VALID_NAME_PATTERN.test(name)) {
+    throw new TypeError(`Invalid plugin name: ${name}`);
   }
 }
 
