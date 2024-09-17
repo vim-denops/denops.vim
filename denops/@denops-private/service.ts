@@ -92,12 +92,16 @@ export class Service implements HostService, AsyncDisposable {
     }
   }
 
-  async waitLoaded(name: string): Promise<void> {
-    if (this.#closed) {
-      throw new Error("Service closed");
+  waitLoaded(name: string): Promise<void> {
+    try {
+      if (this.#closed) {
+        throw new Error("Service closed");
+      }
+      assertValidPluginName(name);
+    } catch (e) {
+      return Promise.reject(e);
     }
-    assertValidPluginName(name);
-    await this.#getWaiter(name).promise;
+    return this.#getWaiter(name).promise;
   }
 
   interrupt(reason?: unknown): void {
