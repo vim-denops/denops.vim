@@ -1,6 +1,8 @@
 import { BatchError, type Meta } from "jsr:@denops/core@^7.0.0";
 import {
+  assert,
   assertEquals,
+  assertFalse,
   assertInstanceOf,
   assertRejects,
   assertStrictEquals,
@@ -29,15 +31,29 @@ Deno.test("DenopsImpl", async (t) => {
     call: () => unimplemented(),
     batch: () => unimplemented(),
   };
+  const serviceInterrupt = new AbortController();
   const service: Service = {
     dispatch: () => unimplemented(),
     waitLoaded: () => unimplemented(),
-    interrupted: new AbortController().signal,
+    interrupted: serviceInterrupt.signal,
   };
   const denops = new DenopsImpl("dummy", meta, host, service);
 
-  await t.step("interrupted returns AbortSignal instance", () => {
-    assertInstanceOf(denops.interrupted, AbortSignal);
+  await t.step(".interrupted property", async (t) => {
+    await t.step("returns AbortSignal instance", () => {
+      assertInstanceOf(denops.interrupted, AbortSignal);
+    });
+
+    await t.step("aborts when `Service.interrupted` aborts", () => {
+      const signal = denops.interrupted;
+
+      assertFalse(signal.aborted);
+
+      serviceInterrupt.abort("test");
+
+      assert(signal.aborted);
+      assertEquals(signal.reason, "test");
+    });
   });
 
   await t.step(".redraw()", async (t) => {
