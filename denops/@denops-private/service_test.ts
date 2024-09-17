@@ -1235,7 +1235,7 @@ Deno.test("Service", async (t) => {
   });
 
   await t.step(".interrupt()", async (t) => {
-    await t.step("sends signal to `interrupted` attribute", () => {
+    await t.step("sends signal to `interrupted` property", () => {
       const service = new Service(meta);
       const signal = service.interrupted;
 
@@ -1244,7 +1244,7 @@ Deno.test("Service", async (t) => {
       assert(signal.aborted);
     });
 
-    await t.step("sends signal to `interrupted` attribute with reason", () => {
+    await t.step("sends signal to `interrupted` property with reason", () => {
       const service = new Service(meta);
       const signal = service.interrupted;
 
