@@ -1,14 +1,17 @@
 import {
+  assertArrayIncludes,
   assertEquals,
   assertObjectMatch,
-  assertStringIncludes,
 } from "jsr:@std/assert@^1.0.1";
+import { delay } from "jsr:@std/async@^1.0.1/delay";
 import { INVALID_PLUGIN_NAMES } from "/denops-testdata/invalid_plugin_names.ts";
 import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
 import { testHost } from "/denops-testutil/host.ts";
 import { wait } from "/denops-testutil/wait.ts";
 
-const scriptValid = resolveTestDataPath("dummy_valid_plugin.ts");
+const ASYNC_DELAY = 100;
+
+const scriptDispatcher = resolveTestDataPath("dummy_dispatcher_plugin.ts");
 
 testHost({
   name: "denops#request_async()",
@@ -16,20 +19,17 @@ testHost({
   postlude: [
     "runtime plugin/denops.vim",
   ],
-  fn: async ({ host, t, stderr, mode }) => {
-    let outputs: string[] = [];
-    stderr.pipeTo(
-      new WritableStream({ write: (s) => void outputs.push(s) }),
-    ).catch(() => {});
+  fn: async ({ host, t }) => {
     await wait(() => host.call("eval", "denops#server#status() ==# 'running'"));
     await host.call("execute", [
       "let g:__test_denops_events = []",
       "autocmd User DenopsPlugin* call add(g:__test_denops_events, expand('<amatch>'))",
+      "autocmd User DummyDispatcherPlugin:* call add(g:__test_denops_events, expand('<amatch>'))",
       "function TestDenopsRequestAsyncSuccess(...)",
-      "  call add(g:__test_denops_events, ['TestDenopsRequestAsyncSuccess', a:000])",
+      "  call add(g:__test_denops_events, ['TestDenopsRequestAsyncSuccess:Called', a:000])",
       "endfunction",
       "function TestDenopsRequestAsyncFailure(...)",
-      "  call add(g:__test_denops_events, ['TestDenopsRequestAsyncFailure', a:000])",
+      "  call add(g:__test_denops_events, ['TestDenopsRequestAsyncFailure:Called', a:000])",
       "endfunction",
     ], "");
 
@@ -53,10 +53,10 @@ testHost({
         await t.step("calls failure callback", async () => {
           await wait(() => host.call("eval", "len(g:__test_denops_events)"));
           assertObjectMatch(
-            await host.call("eval", "g:__test_denops_events") as [],
+            await host.call("eval", "g:__test_denops_events") as unknown[],
             {
               0: [
-                "TestDenopsRequestAsyncFailure",
+                "TestDenopsRequestAsyncFailure:Called",
                 [
                   {
                     message: `Invalid plugin name: ${plugin_name}`,
@@ -74,43 +74,86 @@ testHost({
       // Load plugin and wait.
       await host.call("execute", [
         "let g:__test_denops_events = []",
-        `call denops#plugin#load('dummyLoaded', '${scriptValid}')`,
+        `call denops#plugin#load('dummy', '${scriptDispatcher}')`,
       ], "");
       await wait(async () =>
         (await host.call("eval", "g:__test_denops_events") as string[])
-          .includes("DenopsPluginPost:dummyLoaded")
-      );
-      await host.call("execute", [
-        "let g:__test_denops_events = []",
-      ], "");
-
-      outputs = [];
-      await host.call(
-        "denops#request_async",
-        "dummyLoaded",
-        "test",
-        ["foo"],
-        "TestDenopsRequestAsyncSuccess",
-        "TestDenopsRequestAsyncFailure",
+          .includes("DenopsPluginPost:dummy")
       );
 
-      await t.step("returns immediately", () => {
-        assertEquals(outputs, []);
+      await t.step("returns immediately", async () => {
+        await host.call("execute", [
+          "let g:__test_denops_events = []",
+        ], "");
+
+        await host.call(
+          "denops#request_async",
+          "dummy",
+          "test",
+          ["foo"],
+          "TestDenopsRequestAsyncSuccess",
+          "TestDenopsRequestAsyncFailure",
+        );
+
+        assertEquals(await host.call("eval", "g:__test_denops_events"), []);
       });
 
-      await t.step("calls success callback", async () => {
-        await wait(() => host.call("eval", "len(g:__test_denops_events)"));
-        const returnValue = mode === "vim" ? null : 0;
-        assertObjectMatch(
-          await host.call("eval", "g:__test_denops_events") as [],
-          {
-            0: ["TestDenopsRequestAsyncSuccess", [returnValue]],
-          },
+      await t.step("calls dispatcher method", async () => {
+        await delay(100 + ASYNC_DELAY);
+        assertArrayIncludes(
+          await host.call("eval", "g:__test_denops_events") as unknown[],
+          ['DummyDispatcherPlugin:TestCalled:["foo"]'],
         );
       });
 
-      await t.step("calls dispatcher method", () => {
-        assertStringIncludes(outputs.join(""), 'This is test call: ["foo"]');
+      await t.step("calls success callback", async () => {
+        assertArrayIncludes(
+          await host.call("eval", "g:__test_denops_events") as unknown[],
+          [
+            [
+              "TestDenopsRequestAsyncSuccess:Called",
+              [{ result: "OK", args: ["foo"] }],
+            ],
+          ],
+        );
+      });
+
+      await t.step("if the dispatcher method is not exist", async (t) => {
+        await t.step("returns immediately", async () => {
+          await host.call("execute", [
+            "let g:__test_denops_events = []",
+          ], "");
+
+          await host.call(
+            "denops#request_async",
+            "dummy",
+            "not_exist_method",
+            ["foo"],
+            "TestDenopsRequestAsyncSuccess",
+            "TestDenopsRequestAsyncFailure",
+          );
+
+          assertEquals(await host.call("eval", "g:__test_denops_events"), []);
+        });
+
+        await t.step("calls failure callback", async () => {
+          await wait(() => host.call("eval", "len(g:__test_denops_events)"));
+          assertObjectMatch(
+            await host.call("eval", "g:__test_denops_events") as unknown[],
+            {
+              0: [
+                "TestDenopsRequestAsyncFailure:Called",
+                [
+                  {
+                    message:
+                      "Failed to call 'not_exist_method' API in 'dummy': this[#denops].dispatcher[fn] is not a function",
+                    name: "Error",
+                  },
+                ],
+              ],
+            },
+          );
+        });
       });
     });
   },

@@ -6,8 +6,9 @@ import { testHost } from "/denops-testutil/host.ts";
 import { wait } from "/denops-testutil/wait.ts";
 
 const ASYNC_DELAY = 100;
+const MESSAGE_DELAY = 200;
 
-const scriptValid = resolveTestDataPath("dummy_valid_plugin.ts");
+const scriptDispatcher = resolveTestDataPath("dummy_dispatcher_plugin.ts");
 
 testHost({
   name: "denops#notify()",
@@ -24,6 +25,7 @@ testHost({
     await host.call("execute", [
       "let g:__test_denops_events = []",
       "autocmd User DenopsPlugin* call add(g:__test_denops_events, expand('<amatch>'))",
+      "autocmd User DummyDispatcherPlugin:* call add(g:__test_denops_events, expand('<amatch>'))",
     ], "");
 
     for (const [plugin_name, label] of INVALID_PLUGIN_NAMES) {
@@ -38,23 +40,51 @@ testHost({
       // Load plugin and wait.
       await host.call("execute", [
         "let g:__test_denops_events = []",
-        `call denops#plugin#load('dummyLoaded', '${scriptValid}')`,
+        `call denops#plugin#load('dummy', '${scriptDispatcher}')`,
       ], "");
       await wait(async () =>
         (await host.call("eval", "g:__test_denops_events") as string[])
-          .includes("DenopsPluginPost:dummyLoaded")
+          .includes("DenopsPluginPost:dummy")
       );
 
-      outputs = [];
-      await host.call("denops#notify", "dummyLoaded", "test", ["foo"]);
+      await t.step("returns immediately", async () => {
+        await host.call("execute", [
+          "let g:__test_denops_events = []",
+        ], "");
 
-      await t.step("returns immediately", () => {
-        assertEquals(outputs, []);
+        await host.call("denops#notify", "dummy", "test", ["foo"]);
+
+        assertEquals(await host.call("eval", "g:__test_denops_events"), []);
       });
 
       await t.step("calls dispatcher method", async () => {
-        await delay(ASYNC_DELAY);
-        assertStringIncludes(outputs.join(""), 'This is test call: ["foo"]');
+        await delay(100 + ASYNC_DELAY);
+        assertEquals(await host.call("eval", "g:__test_denops_events"), [
+          'DummyDispatcherPlugin:TestCalled:["foo"]',
+        ]);
+      });
+
+      await t.step("if the dispatcher method is not exist", async (t) => {
+        await t.step("returns immediately (flaky)", async () => {
+          outputs = [];
+
+          await host.call(
+            "denops#notify",
+            "dummy",
+            "not_exist_method",
+            ["foo"],
+          );
+
+          assertEquals(outputs, []);
+        });
+
+        await t.step("outputs an error message", async () => {
+          await delay(MESSAGE_DELAY);
+          assertStringIncludes(
+            outputs.join(""),
+            "Failed to call 'not_exist_method' API in 'dummy'",
+          );
+        });
       });
     });
   },
