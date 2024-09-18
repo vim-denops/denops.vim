@@ -51,6 +51,7 @@ testHost({
 
         await host.call("denops#interrupt");
 
+        // It should passed because of delay(MIMIC_ABORT_DELAY) in dummy_interrupt_plugin.ts
         assertEquals(await host.call("eval", "g:__test_denops_events"), []);
       });
 
@@ -70,6 +71,7 @@ testHost({
         );
       });
 
+      // Reset interrupt event handler.
       await host.call("denops#request", "dummy", "reset", []);
 
       await t.step("sends signal to the plugin with reason", async () => {

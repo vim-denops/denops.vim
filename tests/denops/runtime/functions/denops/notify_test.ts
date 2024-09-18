@@ -5,7 +5,6 @@ import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
 import { testHost } from "/denops-testutil/host.ts";
 import { wait } from "/denops-testutil/wait.ts";
 
-const ASYNC_DELAY = 100;
 const MESSAGE_DELAY = 200;
 
 const scriptDispatcher = resolveTestDataPath("dummy_dispatcher_plugin.ts");
@@ -58,7 +57,7 @@ testHost({
       });
 
       await t.step("calls dispatcher method", async () => {
-        await delay(100 + ASYNC_DELAY);
+        await wait(() => host.call("eval", "len(g:__test_denops_events)"));
         assertEquals(await host.call("eval", "g:__test_denops_events"), [
           'DummyDispatcherPlugin:TestCalled:["foo"]',
         ]);

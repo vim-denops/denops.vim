@@ -3,13 +3,10 @@ import {
   assertEquals,
   assertObjectMatch,
 } from "jsr:@std/assert@^1.0.1";
-import { delay } from "jsr:@std/async@^1.0.1/delay";
 import { INVALID_PLUGIN_NAMES } from "/denops-testdata/invalid_plugin_names.ts";
 import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
 import { testHost } from "/denops-testutil/host.ts";
 import { wait } from "/denops-testutil/wait.ts";
-
-const ASYNC_DELAY = 100;
 
 const scriptDispatcher = resolveTestDataPath("dummy_dispatcher_plugin.ts");
 
@@ -99,7 +96,7 @@ testHost({
       });
 
       await t.step("calls dispatcher method", async () => {
-        await delay(100 + ASYNC_DELAY);
+        await wait(() => host.call("eval", "len(g:__test_denops_events)"));
         assertArrayIncludes(
           await host.call("eval", "g:__test_denops_events") as unknown[],
           ['DummyDispatcherPlugin:TestCalled:["foo"]'],
