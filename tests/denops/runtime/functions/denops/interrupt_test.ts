@@ -43,12 +43,15 @@ testHost({
         (await host.call("eval", "g:__test_denops_events") as string[])
           .includes("DenopsPluginPost:dummy")
       );
-      await host.call("execute", [
-        "let g:__test_denops_events = []",
-      ], "");
 
       await t.step("returns immediately", async () => {
+        await host.call("execute", [
+          "let g:__test_denops_events = []",
+        ], "");
+
         await host.call("denops#interrupt");
+
+        assertEquals(await host.call("eval", "g:__test_denops_events"), []);
       });
 
       await t.step("sends signal to the plugin", async () => {
