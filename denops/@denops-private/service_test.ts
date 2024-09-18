@@ -10,7 +10,6 @@ import {
   assertRejects,
   assertStrictEquals,
   assertStringIncludes,
-  assertThrows,
 } from "jsr:@std/assert@^1.0.1";
 import {
   assertSpyCall,
@@ -1236,22 +1235,23 @@ Deno.test("Service", async (t) => {
   });
 
   await t.step(".interrupt()", async (t) => {
-    await t.step("sends signal to `interrupted` attribute", () => {
+    await t.step("sends signal to `interrupted` property", () => {
       const service = new Service(meta);
       const signal = service.interrupted;
 
       service.interrupt();
 
-      assertThrows(() => signal.throwIfAborted());
+      assert(signal.aborted);
     });
 
-    await t.step("sends signal to `interrupted` attribute with reason", () => {
+    await t.step("sends signal to `interrupted` property with reason", () => {
       const service = new Service(meta);
       const signal = service.interrupted;
 
       service.interrupt("test");
 
-      assertThrows(() => signal.throwIfAborted(), "test");
+      assert(signal.aborted);
+      assertEquals(signal.reason, "test");
     });
   });
 
