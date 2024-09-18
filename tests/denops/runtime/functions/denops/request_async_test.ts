@@ -122,18 +122,14 @@ testHost({
         await t.step("returns immediately", async () => {
           await host.call("execute", [
             "let g:__test_denops_events = []",
+            "call denops#request_async('dummy', 'not_exist_method', ['foo'], 'TestDenopsRequestAsyncSuccess', 'TestDenopsRequestAsyncFailure')",
+            "let g:__test_denops_events_after_called = g:__test_denops_events->copy()",
           ], "");
 
-          await host.call(
-            "denops#request_async",
-            "dummy",
-            "not_exist_method",
-            ["foo"],
-            "TestDenopsRequestAsyncSuccess",
-            "TestDenopsRequestAsyncFailure",
+          assertEquals(
+            await host.call("eval", "g:__test_denops_events_after_called"),
+            [],
           );
-
-          assertEquals(await host.call("eval", "g:__test_denops_events"), []);
         });
 
         await t.step("calls failure callback", async () => {
