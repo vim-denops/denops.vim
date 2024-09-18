@@ -6,9 +6,9 @@ export const main: Entrypoint = (denops) => {
     test: async (...args) => {
       await delay(100);
       await denops.cmd(
-        `execute 'doautocmd <nomodeline> User' fnameescape('DummyDispatcherPlugin:TestCalled:${
-          JSON.stringify(args)
-        }')`,
+        `doautocmd <nomodeline> User DummyDispatcherPlugin:TestCalled:${
+          JSON.stringify(args).replaceAll(/[ \\"]/g, "\\$&")
+        }`,
       );
       return { result: "OK", args };
     },

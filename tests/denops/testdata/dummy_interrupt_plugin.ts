@@ -7,7 +7,9 @@ export const main: Entrypoint = (denops) => {
     signal?.addEventListener("abort", async () => {
       await delay(100);
       await denops.cmd(
-        `doautocmd <nomodeline> User DummyInterruptPlugin:Interrupted:${signal.reason}`,
+        `doautocmd <nomodeline> User DummyInterruptPlugin:Interrupted:${
+          String(signal.reason).replaceAll(/[ \\"]/g, "\\$&")
+        }`,
       );
     }, { once: true });
   }
