@@ -30,7 +30,7 @@ developers to write plugins in [TypeScript] / [JavaScript] powered by [Deno].
 ## For users
 
 Firstly, install the latest [Deno]. Refer to the
-[Deno official manual](https://deno.land/manual/getting_started/installation)
+[Deno official manual](https://docs.deno.com/runtime/getting_started/installation/)
 for details.
 
 Ensure that the `deno` command is executable from Vim / Neovim (hereafter, when
