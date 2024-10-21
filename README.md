@@ -170,6 +170,12 @@ and ask questions in the
 the conversations are in Japanese, but most of us understand English, and you
 can ask questions in English.
 
+### YouTube
+
+[![Revolutionizing Vim/Neovim Plugin Development ~ An In-Depth Look into Denops
+](http://img.youtube.com/vi/hu9EN7jl2kA/0.jpg)](https://www.youtube.com/watch?v=hu9EN7jl2kA)<br>
+[English slide](https://bit.ly/4eQ8LH5) in a talk at [VimConf 2023 Tiny](https://vimconf.org/2023/) (with Japanese)
+
 ## Misc.
 
 ### Developers
