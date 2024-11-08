@@ -275,7 +275,7 @@ class Plugin {
     try {
       return await this.#denops.dispatcher[fn](...args);
     } catch (err) {
-      const errMsg = err.message ?? err;
+      const errMsg = err instanceof Error ? err.message : String(err);
       throw new Error(
         `Failed to call '${fn}' API in '${this.name}': ${errMsg}`,
       );

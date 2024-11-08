@@ -16,7 +16,7 @@ on:
       verbose:
         type: boolean
         required: false
-        description: 'Enable verbose output'
+        description: "Enable verbose output"
         default: false
 
 defaults:
@@ -34,6 +34,7 @@ jobs:
           - ubuntu-latest
         version:
           - "1.x"
+          - "2.x"
     runs-on: ${{ matrix.runner }}
     steps:
       - run: git config --global core.autocrlf false
@@ -68,6 +69,7 @@ jobs:
         deno_version:
           - "1.45.0"
           - "1.x"
+          - "2.x"
         host_version:
           - vim: "v9.1.0448"
             nvim: "v0.10.0"

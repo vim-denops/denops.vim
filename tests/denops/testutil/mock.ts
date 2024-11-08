@@ -7,7 +7,8 @@ export function pendingPromise(): Promise<never> {
 }
 
 /** Returns a fake `TcpListener` instance. */
-export function createFakeTcpListener(): Deno.TcpListener {
+// NOTE: 'rid' is removed from Deno v2
+export function createFakeTcpListener(): { rid: unknown } & Deno.TcpListener {
   let closeWaiter: PromiseWithResolvers<never> | undefined = Promise
     .withResolvers();
   closeWaiter.promise.catch(() => {});
@@ -54,7 +55,8 @@ export function createFakeTcpListener(): Deno.TcpListener {
 }
 
 /** Returns a fake `TcpConn` instance. */
-export function createFakeTcpConn(): Deno.TcpConn {
+// NOTE: 'rid' is removed from Deno v2
+export function createFakeTcpConn(): { rid: unknown } & Deno.TcpConn {
   return {
     get localAddr() {
       return unimplemented();
