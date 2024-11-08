@@ -57,7 +57,11 @@ Deno.test("createFakeTcpListener()", async (t) => {
           close: 0,
           [Symbol.asyncIterator]: 0,
           [Symbol.dispose]: 0,
-        } as const satisfies Record<keyof Deno.TcpListener, 0>,
+        } as const satisfies Record<
+          // NOTE: 'rid' is removed from Deno v2
+          keyof { rid: unknown } & Deno.TcpListener,
+          0
+        >,
       );
       for (const key of keys) {
         await t.step(key.toString(), () => {
@@ -70,7 +74,10 @@ Deno.test("createFakeTcpListener()", async (t) => {
       const unimplementedProps = [
         "addr",
         "rid",
-      ] as const satisfies readonly GetterKeyOf<Deno.TcpListener>[];
+      ] as const satisfies readonly GetterKeyOf<
+        // NOTE: 'rid' is removed from Deno v2
+        { rid: unknown } & Deno.TcpListener
+      >[];
       for (const key of unimplementedProps) {
         await t.step(`.${key}`, () => {
           assertThrows(() => listener[key], Error, "Unimplemented");
@@ -230,7 +237,11 @@ Deno.test("createFakeTcpConn()", async (t) => {
           close: 0,
           closeWrite: 0,
           [Symbol.dispose]: 0,
-        } as const satisfies Record<keyof Deno.TcpConn, 0>,
+        } as const satisfies Record<
+          // NOTE: 'rid' is removed from Deno v2
+          keyof { rid: unknown } & Deno.TcpConn,
+          0
+        >,
       );
       for (const key of keys) {
         await t.step(key.toString(), () => {
@@ -246,7 +257,10 @@ Deno.test("createFakeTcpConn()", async (t) => {
         "rid",
         "readable",
         "writable",
-      ] as const satisfies readonly GetterKeyOf<Deno.TcpConn>[];
+      ] as const satisfies readonly GetterKeyOf<
+        // NOTE: 'rid' is removed from Deno v2
+        { rid: unknown } & Deno.TcpConn
+      >[];
       for (const key of unimplementedProps) {
         await t.step(`.${key}`, () => {
           assertThrows(() => conn[key], Error, "Unimplemented");
