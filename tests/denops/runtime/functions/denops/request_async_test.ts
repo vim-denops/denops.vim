@@ -130,7 +130,7 @@ testHost({
         });
 
         const normalizeMessage = (events: unknown[]): unknown[] => {
-          return events.map(event => {
+          return events.map((event) => {
             if (!Array.isArray(event) || event.length < 2) {
               return event;
             }
@@ -140,10 +140,10 @@ testHost({
             }
             return [
               event[0],
-              errors.map(error => ({
+              errors.map((error) => ({
                 ...error,
-                message: error?.message?.replace(/\n.*/g, '') ?? error?.message
-              }))
+                message: error?.message?.replace(/\n.*/g, "") ?? error?.message,
+              })),
             ];
           });
         };
@@ -151,7 +151,7 @@ testHost({
         await t.step("calls failure callback", async () => {
           await wait(() => host.call("eval", "len(g:__test_denops_events)"));
           const normalizedEvents = normalizeMessage(
-            await host.call("eval", "g:__test_denops_events") as ErrorEvent[]
+            await host.call("eval", "g:__test_denops_events") as ErrorEvent[],
           );
           assertObjectMatch(
             normalizedEvents,
