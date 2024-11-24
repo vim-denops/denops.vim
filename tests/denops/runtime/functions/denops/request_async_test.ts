@@ -129,17 +129,22 @@ testHost({
           );
         });
 
-        type ErrorEvent = {
-          message: string;
-          name: string;
-        };
-        const normalizeMessage = (events: unknown[]) => {
+        const normalizeMessage = (events: unknown[]): unknown[] => {
           return events.map(event => {
-            const error = (event as unknown[])[1] as ErrorEvent[];
-            if (error[0]?.message) {
-              error[0].message = error[0].message.replace(/\n.*/g, '');
+            if (!Array.isArray(event) || event.length < 2) {
+              return event;
             }
-            return event;
+            const errors = event[1];
+            if (!Array.isArray(errors) || errors.length === 0) {
+              return event;
+            }
+            return [
+              event[0],
+              errors.map(error => ({
+                ...error,
+                message: error?.message?.replace(/\n.*/g, '') ?? error?.message
+              }))
+            ];
           });
         };
 
