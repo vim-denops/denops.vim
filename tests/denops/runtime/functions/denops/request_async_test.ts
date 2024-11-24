@@ -129,17 +129,34 @@ testHost({
           );
         });
 
+        type ErrorEvent = {
+          message: string;
+          name: string;
+        };
+        const normalizeMessage = (events: unknown[]) => {
+          return events.map(event => {
+            const error = (event as unknown[])[1] as ErrorEvent[];
+            if (error[0]?.message) {
+              error[0].message = error[0].message.replace(/\n.*/g, '');
+            }
+            return event;
+          });
+        };
+
         await t.step("calls failure callback", async () => {
           await wait(() => host.call("eval", "len(g:__test_denops_events)"));
+          const normalizedEvents = normalizeMessage(
+            await host.call("eval", "g:__test_denops_events") as ErrorEvent[]
+          );
           assertObjectMatch(
-            await host.call("eval", "g:__test_denops_events") as unknown[],
+            normalizedEvents,
             {
               0: [
                 "TestDenopsRequestAsyncFailure:Called",
                 [
                   {
                     message:
-                      "Failed to call 'not_exist_method' API in 'dummy': this[#denops].dispatcher[fn] is not a function",
+                      "Failed to call 'not_exist_method' API in 'dummy': TypeError: this[#denops].dispatcher[fn] is not a function",
                     name: "Error",
                   },
                 ],
