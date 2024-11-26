@@ -115,6 +115,40 @@ testHost({
         );
       });
 
+      await t.step("if the dispatcher method throws an error", async (t) => {
+        await t.step("returns immediately", async () => {
+          await host.call("execute", [
+            "let g:__test_denops_events = []",
+            "call denops#request_async('dummy', 'fail', ['foo'], 'TestDenopsRequestAsyncSuccess', 'TestDenopsRequestAsyncFailure')",
+            "let g:__test_denops_events_after_called = g:__test_denops_events->copy()",
+          ], "");
+
+          assertEquals(
+            await host.call("eval", "g:__test_denops_events_after_called"),
+            [],
+          );
+        });
+
+        await t.step("calls failure callback", async () => {
+          await wait(() => host.call("eval", "len(g:__test_denops_events)"));
+          assertObjectMatch(
+            await host.call("eval", "g:__test_denops_events") as unknown[],
+            {
+              0: [
+                "TestDenopsRequestAsyncFailure:Called",
+                [
+                  {
+                    message:
+                      "Failed to call 'fail' API in 'dummy': Dummy failure",
+                    name: "Error",
+                  },
+                ],
+              ],
+            },
+          );
+        });
+      });
+
       await t.step("if the dispatcher method is not exist", async (t) => {
         await t.step("returns immediately", async () => {
           await host.call("execute", [

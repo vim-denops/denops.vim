@@ -66,6 +66,22 @@ testHost({
         assertEquals(result, { result: "OK", args: ["foo"] });
       });
 
+      await t.step("if the dispatcher method throws an error", async (t) => {
+        await t.step("throws an error", async () => {
+          await assertRejects(
+            () =>
+              host.call(
+                "denops#request",
+                "dummy",
+                "fail",
+                ["foo"],
+              ),
+            Error,
+            "Failed to call 'fail' API in 'dummy': Dummy failure",
+          );
+        });
+      });
+
       await t.step("if the dispatcher method is not exist", async (t) => {
         await t.step("throws an error", async () => {
           await assertRejects(
