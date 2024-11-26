@@ -77,7 +77,7 @@ testHost({
                 ["foo"],
               ),
             Error,
-            "Failed to call 'not_exist_method' API in 'dummy'",
+            "Failed to call 'not_exist_method' API in 'dummy': this[#denops].dispatcher[fn] is not a function",
           );
         });
       });
