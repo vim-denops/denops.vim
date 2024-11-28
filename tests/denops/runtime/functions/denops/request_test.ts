@@ -1,4 +1,9 @@
-import { assertEquals, assertRejects } from "jsr:@std/assert@^1.0.1";
+import {
+  assertEquals,
+  assertInstanceOf,
+  assertRejects,
+  assertStringIncludes,
+} from "jsr:@std/assert@^1.0.1";
 import { INVALID_PLUGIN_NAMES } from "/denops-testdata/invalid_plugin_names.ts";
 import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
 import { testHost } from "/denops-testutil/host.ts";
@@ -66,6 +71,27 @@ testHost({
         assertEquals(result, { result: "OK", args: ["foo"] });
       });
 
+      await t.step("if the dispatcher method throws an error", async (t) => {
+        await t.step("throws an error", async () => {
+          const result = await host.call(
+            "denops#request",
+            "dummy",
+            "fail",
+            ["foo"],
+          ).catch((e) => e);
+          assertInstanceOf(result, Error);
+          assertStringIncludes(
+            result.message,
+            "Failed to call 'fail' API in 'dummy': Error: Dummy failure",
+          );
+          assertStringIncludes(
+            result.message,
+            "dummy_dispatcher_plugin.ts:19:13",
+            "Error message should include the where the original error occurred",
+          );
+        });
+      });
+
       await t.step("if the dispatcher method is not exist", async (t) => {
         await t.step("throws an error", async () => {
           await assertRejects(
@@ -77,7 +103,7 @@ testHost({
                 ["foo"],
               ),
             Error,
-            "Failed to call 'not_exist_method' API in 'dummy'",
+            "Failed to call 'not_exist_method' API in 'dummy': TypeError: this[#denops].dispatcher[fn] is not a function",
           );
         });
       });

@@ -14,5 +14,9 @@ export const main: Entrypoint = (denops) => {
       );
       return { result: "OK", args };
     },
+    fail: async () => {
+      await delay(MIMIC_DISPATCHER_METHOD_DELAY);
+      throw new Error("Dummy failure");
+    },
   };
 };

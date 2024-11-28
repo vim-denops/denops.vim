@@ -2,6 +2,7 @@ import {
   assertArrayIncludes,
   assertEquals,
   assertObjectMatch,
+  assertStringIncludes,
 } from "jsr:@std/assert@^1.0.1";
 import { INVALID_PLUGIN_NAMES } from "/denops-testdata/invalid_plugin_names.ts";
 import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
@@ -115,6 +116,53 @@ testHost({
         );
       });
 
+      await t.step("if the dispatcher method throws an error", async (t) => {
+        await t.step("returns immediately", async () => {
+          await host.call("execute", [
+            "let g:__test_denops_events = []",
+            "call denops#request_async('dummy', 'fail', ['foo'], 'TestDenopsRequestAsyncSuccess', 'TestDenopsRequestAsyncFailure')",
+            "let g:__test_denops_events_after_called = g:__test_denops_events->copy()",
+          ], "");
+
+          assertEquals(
+            await host.call("eval", "g:__test_denops_events_after_called"),
+            [],
+          );
+        });
+
+        await t.step("calls failure callback", async () => {
+          await wait(() => host.call("eval", "len(g:__test_denops_events)"));
+          const result = await host.call(
+            "eval",
+            "g:__test_denops_events",
+            // deno-lint-ignore no-explicit-any
+          ) as any[];
+          assertObjectMatch(
+            result,
+            {
+              0: [
+                "TestDenopsRequestAsyncFailure:Called",
+                [
+                  {
+                    name: "Error",
+                  },
+                ],
+              ],
+            },
+          );
+          const message = result[0][1][0].message as string;
+          assertStringIncludes(
+            message,
+            "Failed to call 'fail' API in 'dummy': Error: Dummy failure",
+          );
+          assertStringIncludes(
+            message,
+            "dummy_dispatcher_plugin.ts:19:13",
+            "Error message should include the where the original error occurred",
+          );
+        });
+      });
+
       await t.step("if the dispatcher method is not exist", async (t) => {
         await t.step("returns immediately", async () => {
           await host.call("execute", [
@@ -131,20 +179,28 @@ testHost({
 
         await t.step("calls failure callback", async () => {
           await wait(() => host.call("eval", "len(g:__test_denops_events)"));
+          const result = await host.call(
+            "eval",
+            "g:__test_denops_events",
+            // deno-lint-ignore no-explicit-any
+          ) as any[];
           assertObjectMatch(
-            await host.call("eval", "g:__test_denops_events") as unknown[],
+            result,
             {
               0: [
                 "TestDenopsRequestAsyncFailure:Called",
                 [
                   {
-                    message:
-                      "Failed to call 'not_exist_method' API in 'dummy': this[#denops].dispatcher[fn] is not a function",
                     name: "Error",
                   },
                 ],
               ],
             },
+          );
+          const message = result[0][1][0].message as string;
+          assertStringIncludes(
+            message,
+            "Failed to call 'not_exist_method' API in 'dummy': TypeError: this[#denops].dispatcher[fn] is not a function",
           );
         });
       });
