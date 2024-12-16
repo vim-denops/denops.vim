@@ -32,7 +32,7 @@ USAGE							*denops-usage*
 RECOMMENDED					*denops-recommended*
 
 Add the following recommended settings to your |vimrc| or |init.vim|:
->
+>vim
 	" Interrupt the process of plugins via <C-c>
 	noremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
 	inoremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
@@ -57,18 +57,18 @@ launch bottleneck and potentially improving usability.
 
 To start the shared server, execute the following command in the denops.vim
 repository's top directory:
->
+>sh
 	deno run -A --no-lock ./denops/@denops-private/cli.ts
 <
 
 Then specify the server address in |g:denops_server_addr| as follows:
->
+>vim
 	let g:denops_server_addr = '127.0.0.1:32123'
 <
 
 If you want to specify a hostname and port, use the "--hostname" and "--port"
 command arguments as follows:
->
+>sh
 	deno run -A --no-lock \
 		./denops/@denops-private/cli.ts \
 		--hostname=0.0.0.0 \
@@ -214,7 +214,7 @@ denops#request_async({name}, {method}, {params}, {success}, {failure})
 	Note that it uses |denops#callback#register()| with "once" options to
 	register {success} and {failure} internally. So developers MUST
 	use |lambda| expressions to always create new fresh unnamed functions.
->
+>vim
 	" DO NOT
 	call denops#request_async(
 	      \ 'foo', 'bar', [],
@@ -239,7 +239,7 @@ denops#interrupt([{reason}])
 	Note that the interruption is not guaranteed to be immediate.
 
 	Use the following mapping to interrupt the process of plugins:
->
+>vim
 	" For normal/visual/select mode
 	noremap <silent> <C-c> <Cmd>call denops#interrupt()<CR><C-c>
 
@@ -451,7 +451,7 @@ denops#callback#register({callback}[, {options}])
 			anonymous function that will be removed when the
 			callback has been called.
 			Default: |v:false|
->
+>vim
 	" Persistent callback
 	let id = denops#callback#register({ a, b -> a + b })
 	let ret1 = denops#callback#call(id, 1, 2)
