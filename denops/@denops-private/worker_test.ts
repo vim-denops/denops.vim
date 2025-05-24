@@ -96,7 +96,7 @@ function stubDenoCommand() {
   const sandbox = sinon.createSandbox();
   sandbox.stub(Deno.Command.prototype, "output").resolves({
     success: true,
-    stdout: _encoder.encode("v11.22.33-abcdef01"),
+    stdout: new Uint8Array(_encoder.encode("v11.22.33-abcdef01")),
     stderr: new Uint8Array(),
     code: 0,
     signal: null,

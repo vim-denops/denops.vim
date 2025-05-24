@@ -48,7 +48,7 @@ Deno.test("getVersionOr()", async (t) => {
           success: true,
           code: 0,
           signal: null,
-          stdout: new TextEncoder().encode("invalid value"),
+          stdout: new Uint8Array(new TextEncoder().encode("invalid value")),
           stderr: new Uint8Array(),
         }]),
       );
