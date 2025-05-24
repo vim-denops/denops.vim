@@ -36,6 +36,17 @@ async function detectHost(
   return Neovim;
 }
 
+function replacer(_key: string, value: unknown): unknown {
+  if (typeof value === "bigint") {
+    return value.toString();
+  } else if (value instanceof Map) {
+    return Object.fromEntries(value.entries());
+  } else if (value instanceof Set) {
+    return [...value.values()];
+  }
+  return value;
+}
+
 function formatArgs(args: unknown[]): string[] {
   return args.map((v) => {
     if (v instanceof Error) {
@@ -43,7 +54,7 @@ function formatArgs(args: unknown[]): string[] {
     } else if (typeof v === "string") {
       return v;
     }
-    return JSON.stringify(v);
+    return JSON.stringify(v, replacer);
   });
 }
 
