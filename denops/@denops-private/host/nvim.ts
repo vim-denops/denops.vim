@@ -5,7 +5,7 @@ import { isNumber } from "jsr:@core/unknownutil@^4.0.0/is/number";
 import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
 import { isTupleOf } from "jsr:@core/unknownutil@^4.0.0/is/tuple-of";
 import { isUnionOf } from "jsr:@core/unknownutil@^4.0.0/is/union-of";
-import { Client, Session } from "jsr:@lambdalisue/messagepack-rpc@^2.4.0";
+import { Client, Session } from "jsr:@lambdalisue/messagepack-rpc@^2.4.1";
 import { errorDeserializer, errorSerializer } from "../error.ts";
 import { getVersionOr } from "../version.ts";
 import { type Host, invoke, type Service } from "../host.ts";
