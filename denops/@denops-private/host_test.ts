@@ -5,7 +5,7 @@ import {
   stub,
 } from "jsr:@std/testing@^1.0.0/mock";
 import { AssertError } from "jsr:@core/unknownutil@^4.0.0/assert";
-import { unimplemented } from "jsr:@lambdalisue/errorutil@^1.1.0";
+import { unimplemented } from "jsr:@core/errorutil@^1.2.1";
 import { invoke, type Service } from "./host.ts";
 
 Deno.test("invoke", async (t) => {
