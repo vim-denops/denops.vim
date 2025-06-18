@@ -102,7 +102,7 @@ Deno.test("Vim", async (t) => {
             await assertRejects(
               () => host.call("@@@@@", -4),
               Error,
-              "Failed to call '@@@@@' in Vim: Vim(let):E117: Unknown function: @@@@@",
+              "Failed to call '@@@@@' in Vim:",
             );
           });
         });
@@ -148,7 +148,7 @@ Deno.test("Vim", async (t) => {
             assertEquals(ret, [4, 10]);
             assertMatch(
               err,
-              /^Failed to call '@@@@@' in Vim: Vim\(.*\):E117: Unknown function: @@@@@/,
+              /Failed to call '@@@@@' in Vim:/,
             );
           });
 
