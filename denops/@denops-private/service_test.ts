@@ -21,7 +21,7 @@ import {
 import { toFileUrl } from "jsr:@std/path@^1.0.2/to-file-url";
 import type { Meta } from "jsr:@denops/core@^7.0.0";
 import { flushPromises, peekPromiseState } from "jsr:@core/asyncutil@^1.1.1";
-import { unimplemented } from "jsr:@lambdalisue/errorutil@^1.1.0";
+import { unimplemented } from "jsr:@core/errorutil@^1.2.1";
 import { INVALID_PLUGIN_NAMES } from "/denops-testdata/invalid_plugin_names.ts";
 import { resolveTestDataURL } from "/denops-testdata/resolve.ts";
 import type { Host } from "./denops.ts";
