@@ -6,7 +6,7 @@ import {
   writableStreamFromWorker,
 } from "jsr:@lambdalisue/workerio@^4.0.1";
 import { ensure } from "jsr:@core/unknownutil@^4.0.0/ensure";
-import { pop } from "jsr:@lambdalisue/streamtools@^1.0.0";
+import { pop } from "jsr:@core/streamutil@^1.0.0";
 import { asyncSignal } from "jsr:@milly/async-signal@^1.0.0";
 import type { Meta } from "jsr:@denops/core@^7.0.0";
 import type { Host, HostConstructor } from "./host.ts";
