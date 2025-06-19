@@ -5,7 +5,8 @@
     "test": "LANG=C deno test -A --parallel --shuffle",
     "test:coverage": "deno task test --coverage=.coverage",
     "coverage": "deno coverage --exclude=\"test[.]ts(#.*)?$\" .coverage",
-    "update": "deno run --allow-env --allow-read --allow-write --allow-run=git,deno --allow-net=jsr.io,registry.npmjs.org jsr:@molt/cli **/*.ts",
+    // NOTE: `--ignore @std/internal` is required to preserve test fixture.
+    "update": "deno run --allow-env --allow-read --allow-write --allow-run=git,deno --allow-net=jsr.io,registry.npmjs.org jsr:@molt/cli --no-lock --ignore @std/internal **/*.ts",
     "update:write": "deno task -q update --write",
     "update:commit": "deno task -q update --commit --prefix :package: --pre-commit=fmt,lint",
     "apply:supported-versions": "deno run --allow-read --allow-write .scripts/apply_supported_versions.ts"

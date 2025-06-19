@@ -4,7 +4,7 @@ import {
   isErrorObject,
   toErrorObject,
   tryOr,
-} from "jsr:@lambdalisue/errorutil@^1.1.0";
+} from "jsr:@core/errorutil@^1.2.1";
 
 export function errorSerializer(err: unknown): unknown {
   if (err instanceof Error) {

@@ -1,6 +1,6 @@
 // NOTE: Use sinon to stub the getter property.
 // @deno-types="npm:@types/sinon@^17.0.3"
-import sinon from "npm:sinon@^18.0.0";
+import sinon from "npm:sinon@^21.0.0";
 
 import {
   assertEquals,
