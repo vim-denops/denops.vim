@@ -6,4 +6,4 @@
 // See the tasks in *deno.jsonc* for details.
 //
 // DO NOT UPDATE THIS LINE.
-import * as _ from "jsr:@std/internal@1.0.0-non-existent-version";
+import * as _ from "jsr:@std/internal@1.0.8";
