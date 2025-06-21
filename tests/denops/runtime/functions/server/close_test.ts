@@ -217,11 +217,14 @@ testHost({
           "call denops#server#close()",
         ], "");
 
+        // Wait for times out
+        await delay(10);
+
         await host.call("execute", [
           "let g:__test_denops_server_status_after_close_called = denops#server#status()",
         ], "");
 
-        await t.step("closes the channel forcibly", async () => {
+        await t.step("closes the channel forcibly (flaky)", async () => {
           const actual = await host.call(
             "eval",
             "g:__test_denops_server_status_after_close_called",
@@ -229,7 +232,7 @@ testHost({
           assertEquals(actual, "stopped");
         });
 
-        await t.step("fires DenopsClosed", async () => {
+        await t.step("fires DenopsClosed (flaky)", async () => {
           assert(await host.call("exists", "g:__test_denops_closed_fired"));
         });
 

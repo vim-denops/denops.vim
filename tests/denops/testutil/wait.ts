@@ -1,4 +1,6 @@
 import { AssertionError } from "jsr:@std/assert@^1.0.1/assertion-error";
+import { abortable } from "jsr:@std/async@^1.0.1/abortable";
+import { delay } from "jsr:@std/async@^1.0.1/delay";
 import { getConfig } from "./conf.ts";
 
 const DEFAULT_TIMEOUT = 30_000;
@@ -32,40 +34,25 @@ export async function wait<T>(
     interval = DEFAULT_INTERVAL,
     message,
   } = { ...getConfig(), ...options };
-  const TIMEOUT = {};
+  const signal = AbortSignal.timeout(timeout);
 
-  let timeoutId: number | undefined;
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => reject(TIMEOUT), timeout);
-  });
-
-  let intervalId: number | undefined;
-  const delay = () =>
-    new Promise<void>((resolve) => {
-      intervalId = setTimeout(resolve, interval);
-    });
+  const waitTruthy = async () => {
+    for (;;) {
+      const res = await fn();
+      if (res) {
+        return res;
+      }
+      await delay(interval, { signal });
+    }
+  };
 
   try {
-    return await Promise.race([
-      (async () => {
-        for (;;) {
-          const res = await fn();
-          if (res) {
-            return res;
-          }
-          await delay();
-        }
-      })(),
-      timeoutPromise,
-    ]);
+    return await abortable(waitTruthy(), signal);
   } catch (e) {
-    if (e === TIMEOUT) {
+    if (e === signal.reason) {
       const suffix = message ? `: ${message}` : ".";
       throw new AssertionError(`Timeout in ${timeout} millisec${suffix}`);
     }
     throw e;
-  } finally {
-    clearTimeout(timeoutId);
-    clearTimeout(intervalId);
   }
 }

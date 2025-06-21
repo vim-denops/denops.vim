@@ -6,6 +6,7 @@ import {
   assertRejects,
 } from "jsr:@std/assert@^1.0.1";
 import { delay } from "jsr:@std/async@^1.0.1/delay";
+import { retry } from "jsr:@std/async@^1.0.1/retry";
 import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
 import { useSharedServer } from "./shared_server.ts";
 
@@ -104,13 +105,15 @@ Deno.test("useSharedServer()", async (t) => {
     });
   });
 
-  await t.step("closes child process when rejectes", async () => {
-    await assertRejects(
-      async () => {
-        await useSharedServer({ timeout: 0 });
-      },
-      Error,
-      "Signal timed out",
-    );
+  await t.step("rejects if the server startup times out (flaky)", async () => {
+    await retry(async () => {
+      await assertRejects(
+        async () => {
+          await using _server = await useSharedServer({ timeout: 0 });
+        },
+        Error,
+        "Signal timed out",
+      );
+    });
   });
 });

@@ -30,6 +30,12 @@ testHost({
     await host.call("execute", [
       "call denops#server#start()",
       "let g:__test_denops_server_status_when_start_called = denops#server#status()",
+      "function! TestDenopsServerStatusBeforeReady(...) abort",
+      "  if exists('g:__test_denops_ready_fired') | return 0 | endif",
+      "  let g:__test_denops_server_status_before_ready = denops#server#status()",
+      "  call timer_start(0, 'TestDenopsServerStatusBeforeReady')",
+      "endfunction",
+      "call TestDenopsServerStatusBeforeReady()",
     ], "");
 
     await t.step(
@@ -46,14 +52,10 @@ testHost({
     await t.step(
       "returns 'preparing' before DenopsReady is fired (flaky)",
       async () => {
-        const actual = await wait(() =>
-          host.call(
-            "eval",
-            "exists('g:__test_denops_ready_fired')" +
-              "? 'DenopsReady is fired (flaky result)'" +
-              ": denops#server#status() !=# 'starting'" +
-              "  ? denops#server#status() : 0",
-          )
+        await wait(() => host.call("exists", "g:__test_denops_ready_fired"));
+        const actual = await host.call(
+          "eval",
+          "g:__test_denops_server_status_before_ready",
         );
         assertEquals(actual, "preparing");
       },

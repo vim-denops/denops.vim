@@ -142,12 +142,30 @@ testHost({
         // 2nd call, do nothing.
         "let g:__test_denops_server_start_result_2nd = denops#server#start()",
         "let g:__test_denops_server_status_2nd = denops#server#status()",
-      ], "");
-      await host.call("execute", [
         // 3rd call with asynchronously, do nothing.
-        "let g:__test_denops_server_start_result_3rd = denops#server#start()",
-        "let g:__test_denops_server_status_3rd = denops#server#status()",
+        "function! TestDenopsServerStartAlreadyStarting(...) abort",
+        "  try",
+        "    let g:__test_denops_server_start_result_3rd = denops#server#start()",
+        "    let g:__test_denops_server_status_3rd = denops#server#status()",
+        "  catch",
+        "    let g:__test_denops_server_error_3rd = v:exception",
+        "  finally",
+        "    let g:__test_denops_server_called_3rd = 1",
+        "  endtry",
+        "endfunction",
+        "call timer_start(0, 'TestDenopsServerStartAlreadyStarting')",
       ], "");
+      // Wait for the 3rd call to finish.
+      await wait(
+        () => host.call("exists", "g:__test_denops_server_called_3rd"),
+        { message: "3rd call to start() is not finished" },
+      );
+
+      const error = await host.call(
+        "eval",
+        "get(g:, '__test_denops_server_error_3rd', '')",
+      );
+      assertEquals(error, "", "should not throws an error");
 
       await t.step("returns falsy", async () => {
         assertFalse(
@@ -158,13 +176,16 @@ testHost({
         );
       });
 
-      await t.step("does not change status from 'running'", async () => {
-        const actual = await host.call(
-          "eval",
-          "[g:__test_denops_server_status_2nd, g:__test_denops_server_status_3rd]",
-        );
-        assertEquals(actual, ["starting", "starting"]);
-      });
+      await t.step(
+        "does not change status from 'starting' (flaky)",
+        async () => {
+          const actual = await host.call(
+            "eval",
+            "[g:__test_denops_server_status_2nd, g:__test_denops_server_status_3rd]",
+          );
+          assertEquals(actual, ["starting", "starting"]);
+        },
+      );
     });
 
     await t.step("if already connected to shared-server", async (t) => {
