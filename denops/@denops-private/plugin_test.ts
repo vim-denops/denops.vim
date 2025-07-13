@@ -29,6 +29,9 @@ const scriptInvalidConstraint = resolveTestDataURL(
 const scriptInvalidConstraint2 = resolveTestDataURL(
   "dummy_invalid_constraint_plugin2.ts",
 );
+const scriptWithImportMap = resolveTestDataURL(
+  "with_import_map/plugin_with_import_map.ts",
+);
 
 Deno.test("Plugin", async (t) => {
   const meta: Meta = {
@@ -484,6 +487,81 @@ Deno.test("Plugin", async (t) => {
       );
 
       // Plugin should still be loaded
+      assertSpyCalls(_denops_cmd, 1);
+      assertSpyCall(_denops_cmd, 0, {
+        args: ["echo 'Hello, Denops!'"],
+      });
+    });
+  });
+
+  await t.step("import map support", async (t) => {
+    await t.step("loads plugin with import_map.json", async () => {
+      const denops = createDenops();
+      using _denops_call = stub(denops, "call");
+      using _denops_cmd = stub(denops, "cmd");
+
+      const plugin = new Plugin(denops, "test-plugin", scriptWithImportMap);
+
+      await plugin.waitLoaded();
+
+      // Should emit events
+      assertSpyCalls(_denops_call, 2);
+      assertSpyCall(_denops_call, 0, {
+        args: [
+          "denops#_internal#event#emit",
+          "DenopsSystemPluginPre:test-plugin",
+        ],
+      });
+      assertSpyCall(_denops_call, 1, {
+        args: [
+          "denops#_internal#event#emit",
+          "DenopsSystemPluginPost:test-plugin",
+        ],
+      });
+
+      // Should call the plugin's main function
+      assertSpyCalls(_denops_cmd, 1);
+      assertSpyCall(_denops_cmd, 0, {
+        args: ["echo 'Import map plugin initialized'"],
+      });
+    });
+
+    await t.step("plugin can use mapped imports", async () => {
+      const denops = createDenops();
+      using _denops_call = stub(denops, "call");
+      using _denops_cmd = stub(denops, "cmd");
+
+      const plugin = new Plugin(denops, "test-plugin", scriptWithImportMap);
+      await plugin.waitLoaded();
+
+      // Reset spy calls
+      _denops_cmd.calls.length = 0;
+
+      // Call the dispatcher function
+      const result = await plugin.call("test");
+
+      // Should execute the command with the message from the mapped import
+      assertSpyCalls(_denops_cmd, 1);
+      assertSpyCall(_denops_cmd, 0, {
+        args: ["echo 'Import map works for test-plugin!'"],
+      });
+
+      // Should return the greeting from the mapped import
+      assertEquals(result, "Hello from mapped import!");
+    });
+
+    await t.step("works without import map", async () => {
+      const denops = createDenops();
+      using _denops_call = stub(denops, "call");
+      using _denops_cmd = stub(denops, "cmd");
+
+      // Use a regular plugin without import map
+      const plugin = new Plugin(denops, "test-plugin", scriptValid);
+
+      await plugin.waitLoaded();
+
+      // Should load normally
+      assertSpyCalls(_denops_call, 2);
       assertSpyCalls(_denops_cmd, 1);
       assertSpyCall(_denops_cmd, 0, {
         args: ["echo 'Hello, Denops!'"],

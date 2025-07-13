@@ -1,5 +1,13 @@
 import type { Denops, Entrypoint } from "jsr:@denops/core@^7.0.0";
+import {
+  type ImportMap,
+  ImportMapImporter,
+  loadImportMap,
+} from "jsr:@lambdalisue/import-map-importer@^0.3.1";
 import { toFileUrl } from "jsr:@std/path@^1.0.2/to-file-url";
+import { fromFileUrl } from "jsr:@std/path@^1.0.2/from-file-url";
+import { join } from "jsr:@std/path@^1.0.2/join";
+import { dirname } from "jsr:@std/path@^1.0.2/dirname";
 
 type PluginModule = {
   main: Entrypoint;
@@ -26,10 +34,9 @@ export class Plugin {
   }
 
   async #load(): Promise<void> {
-    const suffix = createScriptSuffix(this.script);
     await emit(this.#denops, `DenopsSystemPluginPre:${this.name}`);
     try {
-      const mod: PluginModule = await import(`${this.script}${suffix}`);
+      const mod: PluginModule = await importPlugin(this.script);
       this.#disposable = await mod.main(this.#denops) ?? voidAsyncDisposable;
     } catch (e) {
       // Show a warning message when Deno module cache issue is detected
@@ -135,4 +142,40 @@ function isDenoCacheIssueError(e: unknown): boolean {
     return expects.some((expect) => e.message.startsWith(expect));
   }
   return false;
+}
+
+async function tryLoadImportMap(
+  scriptUrl: string,
+): Promise<ImportMap | undefined> {
+  const PATTERNS = [
+    "import_map.json",
+    "import_map.jsonc",
+  ];
+  // Convert file URL to path for file operations
+  const scriptPath = fromFileUrl(new URL(scriptUrl));
+  const parentDir = dirname(scriptPath);
+  for (const pattern of PATTERNS) {
+    const importMapPath = join(parentDir, pattern);
+    try {
+      return await loadImportMap(importMapPath);
+    } catch (err: unknown) {
+      if (err instanceof Deno.errors.NotFound) {
+        // Ignore NotFound errors and try the next pattern
+        continue;
+      }
+      throw err; // Rethrow other errors
+    }
+  }
+  return undefined;
+}
+
+async function importPlugin(script: string): Promise<PluginModule> {
+  const suffix = createScriptSuffix(script);
+  const importMap = await tryLoadImportMap(script);
+  if (importMap) {
+    const importer = new ImportMapImporter(importMap);
+    return await importer.import<PluginModule>(`${script}${suffix}`);
+  } else {
+    return await import(`${script}${suffix}`);
+  }
 }
