@@ -148,6 +148,8 @@ async function tryLoadImportMap(
   scriptUrl: string,
 ): Promise<ImportMap | undefined> {
   const PATTERNS = [
+    "deno.json",
+    "deno.jsonc",
     "import_map.json",
     "import_map.jsonc",
   ];
