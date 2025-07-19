@@ -13,7 +13,8 @@
   },
   "exclude": [
     ".coverage/",
-    "tests/denops/testdata/no_check/"
+    "tests/denops/testdata/no_check/",
+    "tests/denops/testdata/with_import_map/"
   ],
   // NOTE: Import maps should only be used from test modules.
   "imports": {
