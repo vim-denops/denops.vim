@@ -1,7 +1,0 @@
-{
-  "imports": {
-    "@test/": "../",
-    "@test/lib": "../dummy_valid_plugin.ts",
-    "@test/helper": "./helper.ts"
-  }
-}
