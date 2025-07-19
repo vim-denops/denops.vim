@@ -29,6 +29,7 @@ env:
 jobs:
   check:
     strategy:
+      fail-fast: false
       matrix:
         runner:
           - ubuntu-latest
@@ -44,15 +45,21 @@ jobs:
         with:
           deno-version: "${{ matrix.version }}"
       - name: Lint check
+        if: ${{ !cancelled() }}
         run: deno lint
       - name: Format check
+        if: ${{ !cancelled() }}
         run: deno fmt --check
       - name: Type check
+        if: ${{ !cancelled() }}
         run: deno task check
       - name: Doc check
+        if: ${{ !cancelled() }}
         run: deno task check:doc
       - name: Supported version inconsistency check
+        if: ${{ !cancelled() }}
         run: |
+          git checkout .
           deno task apply:supported-versions
           git diff --exit-code
 
