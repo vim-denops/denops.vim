@@ -145,8 +145,12 @@ function isDenoCacheIssueError(e: unknown): boolean {
 }
 
 async function tryLoadImportMap(
-  scriptUrl: string,
+  script: string,
 ): Promise<ImportMap | undefined> {
+  if (script.startsWith("http://") || script.startsWith("https://")) {
+    // We cannot load import maps for remote scripts
+    return undefined;
+  }
   const PATTERNS = [
     "deno.json",
     "deno.jsonc",
@@ -154,7 +158,9 @@ async function tryLoadImportMap(
     "import_map.jsonc",
   ];
   // Convert file URL to path for file operations
-  const scriptPath = fromFileUrl(new URL(scriptUrl));
+  const scriptPath = script.startsWith("file://")
+    ? fromFileUrl(new URL(script))
+    : script;
   const parentDir = dirname(scriptPath);
   for (const pattern of PATTERNS) {
     const importMapPath = join(parentDir, pattern);
