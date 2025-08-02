@@ -1,10 +1,10 @@
-import type { Predicate } from "jsr:@core/unknownutil@^4.0.0/type";
-import { ensure } from "jsr:@core/unknownutil@^4.0.0/ensure";
-import { asOptional } from "jsr:@core/unknownutil@^4.0.0/as/optional";
-import { isArray } from "jsr:@core/unknownutil@^4.0.0/is/array";
-import { isParametersOf } from "jsr:@core/unknownutil@^4.0.0/is/parameters-of";
-import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
-import { isUnknown } from "jsr:@core/unknownutil@^4.0.0/is/unknown";
+import type { Predicate } from "@core/unknownutil/type";
+import { ensure } from "@core/unknownutil/ensure";
+import { asOptional } from "@core/unknownutil/as/optional";
+import { isArray } from "@core/unknownutil/is/array";
+import { isParametersOf } from "@core/unknownutil/is/parameters-of";
+import { isString } from "@core/unknownutil/is/string";
+import { isUnknown } from "@core/unknownutil/is/unknown";
 
 /**
  * Host (Vim/Neovim) which is visible from Service

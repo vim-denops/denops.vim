@@ -1,5 +1,5 @@
-import { AssertionError, unimplemented } from "jsr:@std/assert@^1.0.1";
-import type { Meta } from "jsr:@denops/core@^7.0.0";
+import { AssertionError, unimplemented } from "@std/assert";
+import type { Meta } from "@denops/core";
 
 /** Returns a Promise that is never resolves or rejects. */
 export function pendingPromise(): Promise<never> {

@@ -1,4 +1,4 @@
-import type { Entrypoint } from "jsr:@denops/core@^7.0.0";
+import type { Entrypoint } from "@denops/core";
 import { getMessage, greeting } from "@test/helper";
 
 export const main: Entrypoint = async (denops) => {

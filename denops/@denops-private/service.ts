@@ -1,5 +1,5 @@
-import type { Meta } from "jsr:@denops/core@^7.0.0";
-import { toErrorObject } from "jsr:@core/errorutil@^1.2.1";
+import type { Meta } from "@denops/core";
+import { toErrorObject } from "@core/errorutil";
 import { DenopsImpl, type Host } from "./denops.ts";
 import type { CallbackId, Service as HostService } from "./host.ts";
 import { Plugin } from "./plugin.ts";

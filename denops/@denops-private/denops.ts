@@ -4,11 +4,11 @@ import {
   type Denops,
   type Dispatcher,
   type Meta,
-} from "jsr:@denops/core@^7.0.0";
-import { ensure } from "jsr:@core/unknownutil@^4.0.0/ensure";
-import { isTupleOf } from "jsr:@core/unknownutil@^4.0.0/is/tuple-of";
-import { isArray } from "jsr:@core/unknownutil@^4.0.0/is/array";
-import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
+} from "@denops/core";
+import { ensure } from "@core/unknownutil/ensure";
+import { isTupleOf } from "@core/unknownutil/is/tuple-of";
+import { isArray } from "@core/unknownutil/is/array";
+import { isString } from "@core/unknownutil/is/string";
 import type { Host as HostOrigin } from "./host.ts";
 import type { Service as ServiceOrigin } from "./service.ts";
 

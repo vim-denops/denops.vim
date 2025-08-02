@@ -1,11 +1,11 @@
-import { assertEquals, assertRejects } from "jsr:@std/assert@^1.0.1";
+import { assertEquals, assertRejects } from "@std/assert";
 import {
   assertSpyCalls,
   resolvesNext,
   returnsNext,
   spy,
-} from "jsr:@std/testing@^1.0.0/mock";
-import { FakeTime } from "jsr:@std/testing@^1.0.0/time";
+} from "@std/testing/mock";
+import { FakeTime } from "@std/testing/time";
 import { wait } from "./wait.ts";
 
 Deno.test("wait()", async (t) => {

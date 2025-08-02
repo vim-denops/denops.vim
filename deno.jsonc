@@ -1,14 +1,15 @@
 {
+  "workspace": [
+    "denops/@denops-private"
+  ],
   "tasks": {
     "check": "deno check **/*.ts",
     "check:doc": "deno test --doc --no-run",
     "test": "LANG=C deno test -A --parallel --shuffle",
     "test:coverage": "deno task test --coverage=.coverage",
-    "coverage": "deno coverage --exclude=\"test[.]ts(#.*)?$\" .coverage",
-    // NOTE: `--ignore @std/internal` is required to preserve test fixture.
-    "update": "deno run --allow-env --allow-read --allow-write --allow-run=git,deno --allow-net=jsr.io,registry.npmjs.org jsr:@molt/cli --no-lock --ignore @std/internal **/*.ts",
-    "update:write": "deno task -q update --write",
-    "update:commit": "deno task -q update --commit --prefix :package: --pre-commit=fmt,lint",
+    "coverage": "deno coverage --exclude=\"test[.]ts(#.*)?$\" --exclude=\"/tests/\" --exclude=\"import_map_importer\" .coverage",
+    "update": "deno outdated --update --latest --recursive",
+    "update:interactive": "deno task update -- --interactive",
     "apply:supported-versions": "deno run --allow-read --allow-write .scripts/apply_supported_versions.ts"
   },
   "exclude": [
@@ -16,10 +17,19 @@
     "tests/denops/testdata/no_check/",
     "tests/denops/testdata/with_import_map/"
   ],
-  // NOTE: Import maps should only be used from test modules.
   "imports": {
     "/denops-private/": "./denops/@denops-private/",
     "/denops-testdata/": "./tests/denops/testdata/",
-    "/denops-testutil/": "./tests/denops/testutil/"
+    "/denops-testutil/": "./tests/denops/testutil/",
+    "@core/asyncutil": "jsr:@core/asyncutil@^1.1.1",
+    "@core/streamutil": "jsr:@core/streamutil@^1.0.0",
+    "@denops/core": "jsr:@denops/core@^7.0.0",
+    "@milly/streams": "jsr:@milly/streams@^1.0.0",
+    "@nick/dispose": "jsr:@nick/dispose@^1.1.0",
+    "@std/assert": "jsr:@std/assert@^1.0.1",
+    "@std/async": "jsr:@std/async@^1.0.1",
+    "@std/path": "jsr:@std/path@^1.0.2",
+    "@std/testing": "jsr:@std/testing@^1.0.0",
+    "sinon": "npm:sinon@^21.0.0"
   }
 }

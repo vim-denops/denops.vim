@@ -1,13 +1,13 @@
-import type { Denops, Entrypoint } from "jsr:@denops/core@^7.0.0";
+import type { Denops, Entrypoint } from "@denops/core";
 import {
   type ImportMap,
   ImportMapImporter,
   loadImportMap,
-} from "jsr:@lambdalisue/import-map-importer@^0.3.1";
-import { toFileUrl } from "jsr:@std/path@^1.0.2/to-file-url";
-import { fromFileUrl } from "jsr:@std/path@^1.0.2/from-file-url";
-import { join } from "jsr:@std/path@^1.0.2/join";
-import { dirname } from "jsr:@std/path@^1.0.2/dirname";
+} from "@lambdalisue/import-map-importer";
+import { toFileUrl } from "@std/path/to-file-url";
+import { fromFileUrl } from "@std/path/from-file-url";
+import { join } from "@std/path/join";
+import { dirname } from "@std/path/dirname";
 
 type PluginModule = {
   main: Entrypoint;

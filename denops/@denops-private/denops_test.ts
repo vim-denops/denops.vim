@@ -1,4 +1,4 @@
-import { BatchError, type Meta } from "jsr:@denops/core@^7.0.0";
+import { BatchError, type Meta } from "@denops/core";
 import {
   assert,
   assertEquals,
@@ -7,14 +7,14 @@ import {
   assertRejects,
   assertStrictEquals,
   unimplemented,
-} from "jsr:@std/assert@^1.0.1";
+} from "@std/assert";
 import {
   assertSpyCallArgs,
   assertSpyCalls,
   resolvesNext,
   stub,
-} from "jsr:@std/testing@^1.0.0/mock";
-import { flushPromises, peekPromiseState } from "jsr:@core/asyncutil@^1.1.1";
+} from "@std/testing/mock";
+import { flushPromises, peekPromiseState } from "@core/asyncutil";
 import { DenopsImpl, type Host, type Service } from "./denops.ts";
 
 type BatchReturn = [results: unknown[], errmsg: string];

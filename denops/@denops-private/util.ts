@@ -1,8 +1,8 @@
-import type { Meta } from "jsr:@denops/core@^7.0.0";
-import type { Predicate } from "jsr:@core/unknownutil@^4.0.0/type";
-import { isLiteralOneOf } from "jsr:@core/unknownutil@^4.0.0/is/literal-one-of";
-import { isObjectOf } from "jsr:@core/unknownutil@^4.0.0/is/object-of";
-import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
+import type { Meta } from "@denops/core";
+import type { Predicate } from "@core/unknownutil/type";
+import { isLiteralOneOf } from "@core/unknownutil/is/literal-one-of";
+import { isObjectOf } from "@core/unknownutil/is/object-of";
+import { isString } from "@core/unknownutil/is/string";
 
 export const isMeta: Predicate<Meta> = isObjectOf({
   mode: isLiteralOneOf(["release", "debug", "test"] as const),

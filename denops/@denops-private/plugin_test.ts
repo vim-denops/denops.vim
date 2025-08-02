@@ -4,16 +4,11 @@ import {
   assertInstanceOf,
   assertRejects,
   assertStringIncludes,
-} from "jsr:@std/assert@^1.0.1";
-import {
-  assertSpyCall,
-  assertSpyCalls,
-  spy,
-  stub,
-} from "jsr:@std/testing@^1.0.0/mock";
-import type { Denops, Meta } from "jsr:@denops/core@^7.0.0";
-import { flushPromises } from "jsr:@core/asyncutil@^1.1.1";
-import { unimplemented } from "jsr:@core/errorutil@^1.2.1";
+} from "@std/assert";
+import { assertSpyCall, assertSpyCalls, spy, stub } from "@std/testing/mock";
+import type { Denops, Meta } from "@denops/core";
+import { flushPromises } from "@core/asyncutil";
+import { unimplemented } from "@core/errorutil";
 import { resolveTestDataURL } from "/denops-testdata/resolve.ts";
 import { Plugin } from "./plugin.ts";
 

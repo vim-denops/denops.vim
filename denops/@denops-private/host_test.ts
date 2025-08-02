@@ -1,11 +1,7 @@
-import { assertThrows } from "jsr:@std/assert@^1.0.1";
-import {
-  assertSpyCall,
-  assertSpyCalls,
-  stub,
-} from "jsr:@std/testing@^1.0.0/mock";
-import { AssertError } from "jsr:@core/unknownutil@^4.0.0/assert";
-import { unimplemented } from "jsr:@core/errorutil@^1.2.1";
+import { assertThrows } from "@std/assert";
+import { assertSpyCall, assertSpyCalls, stub } from "@std/testing/mock";
+import { AssertError } from "@core/unknownutil/assert";
+import { unimplemented } from "@core/errorutil";
 import { invoke, type Service } from "./host.ts";
 
 Deno.test("invoke", async (t) => {

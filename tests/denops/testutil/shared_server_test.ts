@@ -4,9 +4,9 @@ import {
   assertMatch,
   assertNotMatch,
   assertRejects,
-} from "jsr:@std/assert@^1.0.1";
-import { delay } from "jsr:@std/async@^1.0.1/delay";
-import { retry } from "jsr:@std/async@^1.0.1/retry";
+} from "@std/assert";
+import { delay } from "@std/async/delay";
+import { retry } from "@std/async/retry";
 import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
 import { useSharedServer } from "./shared_server.ts";
 

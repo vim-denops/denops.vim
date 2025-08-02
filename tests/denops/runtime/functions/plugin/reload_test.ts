@@ -1,9 +1,5 @@
-import {
-  assertEquals,
-  assertMatch,
-  assertRejects,
-} from "jsr:@std/assert@^1.0.1";
-import { delay } from "jsr:@std/async@^1.0.1";
+import { assertEquals, assertMatch, assertRejects } from "@std/assert";
+import { delay } from "@std/async";
 import { INVALID_PLUGIN_NAMES } from "/denops-testdata/invalid_plugin_names.ts";
 import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
 import { testHost } from "/denops-testutil/host.ts";

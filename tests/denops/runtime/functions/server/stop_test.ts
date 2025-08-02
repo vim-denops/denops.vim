@@ -3,8 +3,8 @@ import {
   assertFalse,
   assertMatch,
   assertRejects,
-} from "jsr:@std/assert@^1.0.1";
-import { AsyncDisposableStack } from "jsr:@nick/dispose@^1.1.0/async-disposable-stack";
+} from "@std/assert";
+import { AsyncDisposableStack } from "@nick/dispose/async-disposable-stack";
 import { testHost } from "/denops-testutil/host.ts";
 import { useSharedServer } from "/denops-testutil/shared_server.ts";
 import { wait } from "/denops-testutil/wait.ts";

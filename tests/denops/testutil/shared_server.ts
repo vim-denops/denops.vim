@@ -1,8 +1,8 @@
-import { assert } from "jsr:@std/assert@^1.0.1";
-import { deadline } from "jsr:@std/async@^1.0.1/deadline";
-import { resolve } from "jsr:@std/path@^1.0.2/resolve";
-import { channel, pop } from "jsr:@core/streamutil@^1.0.0";
-import { tap } from "jsr:@milly/streams@^1.0.0/transform/tap";
+import { assert } from "@std/assert";
+import { deadline } from "@std/async/deadline";
+import { resolve } from "@std/path/resolve";
+import { channel, pop } from "@core/streamutil";
+import { tap } from "@milly/streams/transform/tap";
 import { getConfig } from "./conf.ts";
 
 const DEFAULT_TIMEOUT = 30_000;

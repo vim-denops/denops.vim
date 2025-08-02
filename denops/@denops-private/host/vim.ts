@@ -1,14 +1,10 @@
-import { ensure } from "jsr:@core/unknownutil@^4.0.0/ensure";
-import { isArray } from "jsr:@core/unknownutil@^4.0.0/is/array";
-import { isLiteralOf } from "jsr:@core/unknownutil@^4.0.0/is/literal-of";
-import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
-import { isTupleOf } from "jsr:@core/unknownutil@^4.0.0/is/tuple-of";
-import { isUnknown } from "jsr:@core/unknownutil@^4.0.0/is/unknown";
-import {
-  Client,
-  type Message,
-  Session,
-} from "jsr:@denops/vim-channel-command@^4.0.2";
+import { ensure } from "@core/unknownutil/ensure";
+import { isArray } from "@core/unknownutil/is/array";
+import { isLiteralOf } from "@core/unknownutil/is/literal-of";
+import { isString } from "@core/unknownutil/is/string";
+import { isTupleOf } from "@core/unknownutil/is/tuple-of";
+import { isUnknown } from "@core/unknownutil/is/unknown";
+import { Client, type Message, Session } from "@denops/vim-channel-command";
 import { type Host, invoke, type Service } from "../host.ts";
 
 export class Vim implements Host {
