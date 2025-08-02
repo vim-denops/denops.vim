@@ -1,4 +1,5 @@
 const s:SCRIPT = denops#_internal#path#script(['@denops-private', 'cli.ts'])
+const s:CONFIG = denops#_internal#path#script(['@denops-private', 'deno.jsonc'])
 
 let s:job = v:null
 let s:stopped_on_purpose = 0
@@ -47,6 +48,8 @@ function! s:start(options) abort
   let l:args = [g:denops#server#deno, 'run']
   let l:args += g:denops#server#deno_args
   let l:args += [
+        \ '--config',
+        \ s:CONFIG,
         \ s:SCRIPT,
         \ '--quiet',
         \ '--identity',
