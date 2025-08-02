@@ -1,4 +1,4 @@
-import { join } from "jsr:@std/path@^1.0.2/join";
+import { join } from "@std/path/join";
 
 /** Resolve testdata script path. */
 export function resolveTestDataPath(path: string): string {

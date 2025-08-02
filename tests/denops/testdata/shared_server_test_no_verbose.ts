@@ -1,4 +1,4 @@
-import { delay } from "jsr:@std/async@^1.0.1/delay";
+import { delay } from "@std/async/delay";
 import { useSharedServer } from "/denops-testutil/shared_server.ts";
 
 {

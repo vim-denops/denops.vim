@@ -3,17 +3,17 @@ import {
   assertMatch,
   assertRejects,
   assertStringIncludes,
-} from "jsr:@std/assert@^1.0.1";
+} from "@std/assert";
 import {
   assertSpyCallArgs,
   assertSpyCalls,
   resolvesNext,
   stub,
-} from "jsr:@std/testing@^1.0.0/mock";
-import { delay } from "jsr:@std/async@^1.0.1/delay";
-import { peekPromiseState } from "jsr:@core/asyncutil@^1.1.1";
-import { unimplemented } from "jsr:@core/errorutil@^1.2.1";
-import { Client } from "jsr:@lambdalisue/messagepack-rpc@^2.4.1";
+} from "@std/testing/mock";
+import { delay } from "@std/async/delay";
+import { peekPromiseState } from "@core/asyncutil";
+import { unimplemented } from "@core/errorutil";
+import { Client } from "@lambdalisue/messagepack-rpc";
 import { withNeovim } from "/denops-testutil/with.ts";
 import type { Service } from "../host.ts";
 import { Neovim } from "./nvim.ts";

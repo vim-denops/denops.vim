@@ -1,13 +1,13 @@
 // NOTE: Use sinon to stub the getter property.
 // @deno-types="npm:@types/sinon@^17.0.3"
-import sinon from "npm:sinon@^21.0.0";
+import sinon from "sinon";
 
 import {
   assertEquals,
   assertMatch,
   assertNotMatch,
   assertStringIncludes,
-} from "jsr:@std/assert@^1.0.1";
+} from "@std/assert";
 import {
   assertSpyCallArgs,
   assertSpyCalls,
@@ -16,10 +16,10 @@ import {
   spy,
   type Stub,
   stub,
-} from "jsr:@std/testing@^1.0.0/mock";
-import { FakeTime } from "jsr:@std/testing@^1.0.0/time";
-import { delay } from "jsr:@std/async@^1.0.1/delay";
-import { flushPromises, peekPromiseState } from "jsr:@core/asyncutil@^1.1.1";
+} from "@std/testing/mock";
+import { FakeTime } from "@std/testing/time";
+import { delay } from "@std/async/delay";
+import { flushPromises, peekPromiseState } from "@core/asyncutil";
 import {
   createFakeTcpConn,
   createFakeTcpListener,

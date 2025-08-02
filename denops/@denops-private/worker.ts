@@ -4,11 +4,11 @@
 import {
   readableStreamFromWorker,
   writableStreamFromWorker,
-} from "jsr:@lambdalisue/workerio@^4.0.1";
-import { ensure } from "jsr:@core/unknownutil@^4.0.0/ensure";
-import { pop } from "jsr:@core/streamutil@^1.0.0";
-import { asyncSignal } from "jsr:@milly/async-signal@^1.0.0";
-import type { Meta } from "jsr:@denops/core@^7.0.0";
+} from "@lambdalisue/workerio";
+import { ensure } from "@core/unknownutil/ensure";
+import { pop } from "@core/streamutil";
+import { asyncSignal } from "@milly/async-signal";
+import type { Meta } from "@denops/core";
 import type { Host, HostConstructor } from "./host.ts";
 import { Vim } from "./host/vim.ts";
 import { Neovim } from "./host/nvim.ts";

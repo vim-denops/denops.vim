@@ -1,6 +1,6 @@
-import { AssertionError } from "jsr:@std/assert@^1.0.1/assertion-error";
-import { abortable } from "jsr:@std/async@^1.0.1/abortable";
-import { delay } from "jsr:@std/async@^1.0.1/delay";
+import { AssertionError } from "@std/assert/assertion-error";
+import { abortable } from "@std/async/abortable";
+import { delay } from "@std/async/delay";
 import { getConfig } from "./conf.ts";
 
 const DEFAULT_TIMEOUT = 30_000;

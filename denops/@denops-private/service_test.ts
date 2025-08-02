@@ -10,18 +10,18 @@ import {
   assertRejects,
   assertStrictEquals,
   assertStringIncludes,
-} from "jsr:@std/assert@^1.0.1";
+} from "@std/assert";
 import {
   assertSpyCall,
   assertSpyCalls,
   resolvesNext,
   spy,
   stub,
-} from "jsr:@std/testing@^1.0.0/mock";
-import { toFileUrl } from "jsr:@std/path@^1.0.2/to-file-url";
-import type { Meta } from "jsr:@denops/core@^7.0.0";
-import { flushPromises, peekPromiseState } from "jsr:@core/asyncutil@^1.1.1";
-import { unimplemented } from "jsr:@core/errorutil@^1.2.1";
+} from "@std/testing/mock";
+import { toFileUrl } from "@std/path/to-file-url";
+import type { Meta } from "@denops/core";
+import { flushPromises, peekPromiseState } from "@core/asyncutil";
+import { unimplemented } from "@core/errorutil";
 import { INVALID_PLUGIN_NAMES } from "/denops-testdata/invalid_plugin_names.ts";
 import { resolveTestDataURL } from "/denops-testdata/resolve.ts";
 import type { Host } from "./denops.ts";

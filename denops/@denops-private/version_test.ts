@@ -1,12 +1,12 @@
-import { assert, assertEquals } from "jsr:@std/assert@^1.0.1";
-import { resolvesNext, stub } from "jsr:@std/testing@^1.0.0/mock";
-import type { SemVer } from "jsr:@std/semver@^1.0.1/types";
-import type { Predicate } from "jsr:@core/unknownutil@^4.0.0/type";
-import { isArrayOf } from "jsr:@core/unknownutil@^4.0.0/is/array-of";
-import { isNumber } from "jsr:@core/unknownutil@^4.0.0/is/number";
-import { isObjectOf } from "jsr:@core/unknownutil@^4.0.0/is/object-of";
-import { isString } from "jsr:@core/unknownutil@^4.0.0/is/string";
-import { isUnionOf } from "jsr:@core/unknownutil@^4.0.0/is/union-of";
+import { assert, assertEquals } from "@std/assert";
+import { resolvesNext, stub } from "@std/testing/mock";
+import type { SemVer } from "@std/semver/types";
+import type { Predicate } from "@core/unknownutil/type";
+import { isArrayOf } from "@core/unknownutil/is/array-of";
+import { isNumber } from "@core/unknownutil/is/number";
+import { isObjectOf } from "@core/unknownutil/is/object-of";
+import { isString } from "@core/unknownutil/is/string";
+import { isUnionOf } from "@core/unknownutil/is/union-of";
 import { getVersionOr } from "./version.ts";
 
 Deno.test("getVersionOr()", async (t) => {

@@ -3,21 +3,16 @@ import {
   assertEquals,
   assertInstanceOf,
   assertRejects,
-} from "jsr:@std/assert@^1.0.1";
-import { flushPromises, peekPromiseState } from "jsr:@core/asyncutil@^1.1.1";
+} from "@std/assert";
+import { flushPromises, peekPromiseState } from "@core/asyncutil";
 import {
   createFakeTcpConn,
   createFakeTcpListener,
   createFakeWorker,
   pendingPromise,
 } from "./mock.ts";
-import { assertThrows } from "jsr:@std/assert@^1.0.1/throws";
-import {
-  assertSpyCalls,
-  resolvesNext,
-  spy,
-  stub,
-} from "jsr:@std/testing@^1.0.0/mock";
+import { assertThrows } from "@std/assert/throws";
+import { assertSpyCalls, resolvesNext, spy, stub } from "@std/testing/mock";
 
 // deno-lint-ignore no-explicit-any
 type AnyFn = (...args: any[]) => unknown;

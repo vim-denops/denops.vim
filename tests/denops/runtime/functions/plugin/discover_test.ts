@@ -1,9 +1,5 @@
-import {
-  assertArrayIncludes,
-  assertEquals,
-  assertMatch,
-} from "jsr:@std/assert@^1.0.1";
-import { delay } from "jsr:@std/async@^1.0.1";
+import { assertArrayIncludes, assertEquals, assertMatch } from "@std/assert";
+import { delay } from "@std/async";
 import { resolveTestDataPath } from "/denops-testdata/resolve.ts";
 import { testHost } from "/denops-testutil/host.ts";
 import { wait } from "/denops-testutil/wait.ts";

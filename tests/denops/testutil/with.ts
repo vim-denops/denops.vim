@@ -1,5 +1,5 @@
-import { channel } from "jsr:@core/streamutil@^1.0.0";
-import { tap } from "jsr:@milly/streams@^1.0.0/transform/tap";
+import { channel } from "@core/streamutil";
+import { tap } from "@milly/streams/transform/tap";
 import { ADDR_ENV_NAME } from "./cli.ts";
 import { getConfig } from "./conf.ts";
 
