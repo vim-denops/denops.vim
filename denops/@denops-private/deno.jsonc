@@ -2,6 +2,7 @@
   "imports": {
     "@core/asyncutil": "jsr:@core/asyncutil@^1.1.1",
     "@core/errorutil": "jsr:@core/errorutil@^1.2.1",
+    "@core/streamutil": "jsr:@core/streamutil@^1.0.0",
     "@core/unknownutil": "jsr:@core/unknownutil@^4.0.0",
     "@denops/core": "jsr:@denops/core@^7.0.0",
     "@denops/vim-channel-command": "jsr:@denops/vim-channel-command@^4.0.2",
