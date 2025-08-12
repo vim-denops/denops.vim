@@ -2,12 +2,15 @@ import type { Denops, Entrypoint } from "@denops/core";
 import {
   type ImportMap,
   ImportMapImporter,
+  isImportMap,
   loadImportMap,
 } from "@lambdalisue/import-map-importer";
+import { ensure } from "@core/unknownutil";
 import { toFileUrl } from "@std/path/to-file-url";
 import { fromFileUrl } from "@std/path/from-file-url";
 import { join } from "@std/path/join";
 import { dirname } from "@std/path/dirname";
+import { parse as parseJsonc } from "@std/jsonc";
 
 type PluginModule = {
   main: Entrypoint;
@@ -165,7 +168,12 @@ async function tryLoadImportMap(
   for (const pattern of PATTERNS) {
     const importMapPath = join(parentDir, pattern);
     try {
-      return await loadImportMap(importMapPath);
+      return await loadImportMap(importMapPath, {
+        loader: (path: string) => {
+          const content = Deno.readTextFileSync(path);
+          return ensure(parseJsonc(content), isImportMap);
+        },
+      });
     } catch (err: unknown) {
       if (err instanceof Deno.errors.NotFound) {
         // Ignore NotFound errors and try the next pattern

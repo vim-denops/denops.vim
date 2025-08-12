@@ -6,7 +6,7 @@
     "@core/unknownutil": "jsr:@core/unknownutil@^4.0.0",
     "@denops/core": "jsr:@denops/core@^7.0.0",
     "@denops/vim-channel-command": "jsr:@denops/vim-channel-command@^4.0.2",
-    "@lambdalisue/import-map-importer": "jsr:@lambdalisue/import-map-importer@^0.4.0",
+    "@lambdalisue/import-map-importer": "jsr:@lambdalisue/import-map-importer@^0.5.0",
     "@lambdalisue/messagepack": "jsr:@lambdalisue/messagepack@^1.0.1",
     "@lambdalisue/messagepack-rpc": "jsr:@lambdalisue/messagepack-rpc@^2.4.1",
     "@lambdalisue/workerio": "jsr:@lambdalisue/workerio@^4.0.1",
@@ -14,6 +14,7 @@
     "@nick/dispose": "jsr:@nick/dispose@^1.1.0",
     "@std/async": "jsr:@std/async@^1.0.1",
     "@std/cli": "jsr:@std/cli@^1.0.1",
+    "@std/jsonc": "jsr:@std/jsonc@^1.0.2",
     "@std/path": "jsr:@std/path@^1.0.2",
     "@std/semver": "jsr:@std/semver@^1.0.1"
   }
