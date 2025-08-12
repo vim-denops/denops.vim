@@ -1,0 +1,8 @@
+{
+  // `importMap` is defined, but ...
+  "importMap": "./other_path/other_name.json",
+  // `imports` is defined, so it will override the `importMap`
+  "imports": {
+    "@test/helper": "./helper.ts"
+  }
+}

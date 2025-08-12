@@ -1,3 +1,6 @@
+import { isObjectOf } from "@core/unknownutil/is/object-of";
+import { isString } from "@core/unknownutil/is/string";
+import { isUndefined } from "@core/unknownutil/is/undefined";
 import type { Denops, Entrypoint } from "@denops/core";
 import {
   type ImportMap,
@@ -153,6 +156,19 @@ function isDenoCacheIssueError(e: unknown): boolean {
   return false;
 }
 
+async function loadJson(fileUrl: URL): Promise<unknown> {
+  const content = await Deno.readTextFile(fileUrl);
+  // Always parse as JSONC to be more permissive
+  return parseJsonc(content);
+}
+
+const hasImportMapProperty = isObjectOf({
+  importMap: isString,
+  // If `imports` or `scopes` exists, they will be override `importMap`
+  imports: isUndefined,
+  scopes: isUndefined,
+});
+
 async function tryLoadImportMap(
   scriptUrl: URL,
 ): Promise<ImportMap | undefined> {
@@ -167,15 +183,12 @@ async function tryLoadImportMap(
     "import_map.jsonc",
   ];
   for (const pattern of PATTERNS) {
-    const importMapUrl = new URL(pattern, scriptUrl);
-    const importMapPath = fromFileUrl(importMapUrl);
+    let importMapUrl = new URL(pattern, scriptUrl);
+
+    // Try to load the import map or deno configuration file
+    let jsonValue: unknown;
     try {
-      return await loadImportMap(importMapPath, {
-        loader: (path: string) => {
-          const content = Deno.readTextFileSync(path);
-          return ensure(parseJsonc(content), isImportMap);
-        },
-      });
+      jsonValue = await loadJson(importMapUrl);
     } catch (err: unknown) {
       if (err instanceof Deno.errors.NotFound) {
         // Ignore NotFound errors and try the next pattern
@@ -183,6 +196,21 @@ async function tryLoadImportMap(
       }
       throw err; // Rethrow other errors
     }
+
+    // Resolve import map path in the deno configuration and load it
+    if (
+      /\/deno\.jsonc?$/.test(importMapUrl.pathname) &&
+      hasImportMapProperty(jsonValue)
+    ) {
+      importMapUrl = new URL(jsonValue.importMap, importMapUrl);
+      jsonValue = await loadJson(importMapUrl);
+    }
+
+    // Resolve relative paths in the import map and return it
+    const importMapPath = fromFileUrl(importMapUrl);
+    return await loadImportMap(importMapPath, {
+      loader: () => ensure(jsonValue, isImportMap),
+    });
   }
   return undefined;
 }

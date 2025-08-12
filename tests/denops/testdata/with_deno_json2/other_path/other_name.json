@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "@test/helper": "./helper.ts"
+  }
+}
