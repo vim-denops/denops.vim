@@ -8,8 +8,6 @@ import {
 import { ensure } from "@core/unknownutil";
 import { toFileUrl } from "@std/path/to-file-url";
 import { fromFileUrl } from "@std/path/from-file-url";
-import { join } from "@std/path/join";
-import { dirname } from "@std/path/dirname";
 import { parse as parseJsonc } from "@std/jsonc";
 
 type PluginModule = {
@@ -21,14 +19,18 @@ export class Plugin {
   #loadedWaiter: Promise<void>;
   #unloadedWaiter?: Promise<void>;
   #disposable: AsyncDisposable = voidAsyncDisposable;
+  #scriptUrl: URL;
 
   readonly name: string;
-  readonly script: string;
+
+  get script(): string {
+    return this.#scriptUrl.href;
+  }
 
   constructor(denops: Denops, name: string, script: string) {
     this.#denops = denops;
     this.name = name;
-    this.script = resolveScriptUrl(script);
+    this.#scriptUrl = resolveScriptUrl(script);
     this.#loadedWaiter = this.#load();
   }
 
@@ -39,7 +41,7 @@ export class Plugin {
   async #load(): Promise<void> {
     await emit(this.#denops, `DenopsSystemPluginPre:${this.name}`);
     try {
-      const mod: PluginModule = await importPlugin(this.script);
+      const mod: PluginModule = await importPlugin(this.#scriptUrl);
       this.#disposable = await mod.main(this.#denops) ?? voidAsyncDisposable;
     } catch (e) {
       // Show a warning message when Deno module cache issue is detected
@@ -110,12 +112,16 @@ const voidAsyncDisposable = {
 
 const loadedScripts = new Set<string>();
 
-function createScriptSuffix(script: string): string {
+function refreshScriptFragment(scriptUrl: URL): URL {
   // Import module with fragment so that reload works properly
   // https://github.com/vim-denops/denops.vim/issues/227
-  const suffix = loadedScripts.has(script) ? `#${performance.now()}` : "";
-  loadedScripts.add(script);
-  return suffix;
+  if (loadedScripts.has(scriptUrl.href)) {
+    // Keep the original fragment and add a timestamp
+    const fragment = `${scriptUrl.hash}#${performance.now()}`;
+    return new URL(fragment, scriptUrl);
+  }
+  loadedScripts.add(scriptUrl.href);
+  return scriptUrl;
 }
 
 /** NOTE: `emit()` is never throws or rejects. */
@@ -127,11 +133,11 @@ async function emit(denops: Denops, name: string): Promise<void> {
   }
 }
 
-function resolveScriptUrl(script: string): string {
+function resolveScriptUrl(script: string): URL {
   try {
-    return toFileUrl(script).href;
+    return toFileUrl(script);
   } catch {
-    return new URL(script, import.meta.url).href;
+    return new URL(script);
   }
 }
 
@@ -148,9 +154,9 @@ function isDenoCacheIssueError(e: unknown): boolean {
 }
 
 async function tryLoadImportMap(
-  script: string,
+  scriptUrl: URL,
 ): Promise<ImportMap | undefined> {
-  if (script.startsWith("http://") || script.startsWith("https://")) {
+  if (scriptUrl.protocol !== "file:") {
     // We cannot load import maps for remote scripts
     return undefined;
   }
@@ -160,13 +166,9 @@ async function tryLoadImportMap(
     "import_map.json",
     "import_map.jsonc",
   ];
-  // Convert file URL to path for file operations
-  const scriptPath = script.startsWith("file://")
-    ? fromFileUrl(new URL(script))
-    : script;
-  const parentDir = dirname(scriptPath);
   for (const pattern of PATTERNS) {
-    const importMapPath = join(parentDir, pattern);
+    const importMapUrl = new URL(pattern, scriptUrl);
+    const importMapPath = fromFileUrl(importMapUrl);
     try {
       return await loadImportMap(importMapPath, {
         loader: (path: string) => {
@@ -185,13 +187,13 @@ async function tryLoadImportMap(
   return undefined;
 }
 
-async function importPlugin(script: string): Promise<PluginModule> {
-  const suffix = createScriptSuffix(script);
-  const importMap = await tryLoadImportMap(script);
+async function importPlugin(scriptUrl: URL): Promise<PluginModule> {
+  scriptUrl = refreshScriptFragment(scriptUrl);
+  const importMap = await tryLoadImportMap(scriptUrl);
   if (importMap) {
     const importer = new ImportMapImporter(importMap);
-    return await importer.import<PluginModule>(`${script}${suffix}`);
+    return await importer.import<PluginModule>(scriptUrl.href);
   } else {
-    return await import(`${script}${suffix}`);
+    return await import(scriptUrl.href);
   }
 }
