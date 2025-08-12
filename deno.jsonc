@@ -15,7 +15,8 @@
   "exclude": [
     ".coverage/",
     "tests/denops/testdata/no_check/",
-    "tests/denops/testdata/with_import_map/"
+    "tests/denops/testdata/with_import_map/",
+    "tests/denops/testdata/with_import_map_jsonc/"
   ],
   "imports": {
     "/denops-private/": "./denops/@denops-private/",
