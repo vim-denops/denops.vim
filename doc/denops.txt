@@ -10,6 +10,8 @@ INTERFACE				|denops-interface|
   VARIABLE				|denops-variable|
   FUNCTION				|denops-function|
   AUTOCMD				|denops-autocmd|
+DEVELOPMENT				|denops-development|
+  IMPORT MAPS				|denops-import-maps|
 
 
 =============================================================================
@@ -527,6 +529,131 @@ DenopsProcessStarted					*DenopsProcessStarted*
 DenopsProcessStopped:{exitcode}				*DenopsProcessStopped*
 	Fired when the Denops local server process is stopped.
 	It is never fired in shared server mode.
+
+
+=============================================================================
+DEVELOPMENT						*denops-development*
+
+This section provides information for denops plugin developers.
+
+For comprehensive development guides, visit:
+- Denops Document: https://vim-denops.github.io/denops-documentation/
+- Wiki: https://github.com/vim-denops/denops.vim/wiki
+- API Reference: https://jsr.io/@denops/std
+
+-----------------------------------------------------------------------------
+IMPORT MAPS						*denops-import-maps*
+
+Denops supports import maps to help plugin developers manage dependencies
+more effectively. Import maps allow you to define module specifiers and their
+corresponding URLs, making dependency management and version control easier.
+
+When loading a denops plugin, the system automatically searches for import
+map files in the plugin directory. If found, the import map is used to
+resolve module specifiers during plugin import.
+
+Workspace Configuration ~
+
+For projects with a `deno.json` or `deno.jsonc` file in the root directory,
+you can use the "workspace" field to enable Deno development tools to work
+across plugin directories while maintaining separate dependency configurations:
+>json
+	{
+	  "workspace": [
+	    "./denops/my-plugin"
+	  ]
+	}
+<
+
+This prevents configuration conflicts between multiple plugins while allowing
+unified development tooling (`deno fmt`, `deno lint`, `deno test`) to run
+from the project root.
+
+Supported Files ~
+
+The import map feature searches for the following files in order:
+
+1. `deno.json`
+2. `deno.jsonc` (JSONC with comments support)
+3. `import_map.json`
+4. `import_map.jsonc` (JSONC with comments support)
+
+The first file found will be used as the import map for the plugin.
+
+File Format ~
+
+Import map files should contain an "imports" field that maps module
+specifiers to their corresponding URLs:
+>json
+	{
+	  "imports": {
+	    "@std/path": "jsr:@std/path@^1.0.2",
+	    "@std/async": "jsr:@std/async@^1.0.1",
+	    "@test/": "../",
+	    "@test/helper": "./helper.ts"
+	  }
+	}
+<
+
+JSONC format supports comments for better documentation:
+>jsonc
+	{
+	  // Import map configuration for MyPlugin
+	  "imports": {
+	    // Standard library dependencies
+	    "@std/path": "jsr:@std/path@^1.0.2",
+	    "@std/async": "jsr:@std/async@^1.0.1",
+	    
+	    // Local utilities
+	    "@test/": "../",
+	    "@test/helper": "./helper.ts"
+	  }
+	}
+<
+
+Usage in Plugins ~
+
+Once an import map is configured, you can use the mapped specifiers in your
+plugin code:
+>typescript
+	import type { Denops } from "@denops/core";
+	import { join } from "@std/path";
+	import { delay } from "@std/async";
+	import { helper } from "@test/helper";
+
+	export async function main(denops: Denops): Promise<void> {
+	  const configPath = join(
+	    await denops.call("stdpath", "config"),
+	    "plugin.json"
+	  );
+	  await delay(100);
+	  helper.doSomething();
+	}
+<
+
+Limitations ~
+
+- Import map files must be located in the same directory as the plugin's
+  main file.
+
+Example Plugin Structure ~
+>
+	my-vim-plugin/
+	├── deno.json
+	└── denops/
+	    └── my-plugin/
+	        ├── main.ts
+	        ├── lib/
+	        │   └── utils.ts
+	        └── deno.json
+<
+
+Implementation Details ~
+
+- The feature uses the `@lambdalisue/import-map-importer` library internally
+- Import maps are loaded automatically when the plugin is imported
+- JSONC parsing is handled using Deno's standard library
+
 
 =============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
