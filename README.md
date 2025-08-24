@@ -3,9 +3,9 @@
 <strong>Denops</strong><br>
 <sup>An ecosystem for Vim/Neovim enabling developers to write plugins in Deno.</sup>
 
-[![Deno 1.45.0 or above](https://img.shields.io/badge/Deno-Support%201.45.0-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v1.45.0)
-[![Vim 9.1.0448 or above](https://img.shields.io/badge/Vim-Support%209.1.0448-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v9.1.0448)
-[![Neovim 0.10.0 or above](https://img.shields.io/badge/Neovim-Support%200.10.0-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.10.0)
+[![Deno 2.3.0 or above](https://img.shields.io/badge/Deno-Support%202.3.0-yellowgreen.svg?logo=deno)](https://github.com/denoland/deno/tree/v2.3.0)
+[![Vim 9.1.1646 or above](https://img.shields.io/badge/Vim-Support%209.1.1646-yellowgreen.svg?logo=vim)](https://github.com/vim/vim/tree/v9.1.1646)
+[![Neovim 0.11.3 or above](https://img.shields.io/badge/Neovim-Support%200.11.3-yellowgreen.svg?logo=neovim&logoColor=white)](https://github.com/neovim/neovim/tree/v0.11.3)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![test](https://github.com/vim-denops/denops.vim/actions/workflows/test.yml/badge.svg)](https://github.com/vim-denops/denops.vim/actions/workflows/test.yml)
