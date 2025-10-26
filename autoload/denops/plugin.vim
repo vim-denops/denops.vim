@@ -82,7 +82,7 @@ function! denops#plugin#check_type(...) abort
     const l:plugins = denops#_internal#plugin#list()
   endif
   const l:scripts = l:plugins
-        \->copy()->map({ _, v -> v.script })->filter({ _, v -> v !=# '' })
+        \->mapnew({ _, v -> v.script })->filter({ _, v -> v !=# '' })
   if empty(l:scripts)
     call denops#_internal#echo#info("No plugins are loaded")
     return

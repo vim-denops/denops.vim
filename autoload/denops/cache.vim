@@ -5,7 +5,7 @@ let s:job = v:null
 function! denops#cache#update(...) abort
   const l:options = extend(#{ reload: v:false }, a:0 ? a:1 : {})
   const l:plugins = denops#_internal#plugin#list()
-  const l:entryfiles = extend([s:mod], map(copy(l:plugins), { _, v -> v.script }))
+  const l:entryfiles = extend([s:mod], mapnew(l:plugins, { _, v -> v.script }))
 
   let l:args = [g:denops#deno, 'cache']
 
