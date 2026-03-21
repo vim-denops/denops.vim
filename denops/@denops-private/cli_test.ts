@@ -288,7 +288,7 @@ Deno.test("main()", async (t) => {
         );
 
         await t.step("and the worker stream is closed", async (t) => {
-          fakeWorker.onmessage(new MessageEvent("message", { data: null }));
+          fakeWorker.onmessage!(new MessageEvent("message", { data: null }));
           await delay(0);
 
           await t.step("calls Worker.terminate()", () => {
@@ -453,7 +453,7 @@ Deno.test("main()", async (t) => {
         assertSpyCalls(globalThis_Worker, 1);
         fakeTcpListener.close();
 
-        fakeWorker.onmessage(new MessageEvent("message", { data: null }));
+        fakeWorker.onmessage!(new MessageEvent("message", { data: null }));
         await delay(0);
 
         await t.step("calls Worker.terminate()", () => {
@@ -557,7 +557,7 @@ Deno.test("main()", async (t) => {
         await delay(0);
 
         await t.step("and the worker stream is closed", async (t) => {
-          fakeWorker.onmessage(new MessageEvent("message", { data: null }));
+          fakeWorker.onmessage!(new MessageEvent("message", { data: null }));
           await delay(0);
 
           await t.step("outputs error logs", () => {
