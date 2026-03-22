@@ -145,8 +145,13 @@ for (const { host, mode } of matrix) {
           throw error;
         });
 
-        await delay(0);
-        assertEquals(consoleStub.error.firstCall.args, [
+        // NOTE: The unhandledrejection event dispatch timing varies across
+        // platforms and Deno versions. Poll until console.error is called.
+        const deadline = Date.now() + 5000;
+        while (!consoleStub.error.firstCall && Date.now() < deadline) {
+          await delay(10);
+        }
+        assertEquals(consoleStub.error.firstCall?.args, [
           "Unhandled rejection:",
           error,
         ]);

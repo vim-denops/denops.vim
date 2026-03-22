@@ -24,6 +24,10 @@ type MethodKeyOf<T extends AnyRecord> = ({
   [K in keyof T]: T[K] extends AnyFn ? K : never;
 })[keyof T];
 
+type NullableMethodKeyOf<T extends AnyRecord> = ({
+  [K in keyof T]: T[K] extends AnyFn | null ? K : never;
+})[keyof T];
+
 type GetterKeyOf<T extends AnyRecord> = ({
   [K in keyof T]: T[K] extends AnyFn ? never : K;
 })[keyof T];
@@ -337,7 +341,7 @@ Deno.test("createFakeWorker()", async (t) => {
         "removeEventListener",
         "dispatchEvent",
         "terminate",
-      ] as const satisfies readonly MethodKeyOf<Worker>[];
+      ] as const satisfies readonly NullableMethodKeyOf<Worker>[];
       for (const key of unimplementedMethods) {
         await t.step(`.${key}()`, () => {
           assertThrows(() => (worker[key] as AnyFn)(), Error, "Unimplemented");
