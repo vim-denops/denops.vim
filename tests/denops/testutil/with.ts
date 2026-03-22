@@ -56,7 +56,7 @@ export function withVim<T>(
     "-c",
     "visual", // Go to Normal mode
     "-c",
-    "set columns=9999", // Avoid unwilling output newline
+    "set columns=9999 shortmess-=T", // Avoid unwilling output newline/truncation
     ...commands.flatMap((c) => ["-c", c]),
   ];
   return withProcess(cmd, args, { verbose: conf.verbose, ...options });
