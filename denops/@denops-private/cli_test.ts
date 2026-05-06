@@ -1,5 +1,5 @@
 // NOTE: Use sinon to stub the getter property.
-// @deno-types="npm:@types/sinon@^17.0.3"
+// @deno-types="npm:@types/sinon@^21.0.0"
 import sinon from "sinon";
 
 import {
