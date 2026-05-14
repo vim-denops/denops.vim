@@ -14,8 +14,8 @@ export async function getVersionOr<T>(fallback: T): Promise<SemVer | T> {
     stdout: "piped",
     stderr: "null",
   });
-  const { success, stdout } = await command.output();
   try {
+    const { success, stdout } = await command.output();
     if (!success) {
       return fallback;
     }
