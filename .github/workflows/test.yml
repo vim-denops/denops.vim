@@ -6,11 +6,9 @@ on:
       - main
   pull_request:
     paths:
-      - "**.ts"
-      - "**.vim"
-      - "**.md"
-      - "**.json{c,}"
-      - ".github/workflows/test.yml"
+      - "**"
+      - "!**.md"
+      - "!**.txt"
   workflow_dispatch:
     inputs:
       verbose:
