@@ -1,4 +1,4 @@
-// @deno-types="npm:@types/sinon@^17.0.3"
+// @deno-types="npm:@types/sinon@^22.0.0"
 import sinon from "sinon";
 import {
   assertEquals,
