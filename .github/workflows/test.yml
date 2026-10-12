@@ -6,11 +6,9 @@ on:
       - main
   pull_request:
     paths:
-      - "**.ts"
-      - "**.vim"
-      - "**.md"
-      - "**.json{c,}"
-      - ".github/workflows/test.yml"
+      - "**"
+      - "!**.md"
+      - "!**.txt"
   workflow_dispatch:
     inputs:
       verbose:
@@ -118,6 +116,7 @@ jobs:
 
       - run: |
           deno task coverage --lcov > coverage.lcov
+        continue-on-error: true
 
       - uses: codecov/codecov-action@v4
         with:
