@@ -49,10 +49,13 @@ function stubConsole() {
 
 function stubMessage() {
   const workerGlobal = globalThis as DedicatedWorkerGlobalScope;
+  // Use separate sandboxes so that stubs are restored before the defined
+  // properties are removed.
+  const defineSandbox = sinon.createSandbox();
   const sandbox = sinon.createSandbox();
-  sandbox.define(workerGlobal, "postMessage", () => {});
+  defineSandbox.define(workerGlobal, "postMessage", () => {});
   const postMessage = sandbox.stub(workerGlobal, "postMessage");
-  sandbox.define(workerGlobal, "onmessage", null);
+  defineSandbox.define(workerGlobal, "onmessage", null);
   const onmessage = sandbox.stub(workerGlobal, "onmessage");
   const fakeHostMessage = (data: unknown) => {
     workerGlobal.onmessage?.(new MessageEvent("message", { data }));
@@ -64,6 +67,7 @@ function stubMessage() {
     fakeHostMessage,
     [Symbol.dispose]() {
       sandbox.restore();
+      defineSandbox.restore();
     },
   };
 }
