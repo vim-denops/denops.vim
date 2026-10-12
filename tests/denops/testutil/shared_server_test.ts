@@ -107,13 +107,15 @@ Deno.test("useSharedServer()", async (t) => {
 
   await t.step("rejects if the server startup times out (flaky)", async () => {
     await retry(async () => {
-      await assertRejects(
+      // NOTE: The message of the timeout error differs between Deno versions,
+      // so check the error name instead.
+      const error = await assertRejects(
         async () => {
           await using _server = await useSharedServer({ timeout: 0 });
         },
-        Error,
-        "Signal timed out",
+        DOMException,
       );
+      assertEquals(error.name, "TimeoutError");
     });
   });
 });
