@@ -3,6 +3,9 @@
 # Docs: https://gh.io/actions-lockfile
 version: 'v0.0.3'
 workflows:
+    '.github/workflows/dependency-review.yml':
+        - 'actions/checkout@v4.4.0'
+        - 'actions/dependency-review-action@v5.0.0'
     '.github/workflows/test.yml':
         - 'actions/checkout@v4.4.0'
         - 'codecov/codecov-action@v4.6.0'
@@ -14,6 +17,11 @@ dependencies:
         commit: 'sha1-11d5960a326750d5838078e36cf38b85af677262'
         owner_id: 44036562
         repo_id: 197814629
+    'actions/dependency-review-action@v5.0.0':
+        ref: 'v5.0.0'
+        commit: 'sha1-a1d282b36b6f3519aa1f3fc636f609c47dddb294'
+        owner_id: 44036562
+        repo_id: 476372928
     'codecov/codecov-action@v4.6.0':
         ref: 'v4.6.0'
         commit: 'sha1-b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238'
