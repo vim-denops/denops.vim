@@ -40,7 +40,7 @@ jobs:
     steps:
       - run: git config --global core.autocrlf false
         if: runner.os == 'Windows'
-      - uses: actions/checkout@v4.4.0
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
       - uses: denoland/setup-deno@v2.0.5
@@ -88,7 +88,7 @@ jobs:
       - run: git config --global core.autocrlf false
         if: runner.os == 'Windows'
 
-      - uses: actions/checkout@v4.4.0
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -126,7 +126,7 @@ jobs:
           deno task coverage --lcov > coverage.lcov
         continue-on-error: true
 
-      - uses: codecov/codecov-action@v4.6.0
+      - uses: codecov/codecov-action@v7.1.1
         with:
           os: ${{ runner.os }}
           files: ./coverage.lcov
