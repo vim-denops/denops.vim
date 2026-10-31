@@ -24,6 +24,9 @@ defaults:
 env:
   DENOPS_TEST_VERBOSE: ${{ github.event.inputs.verbose }}
 
+permissions:
+  contents: read
+
 jobs:
   check:
     strategy:
@@ -38,6 +41,8 @@ jobs:
       - run: git config --global core.autocrlf false
         if: runner.os == 'Windows'
       - uses: actions/checkout@v4.4.0
+        with:
+          persist-credentials: false
       - uses: denoland/setup-deno@v2.0.5
         with:
           deno-version: "${{ matrix.deno_version }}"
@@ -84,6 +89,8 @@ jobs:
         if: runner.os == 'Windows'
 
       - uses: actions/checkout@v4.4.0
+        with:
+          persist-credentials: false
 
       - uses: denoland/setup-deno@v2.0.5
         with:
